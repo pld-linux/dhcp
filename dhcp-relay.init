@@ -19,11 +19,16 @@ if is_no "${NETWORKING}"; then
 	exit 1
 fi
 
+if [ -n "DHCP_REALY_INTERFACES" ]; then
+	OPTIONS="-i $DHCP_REALY_INTERFACES"
+fi
+
+
 # See how we were called.
 case "$1" in
   start)
 	msg_starting "DHCP Relay"
-	daemon dhcrelay $DHCP_SERVERS
+	daemon dhcrelay $OPTIONS $DHCP_SERVERS_IP
 	touch /var/lock/subsys/dhcrelay
 	;;
   stop)
