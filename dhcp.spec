@@ -31,6 +31,18 @@ Dynamic Host Configuration Protocol Client
 %description client -l pl
 Klient DHCP (Dynamic Host Configuration Protocol)
 
+%package relay
+Summary:	DHCP Relay Agent
+Summary(pl):	Agent przekazywania DHCP
+Group:		Networking/Daemons
+Group(de):	Sieciowe/Serwery
+
+%description relay
+Dynamic Host Configuration Protocol Relay Agent
+
+%description relay -l pl
+Agent przekazywania DHCP (Dynamic Host Configuration Protocol)
+
 %prep
 
 %setup -q
@@ -86,11 +98,9 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(644,root,root,755)
 %doc doc/* README.gz RELNOTES.gz CHANGES.gz
-%{_mandir}/man8/dhcrelay*
 %{_mandir}/man5/dhcp*
 %{_mandir}/man8/dhcp*
 %attr(755,root,root) %{_sbindir}/dhcpd
-%attr(755,root,root) %{_sbindir}/dhcrelay
 %attr(755,root,root) /etc/rc.d/init.d/dhcpd
 %attr(750,root,root) %dir /var/state/%{name}
 %ghost /var/state/%{name}/dhcpd.leases
@@ -101,3 +111,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/dhclient*
 %{_mandir}/man5/dhclient*
 %ghost /var/state/%{name}/dhclient.leases
+
+%files relay
+%defattr(644,root,root,755)
+%{_mandir}/man8/dhcrelay*
+%attr(755,root,root) %{_sbindir}/dhcrelay
