@@ -8,7 +8,7 @@ Summary(pl):	Serwer DHCP
 Summary(pt_BR):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
 Version:	3.0.1
-Release:	1
+Release:	2
 Epoch:		3
 Vendor:		ISC
 License:	distributable
