@@ -15,7 +15,7 @@
 
 # Check that networking is up.
 if is_no "${NETWORKING}"; then
-	msg_Network_Down DHCPD
+	msg_network_down DHCPD
 	exit 1
 fi
 
@@ -29,7 +29,7 @@ case "$1" in
 		RETVAL=$?
 		[ $RETVAL -eq 0 ] && touch /var/lock/subsys/dhcpd
 	else
-		msg_Already_Running DHCPD
+		msg_already_running DHCPD
 		exit 1
 	fi
 	;;
@@ -47,7 +47,7 @@ case "$1" in
 	status dhcpd
 	;;
   *)
-	msg_Usage "$0 {start|stop|restart|reload|status}"
+	msg_usage "$0 {start|stop|restart|reload|status}"
 	exit 1
 esac
 
