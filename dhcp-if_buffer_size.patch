@@ -1,0 +1,12 @@
+diff -durN dhcp-3.0.1rc11.orig/common/discover.c dhcp-3.0.1rc11/common/discover.c
+--- dhcp-3.0.1rc11.orig/common/discover.c	Sun Nov 17 03:26:57 2002
++++ dhcp-3.0.1rc11/common/discover.c	Mon Jun 16 16:32:11 2003
+@@ -135,7 +135,7 @@
+ {
+ 	struct interface_info *tmp, *ip;
+ 	struct interface_info *last, *next;
+-	char buf [2048];
++	char buf [65536];
+ 	struct ifconf ic;
+ 	struct ifreq ifr;
+ 	int i;
