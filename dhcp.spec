@@ -70,6 +70,7 @@ Summary(pl):	Klient DHCP
 Group:		Networking/Daemons
 Requires(post):	fileutils
 Obsoletes:	pump
+Obsoletes:	dhclient
 
 %description client
 Dynamic Host Configuration Protocol Client.
