@@ -2,9 +2,10 @@ Summary:	DHCP Server
 Summary(pl):	Serwer DHCP 
 Name:		dhcp
 Version:	3.0b1pl17
-Release:	1
+Release:	2
 Epoch:		1
 Group:		Networking/Daemons
+Group(de):	Netzwerkwesen/Server
 Group(pl):	Sieciowe/Serwery
 Copyright:	distributable
 Vendor:		ISC
@@ -35,6 +36,7 @@ Serwer DHCP (Dynamic Host Configuration Protocol).
 Summary:	DHCP Client
 Summary(pl):	Klient DHCP 
 Group:		Networking/Daemons
+Group(de):	Netzwerkwesen/Server
 Group(pl):	Sieciowe/Serwery
 Obsoletes:	pump
 
@@ -48,6 +50,7 @@ Klient DHCP (Dynamic Host Configuration Protocol).
 Summary:	DHCP Relay Agent
 Summary(pl):	Agent przekazywania informacji DHCP
 Group:		Networking/Daemons
+Group(de):	Netzwerkwesen/Server
 Group(pl):	Sieciowe/Serwery
 Requires:	rc-scripts >= 0.2.0
 
@@ -57,7 +60,6 @@ with DHCP clients to "relay" their requests to a subnet that has a
 DHCP server on it. Because DHCP packets can be broadcast, they will
 not be routed off of the local subnet. The DHCP relay takes care of
 this for the client.
-
 
 %description -l pl relay
 Agent przekazywania DHCP (Dynamic Host Configuration Protocol) miêdzy
@@ -73,7 +75,7 @@ cp %{SOURCE4} .
 LDFLAGS="-L%{_libdir}/lib/bind/lib" ; export LDFLAGS
 # Notice: this is not autoconf configure!!!!!!!
 #         do not change it to %configure
-.//configure --with-nsupdate
+./configure --with-nsupdate
 
 %{__make} COPTS="$RPM_OPT_FLAGS -D_PATH_DHCPD_DB=\\\"/var/lib/%{name}/dhcpd.leases\\\" \
 	-D_PATH_DHCLIENT_DB=\\\"/var/lib/%{name}/dhclient.leases\\\"" \
@@ -81,7 +83,6 @@ LDFLAGS="-L%{_libdir}/lib/bind/lib" ; export LDFLAGS
 
 %install
 rm -rf $RPM_BUILD_ROOT
-
 install -d $RPM_BUILD_ROOT{/sbin,%{_sbindir},%{_mandir}/man{5,8}} \
 	$RPM_BUILD_ROOT{/var/lib/%{name},%{_sysconfdir}/{rc.d/init.d,sysconfig}}
 
@@ -102,8 +103,7 @@ install %{SOURCE5} $RPM_BUILD_ROOT/etc/sysconfig/dhcpd
 
 install client/scripts/linux $RPM_BUILD_ROOT%{_sysconfdir}/dhclient-script
 
-gzip -9nf $RPM_BUILD_ROOT%{_mandir}/man*/* \
-	  doc/* README RELNOTES 
+gzip -9nf doc/* README RELNOTES 
 
 touch $RPM_BUILD_ROOT/var/lib/%{name}/{dhcpd,dhclient}.leases
 
