@@ -1,4 +1,6 @@
-%bcond_with ldap		# added support for ldap storage
+#
+# Conditional build:
+%bcond_with ldap	# with support for ldap storage
 Summary:	DHCP Server
 Summary(es):	Servidor DHCP (Protocolo de configuración dinámica de hosts)
 Summary(pl):	Serwer DHCP
