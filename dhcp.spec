@@ -82,8 +82,8 @@ make install \
 	FFMANEXT=.5
 
 install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/dhcpd
-install %{SOURCE2} $RPM_BUILD_ROOT/etc/rc.d/init.d/dhcrelay
-install %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/dhcrelay
+install %{SOURCE2} $RPM_BUILD_ROOT/etc/rc.d/init.d/dhcp-relay
+install %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/dhcp-relay
 install %{SOURCE5} $RPM_BUILD_ROOT/etc/sysconfig/dhcpd
 
 gzip -9nf $RPM_BUILD_ROOT%{_mandir}/man*/* \
@@ -145,6 +145,6 @@ rm -rf $RPM_BUILD_ROOT
 %files relay
 %defattr(644,root,root,755)
 %{_mandir}/man8/dhcrelay*
-%config(noreplace) %verify(not size mtime md5) /etc/sysconfig/dhcrelay
+%config(noreplace) %verify(not size mtime md5) /etc/sysconfig/dhcp-relay
 %attr(755,root,root) %{_sbindir}/dhcrelay
-%attr(754,root,root) /etc/rc.d/init.d/dhcrelay
+%attr(754,root,root) /etc/rc.d/init.d/dhcp-relay
