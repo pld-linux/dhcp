@@ -23,7 +23,7 @@ case "$1" in
 	;;
   stop)
 	show Stopping DHCP Relay
-	killproc dhrelay
+	killproc dhcrelay
 	rm -f /var/lock/subsys/dhcrelay
 	;;
   restart)
