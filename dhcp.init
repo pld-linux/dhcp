@@ -25,7 +25,7 @@ case "$1" in
   start)
 	# Check if the service is already running?
 	if [ ! -f /var/lock/subsys/dhcpd ]; then
-		show Starting dhcpd
+		show Starting DHCP Server
 		daemon dhcpd
 	else
 		echo "dhcpd already is running"
