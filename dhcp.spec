@@ -72,7 +72,8 @@ install %{SOURCE4} .
 #         do not change it to %configure
 ./configure
 
-%{__make} COPTS="$RPM_OPT_FLAGS -D_PATH_DHCPD_DB=\\\"/var/lib/%{name}/dhcpd.leases\\\" \
+%{__make} COPTS="%{!?debug:$RPM_OPT_FLAGS}%{?debug:-O -g} \
+	-D_PATH_DHCPD_DB=\\\"/var/lib/%{name}/dhcpd.leases\\\" \
 	-D_PATH_DHCLIENT_DB=\\\"/var/lib/%{name}/dhclient.leases\\\"" \
 	DEBUG="" VARDB="/var/lib/%{name}"
 
