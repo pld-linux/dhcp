@@ -1,3 +1,4 @@
+%bcond_with ldap		# added support for ldap storage
 Summary:	DHCP Server
 Summary(es):	Servidor DHCP (Protocolo de configuración dinámica de hosts)
 Summary(pl):	Serwer DHCP
@@ -18,7 +19,10 @@ Source3:	%{name}-relay.sysconfig
 Source4:	%{name}d.conf.sample
 Source5:	%{name}.sysconfig
 Patch0:		%{name}-if_buffer_size.patch
+Patch1:		%{name}-%{version}-ldap-patch
+Patch2:		%{name}-%{version}-ldap1.patch
 BuildRequires:	groff
+%{?with_ldap:BuildRequires:	openldap-devel}
 PreReq:		rc-scripts >= 0.2.0
 Requires(post,preun):	/sbin/chkconfig
 Requires(post):	fileutils
@@ -118,6 +122,8 @@ komunikacji z dzia³aj±cym serwerem ISC DHCP i jego kontroli.
 %setup -q
 install %{SOURCE4} .
 %patch0 -p1
+%{?with_ldap:%patch1 -p1}
+%{?with_ldap:%patch2 -p1}
 
 cd doc
 echo "dhcpd complies with the following RFCs:" > rfc-compliance
@@ -229,6 +235,7 @@ fi
 %files
 %defattr(644,root,root,755)
 %doc doc/* README RELNOTES dhcpd.conf.sample
+%{?with_ldap:%doc contrib/*}
 %{_mandir}/man1/*
 %{_mandir}/man5/dhcp*
 %{_mandir}/man8/dhcp*
