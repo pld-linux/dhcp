@@ -2,7 +2,7 @@
 # Conditional build:
 %bcond_with	ldap	# with support for ldap storage
 #
-%define	_rc	rc1
+%define	_rc	rc3
 Summary:	DHCP Server
 Summary(es):	Servidor DHCP
 Summary(pl):	Serwer DHCP
@@ -15,7 +15,7 @@ Vendor:		ISC
 License:	distributable
 Group:		Networking/Daemons
 Source0:	ftp://ftp.isc.org/isc/dhcp/%{name}-%{version}%{_rc}.tar.gz
-# Source0-md5:	943b1d8f7f6ffccf522490566acf0b3e
+# Source0-md5:	7c5dd4587d0236275ddf026750513131
 Source1:	%{name}.init
 Source2:	%{name}-relay.init
 Source3:	%{name}-relay.sysconfig
@@ -24,6 +24,7 @@ Source5:	%{name}.sysconfig
 Patch0:		%{name}-if_buffer_size.patch
 Patch1:		%{name}-ldap.patch
 Patch2:		%{name}-ldap1.patch
+Patch3:		%{name}-gcc343-fix.patch
 URL:		http://www.isc.org/sw/dhcp/
 BuildRequires:	groff
 %{?with_ldap:BuildRequires:	openldap-devel}
@@ -128,6 +129,7 @@ install %{SOURCE4} .
 %patch0 -p1
 %{?with_ldap:%patch1 -p1}
 %{?with_ldap:%patch2 -p1}
+%patch3 -p1
 
 cd doc
 echo "dhcpd complies with the following RFCs:" > rfc-compliance
