@@ -2,7 +2,7 @@ Summary:	DHCP Server
 Summary(pl):	Serwer DHCP 
 Name:		dhcp
 Version:	3.0rc12
-Release:	1
+Release:	2
 Epoch:		1
 Vendor:		ISC
 License:	Distributable
@@ -153,6 +153,14 @@ if [ "$1" = "0" ];then
 		/etc/rc.d/init.d/dhcp-relay stop >&2
 	fi
 	/sbin/chkconfig --del dhcp-relay
+fi
+
+%triggerpostun -- dhcp < 3.0
+if [ `grep ddns-update-style /etc/dhcpd.conf` = "" ]; then
+	echo "ddns-update-style none;" > /etc/dhcpd.conf.tmp
+	echo "" >> /etc/dhcpd.conf.tmp
+	cat /etc/dhcpd.conf >>/etc/dhcpd.conf.tmp
+	mv -f /etc/dhcpd.conf.tmp /etc/dhcpd.conf
 fi
 
 %clean
