@@ -5,7 +5,7 @@ Version:	3.0b1pl13
 Release:	2
 Serial:		1
 Group:		Networking/Daemons
-Group(de):	Sieciowe/Serwery
+Group(pl):	Sieciowe/Serwery
 Copyright:	distributable
 Vendor:         ISC
 Source0:	ftp://ftp.isc.org/isc/dhcp/%{name}-%{version}.tar.gz
