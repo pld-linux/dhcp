@@ -2,7 +2,7 @@ Summary:	DHCP Server
 Summary(pl):	Serwer DHCP 
 Name:		dhcp
 Version:	3.0b1pl13
-Release:	3
+Release:	4
 Serial:		1
 Group:		Networking/Daemons
 Group(pl):	Sieciowe/Serwery
@@ -33,7 +33,7 @@ Serwer DHCP (Dynamic Host Configuration Protocol).
 Summary:	DHCP Client
 Summary(pl):	Klient DHCP 
 Group:		Networking/Daemons
-Group(de):	Sieciowe/Serwery
+Group(pl):	Sieciowe/Serwery
 Obsoletes:	pump
 
 %description client
@@ -46,7 +46,7 @@ Klient DHCP (Dynamic Host Configuration Protocol).
 Summary:	DHCP Relay Agent
 Summary(pl):	Agent przekazywania informacji DHCP
 Group:		Networking/Daemons
-Group(de):	Sieciowe/Serwery
+Group(pl):	Sieciowe/Serwery
 Requires:	rc-scripts >= 0.2.0
 
 %description relay
