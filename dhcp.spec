@@ -2,7 +2,7 @@ Summary:	DHCP Server
 Summary(pl):	Serwer DHCP 
 Name:		dhcp
 Version:	3.0b2pl16
-Release:	1
+Release:	2
 Epoch:		1
 Group:		Networking/Daemons
 Group(de):	Netzwerkwesen/Server
@@ -29,6 +29,11 @@ easier to administer a large network.
 
 %description -l pl
 Serwer DHCP (Dynamic Host Configuration Protocol).
+
+DHCP to protokó³ pozwalaj±cy urz±dzeniom pracuj±cym w sieci IP na
+pobieranie ich konfiguracji IP (adresu, maski podsieci, adresu
+rozg³oszeniowego itp.) z serwera DHCP. U³atwia on administrowanie
+du¿ymi sieciami IP.
 
 %package client
 Summary:	DHCP Client
@@ -61,7 +66,9 @@ this for the client.
 
 %description -l pl relay
 Agent przekazywania DHCP (Dynamic Host Configuration Protocol) miêdzy
-podsieciami.
+podsieciami. Poniewa¿ komunikaty DHCP mog± byæ przekazywane w formie
+rozg³oszeniowej, bez tego agenta nie zostan± przerutowane do innej 
+podsieci.
 
 %prep
 %setup -q
@@ -118,12 +125,12 @@ else
 fi
 
 %post relay
-/sbin/chkconfig --add dhcrelay
+/sbin/chkconfig --add dhcp-relay
 
 if [ -f /var/lock/subsys/dhcrelay ]; then
-	/etc/rc.d/init.d/dhcrelay restart >&2
+	/etc/rc.d/init.d/dhcp-relay restart >&2
 else
-	echo "Run \"/etc/rc.d/init.d/dhcrelay start\" to start dhcrelay daemon."
+	echo "Run \"/etc/rc.d/init.d/dhcp-relay start\" to start dhcrelay daemon."
 fi
 
 %post client
@@ -142,9 +149,9 @@ fi
 %preun relay
 if [ "$1" = "0" ];then
 	if [ -f /var/lock/subsys/dhcrelay ]; then
-		/etc/rc.d/init.d/dhrelay stop >&2
+		/etc/rc.d/init.d/dhcp-relay stop >&2
 	fi
-	/sbin/chkconfig --del dhcrelay
+	/sbin/chkconfig --del dhcp-relay
 fi
 
 %clean
