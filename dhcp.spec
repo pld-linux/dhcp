@@ -2,20 +2,19 @@
 # Conditional build:
 %bcond_with	ldap	# with support for ldap storage
 #
-%define	_rc	rc3
 Summary:	DHCP Server
 Summary(es):	Servidor DHCP
 Summary(pl):	Serwer DHCP
 Summary(pt_BR):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
 Version:	3.0.2
-Release:	0.%{_rc}.1
+Release:	2
 Epoch:		3
 Vendor:		ISC
 License:	distributable
 Group:		Networking/Daemons
-Source0:	ftp://ftp.isc.org/isc/dhcp/%{name}-%{version}%{_rc}.tar.gz
-# Source0-md5:	7c5dd4587d0236275ddf026750513131
+Source0:	ftp://ftp.isc.org/isc/dhcp/%{name}-%{version}.tar.gz
+# Source0-md5:	04800a111521e7442749b2ce883f962b
 Source1:	%{name}.init
 Source2:	%{name}-relay.init
 Source3:	%{name}-relay.sysconfig
@@ -124,7 +123,7 @@ dhcpctl to zbiór funkcji tworz±cych API, które mo¿e byæ u¿ywane do
 komunikacji z dzia³aj±cym serwerem ISC DHCP i jego kontroli.
 
 %prep
-%setup -q -n %{name}-%{version}%{_rc}
+%setup -q
 install %{SOURCE4} .
 %patch0 -p1
 %{?with_ldap:%patch1 -p1}
