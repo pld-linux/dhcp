@@ -1,6 +1,0 @@
-# Nice level for at
-SERVICE_RUN_NICE_LEVEL="+0"
-
-# The  names of the network interfaces on which dhcpd should
-# listen for broadcasts (separated by space)
-DHCPD_INTERFACES=""
