@@ -1,0 +1,39 @@
+#!/bin/sh
+# DHCP Server
+#
+# chkconfig: 345 80 20
+# description: DHCP Server
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# Nice level for running sshd
+[ -f /etc/dhcpd.conf ] || exit 0
+
+# See how we were called.
+case "$1" in
+  start)
+	show Starting DHCP Server
+	daemon dhcpd
+	touch /var/lock/subsys/dhcpd
+	;;
+  stop)
+	show Stopping DHCP Server
+	killproc dhcpd
+	rm -f /var/run/dhcpd.pid
+	rm -f /var/lock/subsys/dhcpd
+	;;
+  restart)
+	$0 stop
+	$0 start
+	;;
+  status)
+	status dhcpd
+	;;
+  *)
+	echo "Usage: $0 {start|stop|restart|status}"
+	exit 1
+esac
+
+exit 0
+
