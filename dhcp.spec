@@ -153,8 +153,6 @@ mv $RPM_BUILD_ROOT%{_mandir}/man3/omshell.3 \
 
 install client/scripts/linux $RPM_BUILD_ROOT%{_sbindir}/dhclient-script
 
-gzip -9nf doc/* README RELNOTES
-
 touch $RPM_BUILD_ROOT/var/lib/%{name}/{dhcpd,dhclient}.leases
 
 %clean
@@ -216,7 +214,7 @@ fi
 
 %files
 %defattr(644,root,root,755)
-%doc doc/* README.gz RELNOTES.gz dhcpd.conf.sample
+%doc doc/* README RELNOTES dhcpd.conf.sample
 %{_mandir}/man1/*
 %{_mandir}/man5/dhcp*
 %{_mandir}/man8/dhcp*
