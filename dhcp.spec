@@ -17,6 +17,7 @@ Source4:	%{name}d.conf.sample
 Source5:	%{name}.sysconfig
 BuildRequires:	groff
 Prereq:		rc-scripts >= 0.2.0
+Prereq:		/sbin/chkconfig
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -54,7 +55,8 @@ Summary(pl):	Agent przekazywania informacji DHCP
 Group:		Networking/Daemons
 Group(de):	Netzwerkwesen/Server
 Group(pl):	Sieciowe/Serwery
-Requires:	rc-scripts >= 0.2.0
+Prereq:		rc-scripts >= 0.2.0
+Prereq:		/sbin/chkconfig
 
 %description relay
 Dhcp relay is a relay agent for DHCP packets. It is used on a subnet
@@ -109,6 +111,9 @@ gzip -9nf doc/* README RELNOTES
 
 touch $RPM_BUILD_ROOT/var/lib/%{name}/{dhcpd,dhclient}.leases
 
+%clean
+rm -rf $RPM_BUILD_ROOT
+
 %post
 /sbin/chkconfig --add dhcpd
 touch /var/lib/%{name}/dhcpd.leases
@@ -162,9 +167,6 @@ if [ `grep ddns-update-style /etc/dhcpd.conf` = "" ]; then
 	cat /etc/dhcpd.conf >>/etc/dhcpd.conf.tmp
 	mv -f /etc/dhcpd.conf.tmp /etc/dhcpd.conf
 fi
-
-%clean
-rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(644,root,root,755)
