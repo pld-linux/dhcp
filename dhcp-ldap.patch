@@ -1,7 +1,60 @@
-diff -Pru dhcp-3.0.1rc13/Changelog-LDAP dhcp-3.0.1rc13-ldap/Changelog-LDAP
---- dhcp-3.0.1rc13/Changelog-LDAP	1969-12-31 19:00:00.000000000 -0500
-+++ dhcp-3.0.1rc13-ldap/Changelog-LDAP	2004-03-30 13:58:37.000000000 -0500
-@@ -0,0 +1,29 @@
+diff -Naur dhcp-3.0.1rc14/Changelog-LDAP dhcp-3.0.1rc14-ldap/Changelog-LDAP
+--- dhcp-3.0.1rc14/Changelog-LDAP	1969-12-31 19:00:00.000000000 -0500
++++ dhcp-3.0.1rc14-ldap/Changelog-LDAP	2004-06-22 15:18:20.000000000 -0400
+@@ -0,0 +1,82 @@
++2004-5-24 Brian Masney <masneyb@ntelos.net>
++	* server/ldap.c - don't append a ; to the end of a dhcpStatement if it
++	ends in }
++
++	* server/ldap.c contrib/dhcpd-conf-to-ldap.pl - support having multiple
++	dhcpRange statements (from Marco D'Ettorre <marco.dettorre@sys-net.it>)
++
++2004-5-5 Brian Masney <masneyb@ntelos.net>
++	* server/ldap.c - added more debugging statements when
++	it is compiled in to help troubleshoot parsing errors. Don't free
++	a LDAP connection prematurely when there is a reference to another
++	LDAP tree. If the config entry ends in }, make sure a ; gets tacked
++	on
++
++	* debian/* - Updated version number. Renamed package from
++	dhcp3-ldap-ntelos to dhcp3-server-ldap.
++
++	* server/ldap.c - enclose the shared-network name in quotes so
++	that there can be shared network statements in LDAP that have spaces
++	in them
++
++	* configure - after the work directory is setup, add -lldap -llber
++	to the server Makefile
++
++Wed Apr 21 15:09:08 CEST 2004 - mt@suse.de
++	* contrib/dhcpd-conf-to-ldap.pl:
++	  - added "--conf=file" option usable instead of stdin
++	  - added "--ldif=file" option usable instead of stdout
++	  - added "--second=host|dn" option usefull for failover
++	  - added "--use=feature" option to enable extended features;
++	    currently used to enable failover (default is disabled).
++	  - extended remaining_line() to support block statements
++	  - fixed / improved failover support, added notes about
++
++	* server/ldap.c:
++	  - moved code checking statement ends to check_statement_end()
++	  - moved parsing of entry options/statements to
++	    ldap_parse_entry_options()
++	  - moved code closing debug fd into ldap_close_debug_fd()
++	  - moved code writing to debug fd into ldap_write_debug()
++	  - added support for full hostname in dhcpServer search filter
++	  - added support for multiple dhcpService entries in dhcpServer object
++	  - added parsing of options and statements for dhcpServer object
++	  - added verify if dhcpService contains server dn as primary or
++	    secondary
++	  - changed to search for dhcpHost,dhcpSubClass bellow of all
++	    dhcpService trees instead of base-dn (avoids finding of hosts in
++	    foreign configs)
++	  - fixes to free all dn's fetched by ldap_get_dn (e.g. debug output)
++	  - fixes to free ldap results, mainly in cases where no LDAP_SUCCESS
++	    returned or other error conditions happened
++	  - fixed/improved some log messages
++
 +2004-3-30 Brian Masney <masneyb@ntelos.net>
 +	* contrib/dhcpd-conf-to-ldap.pl - added option to control the
 +	DHCP Config DN. Wrap the DHCP Statements in { }
@@ -31,9 +84,9 @@ diff -Pru dhcp-3.0.1rc13/Changelog-LDAP dhcp-3.0.1rc13-ldap/Changelog-LDAP
 +2003-9-11 Brian Masney <masneyb@ntelos.net>
 +	* updated patch to work with 3.0.1rc12
 +
-diff -Pru dhcp-3.0.1rc13/README.ldap dhcp-3.0.1rc13-ldap/README.ldap
---- dhcp-3.0.1rc13/README.ldap	1969-12-31 19:00:00.000000000 -0500
-+++ dhcp-3.0.1rc13-ldap/README.ldap	2004-03-30 14:01:49.000000000 -0500
+diff -Naur dhcp-3.0.1rc14/README.ldap dhcp-3.0.1rc14-ldap/README.ldap
+--- dhcp-3.0.1rc14/README.ldap	1969-12-31 19:00:00.000000000 -0500
++++ dhcp-3.0.1rc14-ldap/README.ldap	2004-06-22 15:18:20.000000000 -0400
 @@ -0,0 +1,166 @@
 +LDAP Support in DHCP
 +Brian Masney <masneyb@ntelos.net>
@@ -201,10 +254,10 @@ diff -Pru dhcp-3.0.1rc13/README.ldap dhcp-3.0.1rc13-ldap/README.ldap
 +add the line: COPTS= -DDEBUG_LDAP and recompile DHCP. (make sure you run make 
 +clean and rerun configure before you rebuild).
 +
-diff -Pru dhcp-3.0.1rc13/common/conflex.c dhcp-3.0.1rc13-ldap/common/conflex.c
---- dhcp-3.0.1rc13/common/conflex.c	2002-11-16 21:26:56.000000000 -0500
-+++ dhcp-3.0.1rc13-ldap/common/conflex.c	2004-03-23 13:49:03.000000000 -0500
-@@ -56,6 +56,7 @@
+diff -Naur dhcp-3.0.1rc14/common/conflex.c dhcp-3.0.1rc14-ldap/common/conflex.c
+--- dhcp-3.0.1rc14/common/conflex.c	2004-06-10 13:59:14.000000000 -0400
++++ dhcp-3.0.1rc14-ldap/common/conflex.c	2004-06-22 15:18:20.000000000 -0400
+@@ -47,6 +47,7 @@
  static enum dhcp_token read_number PROTO ((int, struct parse *));
  static enum dhcp_token read_num_or_name PROTO ((int, struct parse *));
  static enum dhcp_token intern PROTO ((char *, enum dhcp_token));
@@ -212,7 +265,7 @@ diff -Pru dhcp-3.0.1rc13/common/conflex.c dhcp-3.0.1rc13-ldap/common/conflex.c
  
  isc_result_t new_parse (cfile, file, inbuf, buflen, name, eolp)
  	struct parse **cfile;
-@@ -83,6 +84,10 @@
+@@ -74,6 +75,10 @@
  	tmp -> file = file;
  	tmp -> eol_token = eolp;
  
@@ -223,7 +276,7 @@ diff -Pru dhcp-3.0.1rc13/common/conflex.c dhcp-3.0.1rc13-ldap/common/conflex.c
  	tmp -> bufix = 0;
  	tmp -> buflen = buflen;
  	if (inbuf) {
-@@ -118,22 +123,11 @@
+@@ -109,22 +114,11 @@
  	int c;
  
  	if (cfile -> bufix == cfile -> buflen) {
@@ -250,7 +303,7 @@ diff -Pru dhcp-3.0.1rc13/common/conflex.c dhcp-3.0.1rc13-ldap/common/conflex.c
  	} else {
  		c = cfile -> inbuf [cfile -> bufix];
  		cfile -> bufix++;
-@@ -1080,3 +1074,25 @@
+@@ -1071,3 +1065,25 @@
  	}
  	return dfv;
  }
@@ -276,10 +329,10 @@ diff -Pru dhcp-3.0.1rc13/common/conflex.c dhcp-3.0.1rc13-ldap/common/conflex.c
 +	return c;
 +}
 +
-diff -Pru dhcp-3.0.1rc13/common/print.c dhcp-3.0.1rc13-ldap/common/print.c
---- dhcp-3.0.1rc13/common/print.c	2003-03-30 22:06:56.000000000 -0500
-+++ dhcp-3.0.1rc13-ldap/common/print.c	2004-03-23 13:49:03.000000000 -0500
-@@ -175,9 +175,9 @@
+diff -Naur dhcp-3.0.1rc14/common/print.c dhcp-3.0.1rc14-ldap/common/print.c
+--- dhcp-3.0.1rc14/common/print.c	2004-06-17 16:54:39.000000000 -0400
++++ dhcp-3.0.1rc14-ldap/common/print.c	2004-06-22 15:18:20.000000000 -0400
+@@ -166,9 +166,9 @@
  }
  
  char *print_hw_addr (htype, hlen, data)
@@ -292,9 +345,21 @@ diff -Pru dhcp-3.0.1rc13/common/print.c dhcp-3.0.1rc13-ldap/common/print.c
  {
  	static char habuf [49];
  	char *s;
-diff -Pru dhcp-3.0.1rc13/contrib/dhcp.schema dhcp-3.0.1rc13-ldap/contrib/dhcp.schema
---- dhcp-3.0.1rc13/contrib/dhcp.schema	1969-12-31 19:00:00.000000000 -0500
-+++ dhcp-3.0.1rc13-ldap/contrib/dhcp.schema	2004-03-23 13:49:03.000000000 -0500
+diff -Naur dhcp-3.0.1rc14/configure dhcp-3.0.1rc14-ldap/configure
+--- dhcp-3.0.1rc14/configure	2002-04-20 17:44:13.000000000 -0400
++++ dhcp-3.0.1rc14-ldap/configure	2004-06-22 15:18:20.000000000 -0400
+@@ -256,4 +256,8 @@
+   make links
+ fi
+ 
++mv $workname/server/Makefile $workname/server/Makefile.noldap
++cat $workname/server/Makefile.noldap | sed '{s/^LIBS =/LIBS=-lldap -llber/}' > $workname/server/Makefile.ldap
++ln $workname/server/Makefile.ldap $workname/server/Makefile
++
+ exit 0
+diff -Naur dhcp-3.0.1rc14/contrib/dhcp.schema dhcp-3.0.1rc14-ldap/contrib/dhcp.schema
+--- dhcp-3.0.1rc14/contrib/dhcp.schema	1969-12-31 19:00:00.000000000 -0500
++++ dhcp-3.0.1rc14-ldap/contrib/dhcp.schema	2004-06-22 15:18:20.000000000 -0400
 @@ -0,0 +1,343 @@
 +attributetype ( 2.16.840.1.113719.1.203.4.1 
 +	NAME 'dhcpPrimaryDN' 
@@ -639,10 +704,10 @@ diff -Pru dhcp-3.0.1rc13/contrib/dhcp.schema dhcp-3.0.1rc13-ldap/contrib/dhcp.sc
 +	MAY (dhcpVersion $ dhcpImplementation $ dhcpHashBucketAssignment $ dhcpDelayedServiceParameter $ dhcpMaxClientLeadTime $ dhcpFailOverEndpointState $ dhcpStatements)
 +	X-NDS_CONTAINMENT ('o' 'ou' 'dc') )
 +
-diff -Pru dhcp-3.0.1rc13/contrib/dhcpd-conf-to-ldap.pl dhcp-3.0.1rc13-ldap/contrib/dhcpd-conf-to-ldap.pl
---- dhcp-3.0.1rc13/contrib/dhcpd-conf-to-ldap.pl	1969-12-31 19:00:00.000000000 -0500
-+++ dhcp-3.0.1rc13-ldap/contrib/dhcpd-conf-to-ldap.pl	2004-03-30 13:30:34.000000000 -0500
-@@ -0,0 +1,621 @@
+diff -Naur dhcp-3.0.1rc14/contrib/dhcpd-conf-to-ldap.pl dhcp-3.0.1rc14-ldap/contrib/dhcpd-conf-to-ldap.pl
+--- dhcp-3.0.1rc14/contrib/dhcpd-conf-to-ldap.pl	1969-12-31 19:00:00.000000000 -0500
++++ dhcp-3.0.1rc14-ldap/contrib/dhcpd-conf-to-ldap.pl	2004-06-22 15:18:20.000000000 -0400
+@@ -0,0 +1,751 @@
 +#!/usr/bin/perl -w
 +
 +# Brian Masney <masneyb@ntelos.net>
@@ -656,6 +721,17 @@ diff -Pru dhcp-3.0.1rc13/contrib/dhcpd-conf-to-ldap.pl dhcp-3.0.1rc13-ldap/contr
 +# This script does not do much error checking. Make sure before you run this
 +# that the DHCP server doesn't give any errors about your config file
 +
++# FailOver notes:
++#   Failover is disabled by default, since it may need manually intervention.
++#   You can try the '--use=failover' option to see what happens :-)
++#
++#   If enabled, the failover pool references will be written to LDIF output.
++#   The failover configs itself will be added to the dhcpServer statements
++#   and not to the dhcpService object (since this script uses only one and
++#   it may be usefull to have multiple service containers in failover mode).
++#   Further, this script does not check if primary or secondary makes sense,
++#   it simply converts what it gets...
++
 +use Net::Domain qw(hostname hostfqdn hostdomain);
 +use Getopt::Long;
 +
@@ -665,7 +741,10 @@ diff -Pru dhcp-3.0.1rc13/contrib/dhcpd-conf-to-ldap.pl dhcp-3.0.1rc13-ldap/contr
 +my $server = hostname();             # hostname (nodename)
 +my $dhcpcn = 'DHCP Config';          # CN of DHCP config tree
 +my $dhcpdn = "cn=$dhcpcn, $basedn";  # DHCP config tree DN
-+
++my $second = '';                     # secondary server DN / hostname
++my $i_conf = '';                     # dhcp.conf file to read or stdin
++my $o_ldif = '';                     # output ldif file name or stdout
++my @use    = ();                     # extended flags (failover)
 +
 +sub usage($;$)
 +{
@@ -679,12 +758,18 @@ diff -Pru dhcp-3.0.1rc13/contrib/dhcpd-conf-to-ldap.pl dhcp-3.0.1rc13-ldap/contr
 +
 +options:
 +
-+  --basedn  "dc=your,dc=domain" ("$basedn")
++  --basedn  "dc=your,dc=domain"        ("$basedn")
 +
-+  --server  "dhcp server name"  ("$server")
++  --dhcpdn  "dhcp config DN"           ("$dhcpdn")
 +
-+  --dhcpdn  "dhcp config DN"    ("$dhcpdn")
++  --server  "dhcp server name"         ("$server")
 +
++  --second  "secondary server or DN"   ("$second")
++
++  --conf    "/path/to/dhcpd.conf"      (default is stdin)
++  --ldif    "/path/to/output.ldif"     (default is stdout)
++
++  --use     "extended features"        (see source comments)
 +__EOF_USAGE__
 +  exit($rc);
 +}
@@ -731,14 +816,16 @@ diff -Pru dhcp-3.0.1rc13/contrib/dhcpd-conf-to-ldap.pl dhcp-3.0.1rc13-ldap/contr
 +
 +sub remaining_line
 +{
++  local ($block) = shift || 0;
 +  local ($tmp, $str);
 +
 +  $str = "";
-+  while (($tmp = next_token (0)))
++  while (defined($tmp = next_token (0)))
 +    {
 +      $str .= ' ' if !($str eq "");
 +      $str .= $tmp;
 +      last if $tmp =~ /;\s*$/;
++      last if($block and $tmp =~ /\s*[}{]\s*$/);
 +    }
 +
 +  $str =~ s/;$//;
@@ -779,10 +866,20 @@ diff -Pru dhcp-3.0.1rc13/contrib/dhcpd-conf-to-ldap.pl dhcp-3.0.1rc13-ldap/contr
 +    {
 +      $hostdn = "cn=$server, $basedn";
 +      print "dn: $hostdn\n";
++      print "cn: $server\n";
 +      print "objectClass: top\n";
 +      print "objectClass: dhcpServer\n";
-+      print "cn: $server\n";
-+      print "dhcpServiceDN: $current_dn\n\n";
++      print "dhcpServiceDN: $current_dn\n";
++      if(grep(/FaIlOvEr/i, @use))
++        {
++          foreach my $fo_peer (keys %failover)
++            {
++              next if(scalar(@{$failover{$fo_peer}}) <= 1);
++              print "dhcpStatements: failover peer $fo_peer { ",
++                    join('; ', @{$failover{$fo_peer}}), "; }\n";
++            }
++        }
++      print "\n";
 +
 +      print "dn: $current_dn\n";
 +      print "cn: $dhcpcn\n";
@@ -793,6 +890,10 @@ diff -Pru dhcp-3.0.1rc13/contrib/dhcpd-conf-to-ldap.pl dhcp-3.0.1rc13-ldap/contr
 +          print "objectClass: dhcpOptions\n";
 +        }
 +      print "dhcpPrimaryDN: $hostdn\n";
++      if(grep(/FaIlOvEr/i, @use) and ($second ne ''))
++        {
++          print "dhcpSecondaryDN: $second\n";
++        }
 +    }
 +  elsif ($curentry{'type'} eq 'subnet')
 +    {
@@ -806,9 +907,12 @@ diff -Pru dhcp-3.0.1rc13/contrib/dhcpd-conf-to-ldap.pl dhcp-3.0.1rc13-ldap/contr
 +        }
 +      
 +      print "dhcpNetMask: " . $curentry{'netmask'} . "\n";
-+      if (defined ($curentry{'range'}))
++      if (defined ($curentry{'ranges'}))
 +        {
-+          print "dhcpRange: " . $curentry{'range'} . "\n";
++          foreach $statement (@{$curentry{'ranges'}})
++            {
++              print "dhcpRange: $statement\n";
++            }
 +        }
 +    }
 +  elsif ($curentry{'type'} eq 'shared-network')
@@ -860,9 +964,12 @@ diff -Pru dhcp-3.0.1rc13/contrib/dhcpd-conf-to-ldap.pl dhcp-3.0.1rc13-ldap/contr
 +          print "objectClass: dhcpOptions\n";
 +        }
 +
-+      if (defined ($curentry{'range'}))
++      if (defined ($curentry{'ranges'}))
 +        {
-+          print "dhcpRange: " . $curentry{'range'} . "\n";
++          foreach $statement (@{$curentry{'ranges'}})
++            {
++              print "dhcpRange: $statement\n";
++            }
 +        }
 +    }
 +  elsif ($curentry{'type'} eq 'class')
@@ -1115,7 +1222,7 @@ diff -Pru dhcp-3.0.1rc13/contrib/dhcpd-conf-to-ldap.pl dhcp-3.0.1rc13-ldap/contr
 +  if (!($str eq ''))
 +    {
 +      $str =~ s/;$//;
-+      $curentry{'range'} = $str;
++      push (@{$curentry{'ranges'}}, $str);
 +    }
 +}
 +
@@ -1132,13 +1239,50 @@ diff -Pru dhcp-3.0.1rc13/contrib/dhcpd-conf-to-ldap.pl dhcp-3.0.1rc13-ldap/contr
 +    }
 +  elsif($token eq 'failover')
 +    {
-+      $str = $token. " " . remaining_line ();
-+      if($str =~ /{/) {
-+        while($str !~ /}$/) {
-+          $str .= ' ' . next_token (0);
++      $str = remaining_line (1); # take care on block
++      if($str =~ /[{]/)
++        {
++          my ($peername, @statements);
++
++          parse_error() if($str !~ /^\s*peer\s+(.+?)\s+[{]\s*$/);
++          parse_error() if(($peername = $1) !~ /^\"?[^\"]+\"?$/);
++
++          #
++          # failover config block found:
++          # e.g. 'failover peer "some-name" {'
++          #
++          if(not grep(/FaIlOvEr/i, @use))
++            {
++              print STDERR "Warning: Failover config 'peer $peername' found!\n";
++              print STDERR "         Skipping it, since failover disabled!\n";
++              print STDERR "         You may try out --use=failover option.\n";
++            }
++
++          until($str =~ /[}]/ or $str eq "")
++            {
++                $str = remaining_line (1);
++                # collect all statements, except ending '}'
++                push(@statements, $str) if($str !~ /[}]/);
++            }
++          $failover{$peername} = [@statements];
 +        }
-+      } # else pool reference to failover config
-+      push (@{$curentry{'statements'}}, $str);
++      else
++        {
++          #
++          # pool reference to failover config is fine
++          # e.g. 'failover peer "some-name";'
++          #
++          if(not grep(/FaIlOvEr/i, @use))
++            {
++              print STDERR "Warning: Failover reference '$str' found!\n";
++              print STDERR "         Skipping it, since failover disabled!\n";
++              print STDERR "         You may try out --use=failover option.\n";
++            }
++          else
++            {
++              push (@{$curentry{'statements'}}, $token. " " . $str);
++            }
++        }
 +    }
 +  elsif($token eq 'zone')
 +    {
@@ -1162,12 +1306,15 @@ diff -Pru dhcp-3.0.1rc13/contrib/dhcpd-conf-to-ldap.pl dhcp-3.0.1rc13-ldap/contr
 +
 +my $ok = GetOptions(
 +    'basedn=s'      => \$basedn,
-+    'server=s'      => \$server,
 +    'dhcpdn=s'      => \$dhcpdn,
++    'server=s'      => \$server,
++    'second=s'      => \$second,
++    'conf=s'        => \$i_conf,
++    'ldif=s'        => \$o_ldif,
++    'use=s'         => \@use,
 +    'h|help|usage'  => sub { usage(0); },
 +);
 +
-+$server =~ s/\..*//g; # strip domain 
 +unless($server =~ /^\w+/)
 +  {
 +    usage(1, "invalid server name '$server'");
@@ -1181,13 +1328,57 @@ diff -Pru dhcp-3.0.1rc13/contrib/dhcpd-conf-to-ldap.pl dhcp-3.0.1rc13-ldap/contr
 +  {
 +    $dhcpcn = "$1";
 +  }
++$second = '' if not defined $second;
++unless($second eq '' or $second =~ /^cn=[^,]+\s*,\s*\w+=[^,]+/i)
++  {
++    if($second =~ /^cn=[^,]+$/i)
++      {
++        # relative DN 'cn=name'
++        $second = "$second, $basedn";
++      }
++    elsif($second =~ /^\w+/)
++      {
++        # assume hostname only
++        $second = "cn=$second, $basedn";
++      }
++    else
++      {
++        usage(1, "invalid secondary '$second'")
++      }
++  }
 +
 +usage(1) unless($ok);
 +
++if($i_conf ne "" and -f $i_conf)
++  {
++    if(not open(STDIN, '<', $i_conf))
++      {
++        print STDERR "Error: can't open conf file '$i_conf': $!\n";
++        exit(1);
++      }
++  }
++if($o_ldif ne "")
++  {
++    if(-e $o_ldif)
++      {
++        print STDERR "Error: output ldif name '$o_ldif' already exists!\n";
++        exit(1);
++      }
++    if(not open(STDOUT, '>', $o_ldif))
++      {
++        print STDERR "Error: can't open ldif file '$o_ldif': $!\n";
++        exit(1);
++      }
++  }
++
++
 +print STDERR "Creating LDAP Configuration with the following options:\n";
 +print STDERR "\tBase DN: $basedn\n";
-+print STDERR "\tServer DN: $server, $basedn\n";
 +print STDERR "\tDHCP DN: $dhcpdn\n";
++print STDERR "\tServer DN: cn=$server, $basedn\n";
++print STDERR "\tSecondary DN: $second\n"
++             if(grep(/FaIlOvEr/i, @use) and $second ne '');
++print STDERR "\n";
 +
 +my $token;
 +my $token_number = 0;
@@ -1199,6 +1390,7 @@ diff -Pru dhcp-3.0.1rc13/contrib/dhcpd-conf-to-ldap.pl dhcp-3.0.1rc13-ldap/contr
 +$current_dn = "$dhcpdn";
 +$curentry{'descr'} = $dhcpcn;
 +$line = '';
++%failover = ();
 +
 +while (($token = next_token (1)))
 +  {
@@ -1206,7 +1398,7 @@ diff -Pru dhcp-3.0.1rc13/contrib/dhcpd-conf-to-ldap.pl dhcp-3.0.1rc13-ldap/contr
 +      {
 +        print_entry () if %curentry;
 +        if($current_dn =~ /.+?,\s*${dhcpdn}$/) {
-+	  # don't go below dhcpdn ...
++          # don't go below dhcpdn ...
 +          remove_dn_from_stack ();
 +        }
 +      }
@@ -1262,44 +1454,59 @@ diff -Pru dhcp-3.0.1rc13/contrib/dhcpd-conf-to-ldap.pl dhcp-3.0.1rc13-ldap/contr
 +      }
 +  }
 +
++close(STDIN)  if($i_conf);
++close(STDOUT) if($o_ldif);
++
 +print STDERR "Done.\n";
 +
-diff -Pru dhcp-3.0.1rc13/debian/changelog dhcp-3.0.1rc13-ldap/debian/changelog
---- dhcp-3.0.1rc13/debian/changelog	1969-12-31 19:00:00.000000000 -0500
-+++ dhcp-3.0.1rc13-ldap/debian/changelog	2004-03-23 13:49:03.000000000 -0500
-@@ -0,0 +1,13 @@
-+dhcp3-ldap-ntelos (3.0.1rc12-1) unstable; urgency=low
+diff -Naur dhcp-3.0.1rc14/debian/changelog dhcp-3.0.1rc14-ldap/debian/changelog
+--- dhcp-3.0.1rc14/debian/changelog	1969-12-31 19:00:00.000000000 -0500
++++ dhcp-3.0.1rc14-ldap/debian/changelog	2004-06-22 15:26:38.000000000 -0400
+@@ -0,0 +1,25 @@
++dhcp3-server-ldap (3.0.1rc14-1) unstable; urgency=low
++
++  * See ChangeLog-LDAP for changes in this release
++
++ -- Brian Masney <masneyb@gftp.org>  Tue, 22 Jun 2004 15:29:07 -0400
++
++dhcp3-server-ldap (3.0.1rc13-1) unstable; urgency=low
++
++  * See ChangeLog-LDAP for changes in this release
++
++ -- Brian Masney <masneyb@gftp.org>  Wed, 05 May 2004 07:20:13 -0400
++
++dhcp3-server-ldap (3.0.1rc12-1) unstable; urgency=low
 +
 +  * Updated patch to work against ISC DHCPD 3.0.1rc12
 +
 + -- Brian Masney <masneyb@gftp.org>  Mon, 08 Sep 2003 16:34:00 -0400
 +
-+dhcp3-ldap-ntelos (3.0.1rc11-2) unstable; urgency=low
++dhcp3-server-ldap (3.0.1rc11-2) unstable; urgency=low
 +
 +  * Added these Debian files. They are mostly from the existing dhcp3-server
 +    package in Debian.
 +
 + -- Brian Masney <masneyb@gftp.org>  Mon, 04 Aug 2003 13:34:00 -0400
 +
-diff -Pru dhcp-3.0.1rc13/debian/control dhcp-3.0.1rc13-ldap/debian/control
---- dhcp-3.0.1rc13/debian/control	1969-12-31 19:00:00.000000000 -0500
-+++ dhcp-3.0.1rc13-ldap/debian/control	2004-03-23 13:49:03.000000000 -0500
+diff -Naur dhcp-3.0.1rc14/debian/control dhcp-3.0.1rc14-ldap/debian/control
+--- dhcp-3.0.1rc14/debian/control	1969-12-31 19:00:00.000000000 -0500
++++ dhcp-3.0.1rc14-ldap/debian/control	2004-06-22 15:18:20.000000000 -0400
 @@ -0,0 +1,12 @@
-+Source: dhcp3-ldap-ntelos
++Source: dhcp3-server-ldap
 +Section: net
 +Priority: optional
 +Maintainer: Brian Masney <masneyb@gftp.org>
 +Build-Depends: debhelper (>= 2.1.18), dpkg-dev (>= 1.7.0), groff
 +Standards-Version: 2.4.0.0
 +
-+Package: dhcp3-ldap-ntelos
++Package: dhcp3-server-ldap
 +Architecture: any
 +Depends: debconf, debianutils (>= 1.7), dhcp3-server (>= 3.0+3.0.1rc11)
-+Conflicts: dhcp
++Conflicts: dhcp, dhcp3-ldap-ntelos
 +Description: This is the DHCP server with LDAP patches applied to it
-diff -Pru dhcp-3.0.1rc13/debian/copyright dhcp-3.0.1rc13-ldap/debian/copyright
---- dhcp-3.0.1rc13/debian/copyright	1969-12-31 19:00:00.000000000 -0500
-+++ dhcp-3.0.1rc13-ldap/debian/copyright	2004-03-23 13:49:03.000000000 -0500
+diff -Naur dhcp-3.0.1rc14/debian/copyright dhcp-3.0.1rc14-ldap/debian/copyright
+--- dhcp-3.0.1rc14/debian/copyright	1969-12-31 19:00:00.000000000 -0500
++++ dhcp-3.0.1rc14-ldap/debian/copyright	2004-06-22 15:18:20.000000000 -0400
 @@ -0,0 +1,30 @@
 +/*
 + * Copyright (c) 1996, 1997 The Internet Software Consortium.
@@ -1331,80 +1538,14 @@ diff -Pru dhcp-3.0.1rc13/debian/copyright dhcp-3.0.1rc13-ldap/debian/copyright
 + * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 + * OF THE POSSIBILITY OF SUCH DAMAGE.
 + */
-diff -Pru dhcp-3.0.1rc13/debian/dhcp3-ldap-ntelos/DEBIAN/control dhcp-3.0.1rc13-ldap/debian/dhcp3-ldap-ntelos/DEBIAN/control
---- dhcp-3.0.1rc13/debian/dhcp3-ldap-ntelos/DEBIAN/control	1969-12-31 19:00:00.000000000 -0500
-+++ dhcp-3.0.1rc13-ldap/debian/dhcp3-ldap-ntelos/DEBIAN/control	2004-03-23 13:49:03.000000000 -0500
-@@ -0,0 +1,10 @@
-+Package: dhcp3-ldap-ntelos
-+Version: 3.0.1rc11
-+Section: net
-+Priority: optional
-+Architecture: i386
-+Depends: debconf, debianutils (>= 1.7), dhcp3-server (>= 3.0+3.0.1rc11)
-+Conflicts: dhcp
-+Installed-Size: 574
-+Maintainer: Brian Masney <masneyb@gftp.org>
-+Description: This is the DHCP server with LDAP patches applied to it
-diff -Pru dhcp-3.0.1rc13/debian/dhcp3-ldap-ntelos/DEBIAN/md5sums dhcp-3.0.1rc13-ldap/debian/dhcp3-ldap-ntelos/DEBIAN/md5sums
---- dhcp-3.0.1rc13/debian/dhcp3-ldap-ntelos/DEBIAN/md5sums	1969-12-31 19:00:00.000000000 -0500
-+++ dhcp-3.0.1rc13-ldap/debian/dhcp3-ldap-ntelos/DEBIAN/md5sums	2004-03-23 13:49:03.000000000 -0500
-@@ -0,0 +1 @@
-+0ef155277bc291c96e96d3760f7544a1  usr/sbin/dhcpd3
-diff -Pru dhcp-3.0.1rc13/debian/dhcp3-ldap-ntelos/DEBIAN/postinst dhcp-3.0.1rc13-ldap/debian/dhcp3-ldap-ntelos/DEBIAN/postinst
---- dhcp-3.0.1rc13/debian/dhcp3-ldap-ntelos/DEBIAN/postinst	1969-12-31 19:00:00.000000000 -0500
-+++ dhcp-3.0.1rc13-ldap/debian/dhcp3-ldap-ntelos/DEBIAN/postinst	2004-03-23 13:49:03.000000000 -0500
-@@ -0,0 +1,13 @@
-+#!/bin/sh
-+
-+set -e 
-+
-+# Removes the left over diversions of the old package
-+
-+if [ "$1" = remove -o "$1" = upgrade ]; then
-+	for v in `list_versions`; do
-+	        dpkg-divert --package dhcp3-ldap-ntelos --remove \
-+			--rename --divert /usr/sbin/dhcpd3-noldap \
-+			/usr/sbin/dhcpd3
-+	done
-+fi
-diff -Pru dhcp-3.0.1rc13/debian/dhcp3-ldap-ntelos/DEBIAN/postrm dhcp-3.0.1rc13-ldap/debian/dhcp3-ldap-ntelos/DEBIAN/postrm
---- dhcp-3.0.1rc13/debian/dhcp3-ldap-ntelos/DEBIAN/postrm	1969-12-31 19:00:00.000000000 -0500
-+++ dhcp-3.0.1rc13-ldap/debian/dhcp3-ldap-ntelos/DEBIAN/postrm	2004-03-23 13:49:03.000000000 -0500
-@@ -0,0 +1,8 @@
-+#!/bin/sh
-+
-+set -e 
-+
-+if [ "$1" = remove ]; then
-+	dpkg-divert --package dhcp3-ldap-ntelos --remove --rename \
-+		--divert /usr/sbin/dhcpd3-noldap /usr/sbin/dhcpd3
-+fi
-diff -Pru dhcp-3.0.1rc13/debian/dhcp3-ldap-ntelos/DEBIAN/preinst dhcp-3.0.1rc13-ldap/debian/dhcp3-ldap-ntelos/DEBIAN/preinst
---- dhcp-3.0.1rc13/debian/dhcp3-ldap-ntelos/DEBIAN/preinst	1969-12-31 19:00:00.000000000 -0500
-+++ dhcp-3.0.1rc13-ldap/debian/dhcp3-ldap-ntelos/DEBIAN/preinst	2004-03-23 13:49:03.000000000 -0500
-@@ -0,0 +1,14 @@
-+#!/bin/sh
-+
-+set -e 
-+
-+if [ "$1" = install -o "$1" = upgrade ]; then
-+	if dpkg-divert --list /usr/sbin/dhcpd3 \
-+		| grep -q "by dhcp3-ldap-ntelos";
-+	then
-+		exit 0
-+	fi
-+		
-+	dpkg-divert --package dhcp3-ldap-ntelos --add --rename \
-+		--divert /usr/sbin/dhcpd3-noldap /usr/sbin/dhcpd3
-+fi
-diff -Pru dhcp-3.0.1rc13/debian/dhcp3-ldap-ntelos.files dhcp-3.0.1rc13-ldap/debian/dhcp3-ldap-ntelos.files
---- dhcp-3.0.1rc13/debian/dhcp3-ldap-ntelos.files	1969-12-31 19:00:00.000000000 -0500
-+++ dhcp-3.0.1rc13-ldap/debian/dhcp3-ldap-ntelos.files	2004-03-23 13:49:03.000000000 -0500
+diff -Naur dhcp-3.0.1rc14/debian/dhcp3-server-ldap.files dhcp-3.0.1rc14-ldap/debian/dhcp3-server-ldap.files
+--- dhcp-3.0.1rc14/debian/dhcp3-server-ldap.files	1969-12-31 19:00:00.000000000 -0500
++++ dhcp-3.0.1rc14-ldap/debian/dhcp3-server-ldap.files	2004-06-22 15:18:20.000000000 -0400
 @@ -0,0 +1 @@
 +usr/sbin/dhcpd3
-diff -Pru dhcp-3.0.1rc13/debian/dhcp3-ldap-ntelos.postinst dhcp-3.0.1rc13-ldap/debian/dhcp3-ldap-ntelos.postinst
---- dhcp-3.0.1rc13/debian/dhcp3-ldap-ntelos.postinst	1969-12-31 19:00:00.000000000 -0500
-+++ dhcp-3.0.1rc13-ldap/debian/dhcp3-ldap-ntelos.postinst	2004-03-23 13:49:03.000000000 -0500
+diff -Naur dhcp-3.0.1rc14/debian/dhcp3-server-ldap.postinst dhcp-3.0.1rc14-ldap/debian/dhcp3-server-ldap.postinst
+--- dhcp-3.0.1rc14/debian/dhcp3-server-ldap.postinst	1969-12-31 19:00:00.000000000 -0500
++++ dhcp-3.0.1rc14-ldap/debian/dhcp3-server-ldap.postinst	2004-06-22 15:18:20.000000000 -0400
 @@ -0,0 +1,13 @@
 +#!/bin/sh
 +
@@ -1414,26 +1555,26 @@ diff -Pru dhcp-3.0.1rc13/debian/dhcp3-ldap-ntelos.postinst dhcp-3.0.1rc13-ldap/d
 +
 +if [ "$1" = remove -o "$1" = upgrade ]; then
 +	for v in `list_versions`; do
-+	        dpkg-divert --package dhcp3-ldap-ntelos --remove \
++	        dpkg-divert --package dhcp3-server-ldap --remove \
 +			--rename --divert /usr/sbin/dhcpd3-noldap \
 +			/usr/sbin/dhcpd3
 +	done
 +fi
-diff -Pru dhcp-3.0.1rc13/debian/dhcp3-ldap-ntelos.postrm dhcp-3.0.1rc13-ldap/debian/dhcp3-ldap-ntelos.postrm
---- dhcp-3.0.1rc13/debian/dhcp3-ldap-ntelos.postrm	1969-12-31 19:00:00.000000000 -0500
-+++ dhcp-3.0.1rc13-ldap/debian/dhcp3-ldap-ntelos.postrm	2004-03-23 13:49:03.000000000 -0500
+diff -Naur dhcp-3.0.1rc14/debian/dhcp3-server-ldap.postrm dhcp-3.0.1rc14-ldap/debian/dhcp3-server-ldap.postrm
+--- dhcp-3.0.1rc14/debian/dhcp3-server-ldap.postrm	1969-12-31 19:00:00.000000000 -0500
++++ dhcp-3.0.1rc14-ldap/debian/dhcp3-server-ldap.postrm	2004-06-22 15:18:20.000000000 -0400
 @@ -0,0 +1,8 @@
 +#!/bin/sh
 +
 +set -e 
 +
 +if [ "$1" = remove ]; then
-+	dpkg-divert --package dhcp3-ldap-ntelos --remove --rename \
++	dpkg-divert --package dhcp3-server-ldap --remove --rename \
 +		--divert /usr/sbin/dhcpd3-noldap /usr/sbin/dhcpd3
 +fi
-diff -Pru dhcp-3.0.1rc13/debian/dhcp3-ldap-ntelos.preinst dhcp-3.0.1rc13-ldap/debian/dhcp3-ldap-ntelos.preinst
---- dhcp-3.0.1rc13/debian/dhcp3-ldap-ntelos.preinst	1969-12-31 19:00:00.000000000 -0500
-+++ dhcp-3.0.1rc13-ldap/debian/dhcp3-ldap-ntelos.preinst	2004-03-23 13:49:03.000000000 -0500
+diff -Naur dhcp-3.0.1rc14/debian/dhcp3-server-ldap.preinst dhcp-3.0.1rc14-ldap/debian/dhcp3-server-ldap.preinst
+--- dhcp-3.0.1rc14/debian/dhcp3-server-ldap.preinst	1969-12-31 19:00:00.000000000 -0500
++++ dhcp-3.0.1rc14-ldap/debian/dhcp3-server-ldap.preinst	2004-06-22 15:18:20.000000000 -0400
 @@ -0,0 +1,14 @@
 +#!/bin/sh
 +
@@ -1441,33 +1582,33 @@ diff -Pru dhcp-3.0.1rc13/debian/dhcp3-ldap-ntelos.preinst dhcp-3.0.1rc13-ldap/de
 +
 +if [ "$1" = install -o "$1" = upgrade ]; then
 +	if dpkg-divert --list /usr/sbin/dhcpd3 \
-+		| grep -q "by dhcp3-ldap-ntelos";
++		| grep -q "by dhcp3-server-ldap";
 +	then
 +		exit 0
 +	fi
 +		
-+	dpkg-divert --package dhcp3-ldap-ntelos --add --rename \
++	dpkg-divert --package dhcp3-server-ldap --add --rename \
 +		--divert /usr/sbin/dhcpd3-noldap /usr/sbin/dhcpd3
 +fi
-diff -Pru dhcp-3.0.1rc13/debian/dhcp3-ldap-ntelos.substvars dhcp-3.0.1rc13-ldap/debian/dhcp3-ldap-ntelos.substvars
---- dhcp-3.0.1rc13/debian/dhcp3-ldap-ntelos.substvars	1969-12-31 19:00:00.000000000 -0500
-+++ dhcp-3.0.1rc13-ldap/debian/dhcp3-ldap-ntelos.substvars	2004-03-23 13:49:03.000000000 -0500
+diff -Naur dhcp-3.0.1rc14/debian/dhcp3-server-ldap.substvars dhcp-3.0.1rc14-ldap/debian/dhcp3-server-ldap.substvars
+--- dhcp-3.0.1rc14/debian/dhcp3-server-ldap.substvars	1969-12-31 19:00:00.000000000 -0500
++++ dhcp-3.0.1rc14-ldap/debian/dhcp3-server-ldap.substvars	2004-06-22 15:18:20.000000000 -0400
 @@ -0,0 +1 @@
-+shlibs:Depends=libc6 (>= 2.3.1-1), libldap2 (>= 2.1.17-1)
-diff -Pru dhcp-3.0.1rc13/debian/dirs dhcp-3.0.1rc13-ldap/debian/dirs
---- dhcp-3.0.1rc13/debian/dirs	1969-12-31 19:00:00.000000000 -0500
-+++ dhcp-3.0.1rc13-ldap/debian/dirs	2004-03-23 13:49:03.000000000 -0500
++shlibs:Depends=libc6 (>= 2.3.2.ds1-4), libldap2 (>= 2.1.17-1)
+diff -Naur dhcp-3.0.1rc14/debian/dirs dhcp-3.0.1rc14-ldap/debian/dirs
+--- dhcp-3.0.1rc14/debian/dirs	1969-12-31 19:00:00.000000000 -0500
++++ dhcp-3.0.1rc14-ldap/debian/dirs	2004-06-22 15:18:20.000000000 -0400
 @@ -0,0 +1 @@
 +usr/sbin
-diff -Pru dhcp-3.0.1rc13/debian/files dhcp-3.0.1rc13-ldap/debian/files
---- dhcp-3.0.1rc13/debian/files	1969-12-31 19:00:00.000000000 -0500
-+++ dhcp-3.0.1rc13-ldap/debian/files	2004-03-23 13:49:03.000000000 -0500
+diff -Naur dhcp-3.0.1rc14/debian/files dhcp-3.0.1rc14-ldap/debian/files
+--- dhcp-3.0.1rc14/debian/files	1969-12-31 19:00:00.000000000 -0500
++++ dhcp-3.0.1rc14-ldap/debian/files	2004-06-22 15:18:20.000000000 -0400
 @@ -0,0 +1 @@
-+dhcp3-ldap-ntelos_3.0.1rc11_i386.deb net optional
-diff -Pru dhcp-3.0.1rc13/debian/rules dhcp-3.0.1rc13-ldap/debian/rules
---- dhcp-3.0.1rc13/debian/rules	1969-12-31 19:00:00.000000000 -0500
-+++ dhcp-3.0.1rc13-ldap/debian/rules	2004-03-23 13:49:03.000000000 -0500
-@@ -0,0 +1,89 @@
++dhcp3-server-ldap_3.0.1rc13-1_i386.deb net optional
+diff -Naur dhcp-3.0.1rc14/debian/rules dhcp-3.0.1rc14-ldap/debian/rules
+--- dhcp-3.0.1rc14/debian/rules	1969-12-31 19:00:00.000000000 -0500
++++ dhcp-3.0.1rc14-ldap/debian/rules	2004-06-22 15:18:20.000000000 -0400
+@@ -0,0 +1,87 @@
 +#!/usr/bin/make -f
 +# Made with the iad of dh_make, by Craig Small
 +# Sample debian/rules that uses debhelper. GNU copyright 1997 by Joey Hess.
@@ -1493,8 +1634,6 @@ diff -Pru dhcp-3.0.1rc13/debian/rules dhcp-3.0.1rc13-ldap/debian/rules
 +	dh_testdir
 +
 +	./configure
-+	cat work.linux-2.2/server/Makefile | sed s/^LIBS\ =/LIBS\ =\ \-lldap/ > work.linux-2.2/server/Makefile.new
-+	mv work.linux-2.2/server/Makefile.new work.linux-2.2/server/Makefile
 +	$(MAKE) $(BVARS)
 +
 +	touch build-stamp
@@ -1557,9 +1696,9 @@ diff -Pru dhcp-3.0.1rc13/debian/rules dhcp-3.0.1rc13-ldap/debian/rules
 +
 +binary: binary-arch
 +.PHONY: build clean binary-indep binary-arch binary
-diff -Pru dhcp-3.0.1rc13/doc/draft-ietf-dhc-ldap-schema-01.txt dhcp-3.0.1rc13-ldap/doc/draft-ietf-dhc-ldap-schema-01.txt
---- dhcp-3.0.1rc13/doc/draft-ietf-dhc-ldap-schema-01.txt	1969-12-31 19:00:00.000000000 -0500
-+++ dhcp-3.0.1rc13-ldap/doc/draft-ietf-dhc-ldap-schema-01.txt	2004-03-23 13:49:03.000000000 -0500
+diff -Naur dhcp-3.0.1rc14/doc/draft-ietf-dhc-ldap-schema-01.txt dhcp-3.0.1rc14-ldap/doc/draft-ietf-dhc-ldap-schema-01.txt
+--- dhcp-3.0.1rc14/doc/draft-ietf-dhc-ldap-schema-01.txt	1969-12-31 19:00:00.000000000 -0500
++++ dhcp-3.0.1rc14-ldap/doc/draft-ietf-dhc-ldap-schema-01.txt	2004-06-22 15:18:20.000000000 -0400
 @@ -0,0 +1,1089 @@
 +
 +
@@ -2650,10 +2789,10 @@ diff -Pru dhcp-3.0.1rc13/doc/draft-ietf-dhc-ldap-schema-01.txt dhcp-3.0.1rc13-ld
 +
 +
 +
-diff -Pru dhcp-3.0.1rc13/includes/dhcpd.h dhcp-3.0.1rc13-ldap/includes/dhcpd.h
---- dhcp-3.0.1rc13/includes/dhcpd.h	2003-02-09 20:22:46.000000000 -0500
-+++ dhcp-3.0.1rc13-ldap/includes/dhcpd.h	2004-03-23 13:49:03.000000000 -0500
-@@ -88,6 +88,11 @@
+diff -Naur dhcp-3.0.1rc14/includes/dhcpd.h dhcp-3.0.1rc14-ldap/includes/dhcpd.h
+--- dhcp-3.0.1rc14/includes/dhcpd.h	2004-06-10 13:59:29.000000000 -0400
++++ dhcp-3.0.1rc14-ldap/includes/dhcpd.h	2004-06-22 15:18:20.000000000 -0400
+@@ -79,6 +79,11 @@
  #include <isc-dhcp/result.h>
  #include <omapip/omapip_p.h>
  
@@ -2665,7 +2804,7 @@ diff -Pru dhcp-3.0.1rc13/includes/dhcpd.h dhcp-3.0.1rc13-ldap/includes/dhcpd.h
  #if !defined (OPTION_HASH_SIZE)
  # define OPTION_HASH_SIZE 17
  # define OPTION_HASH_PTWO 32	/* Next power of two above option hash. */
-@@ -148,6 +153,8 @@
+@@ -139,6 +144,8 @@
  	char *inbuf;
  	unsigned bufix, buflen;
  	unsigned bufsiz;
@@ -2674,7 +2813,7 @@ diff -Pru dhcp-3.0.1rc13/includes/dhcpd.h dhcp-3.0.1rc13-ldap/includes/dhcpd.h
  };
  
  /* Variable-length array of data. */
-@@ -250,6 +257,26 @@
+@@ -241,6 +248,26 @@
  	u_int8_t hbuf [17];
  };
  
@@ -2701,7 +2840,7 @@ diff -Pru dhcp-3.0.1rc13/includes/dhcpd.h dhcp-3.0.1rc13-ldap/includes/dhcpd.h
  typedef enum {
  	server_startup = 0,
  	server_running = 1,
-@@ -426,6 +453,16 @@
+@@ -417,6 +444,16 @@
  # define DEFAULT_PING_TIMEOUT 1
  #endif
  
@@ -2718,7 +2857,7 @@ diff -Pru dhcp-3.0.1rc13/includes/dhcpd.h dhcp-3.0.1rc13-ldap/includes/dhcpd.h
  #if !defined (DEFAULT_DEFAULT_LEASE_TIME)
  # define DEFAULT_DEFAULT_LEASE_TIME 43200
  #endif
-@@ -1529,7 +1566,7 @@
+@@ -1520,7 +1557,7 @@
  char *quotify_string (const char *, const char *, int);
  char *quotify_buf (const unsigned char *, unsigned, const char *, int);
  char *print_base64 (const unsigned char *, unsigned, const char *, int);
@@ -2727,7 +2866,7 @@ diff -Pru dhcp-3.0.1rc13/includes/dhcpd.h dhcp-3.0.1rc13-ldap/includes/dhcpd.h
  void print_lease PROTO ((struct lease *));
  void dump_raw PROTO ((const unsigned char *, unsigned));
  void dump_packet_option (struct option_cache *, struct packet *,
-@@ -2631,3 +2668,14 @@
+@@ -2622,3 +2659,14 @@
  #endif /* FAILOVER_PROTOCOL */
  
  const char *binding_state_print (enum failover_state);
@@ -2742,9 +2881,9 @@ diff -Pru dhcp-3.0.1rc13/includes/dhcpd.h dhcp-3.0.1rc13-ldap/includes/dhcpd.h
 +			   struct data_string *);
 +#endif
 +
-diff -Pru dhcp-3.0.1rc13/includes/site.h dhcp-3.0.1rc13-ldap/includes/site.h
---- dhcp-3.0.1rc13/includes/site.h	2002-03-12 13:33:39.000000000 -0500
-+++ dhcp-3.0.1rc13-ldap/includes/site.h	2004-03-23 13:49:03.000000000 -0500
+diff -Naur dhcp-3.0.1rc14/includes/site.h dhcp-3.0.1rc14-ldap/includes/site.h
+--- dhcp-3.0.1rc14/includes/site.h	2002-03-12 13:33:39.000000000 -0500
++++ dhcp-3.0.1rc14-ldap/includes/site.h	2004-06-22 15:18:20.000000000 -0400
 @@ -177,3 +177,13 @@
     traces. */
  
@@ -2759,10 +2898,10 @@ diff -Pru dhcp-3.0.1rc13/includes/site.h dhcp-3.0.1rc13-ldap/includes/site.h
 +   to add -lcrypto -lssl to the LIBS= line of server/Makefile */
 +
 +/* #define USE_SSL */
-diff -Pru dhcp-3.0.1rc13/server/Makefile.dist dhcp-3.0.1rc13-ldap/server/Makefile.dist
---- dhcp-3.0.1rc13/server/Makefile.dist	2002-11-16 21:29:30.000000000 -0500
-+++ dhcp-3.0.1rc13-ldap/server/Makefile.dist	2004-03-23 13:49:03.000000000 -0500
-@@ -20,9 +20,9 @@
+diff -Naur dhcp-3.0.1rc14/server/Makefile.dist dhcp-3.0.1rc14-ldap/server/Makefile.dist
+--- dhcp-3.0.1rc14/server/Makefile.dist	2004-06-10 13:59:50.000000000 -0400
++++ dhcp-3.0.1rc14-ldap/server/Makefile.dist	2004-06-22 15:18:20.000000000 -0400
+@@ -25,9 +25,9 @@
  CATMANPAGES = dhcpd.cat8 dhcpd.conf.cat5 dhcpd.leases.cat5
  SEDMANPAGES = dhcpd.man8 dhcpd.conf.man5 dhcpd.leases.man5
  SRCS   = dhcpd.c dhcp.c bootp.c confpars.c db.c class.c failover.c \
@@ -2774,10 +2913,10 @@ diff -Pru dhcp-3.0.1rc13/server/Makefile.dist dhcp-3.0.1rc13-ldap/server/Makefil
  PROG   = dhcpd
  MAN    = dhcpd.8 dhcpd.conf.5 dhcpd.leases.5
  
-diff -Pru dhcp-3.0.1rc13/server/class.c dhcp-3.0.1rc13-ldap/server/class.c
---- dhcp-3.0.1rc13/server/class.c	2002-11-16 21:29:30.000000000 -0500
-+++ dhcp-3.0.1rc13-ldap/server/class.c	2004-03-23 13:49:03.000000000 -0500
-@@ -99,6 +99,7 @@
+diff -Naur dhcp-3.0.1rc14/server/class.c dhcp-3.0.1rc14-ldap/server/class.c
+--- dhcp-3.0.1rc14/server/class.c	2004-06-10 13:59:51.000000000 -0400
++++ dhcp-3.0.1rc14-ldap/server/class.c	2004-06-22 15:18:20.000000000 -0400
+@@ -90,6 +90,7 @@
  	int matched = 0;
  	int status;
  	int ignorep;
@@ -2785,7 +2924,7 @@ diff -Pru dhcp-3.0.1rc13/server/class.c dhcp-3.0.1rc13-ldap/server/class.c
  
  	for (class = collection -> classes; class; class = class -> nic) {
  #if defined (DEBUG_CLASS_MATCHING)
-@@ -144,9 +145,19 @@
+@@ -135,9 +136,19 @@
  				   class -> submatch, MDL));
  			if (status && data.len) {
  				nc = (struct class *)0;
@@ -2808,10 +2947,10 @@ diff -Pru dhcp-3.0.1rc13/server/class.c dhcp-3.0.1rc13-ldap/server/class.c
  #if defined (DEBUG_CLASS_MATCHING)
  					log_info ("matches subclass %s.",
  					      print_hex_1 (data.len,
-diff -Pru dhcp-3.0.1rc13/server/confpars.c dhcp-3.0.1rc13-ldap/server/confpars.c
---- dhcp-3.0.1rc13/server/confpars.c	2003-05-18 19:36:41.000000000 -0400
-+++ dhcp-3.0.1rc13-ldap/server/confpars.c	2004-03-23 13:49:03.000000000 -0500
-@@ -71,7 +71,17 @@
+diff -Naur dhcp-3.0.1rc14/server/confpars.c dhcp-3.0.1rc14-ldap/server/confpars.c
+--- dhcp-3.0.1rc14/server/confpars.c	2004-06-10 13:59:51.000000000 -0400
++++ dhcp-3.0.1rc14-ldap/server/confpars.c	2004-06-22 15:18:20.000000000 -0400
+@@ -62,7 +62,17 @@
  
  isc_result_t readconf ()
  {
@@ -2830,10 +2969,10 @@ diff -Pru dhcp-3.0.1rc13/server/confpars.c dhcp-3.0.1rc13-ldap/server/confpars.c
  }
  
  isc_result_t read_conf_file (const char *filename, struct group *group,
-diff -Pru dhcp-3.0.1rc13/server/dhcpd.c dhcp-3.0.1rc13-ldap/server/dhcpd.c
---- dhcp-3.0.1rc13/server/dhcpd.c	2003-01-14 18:15:24.000000000 -0500
-+++ dhcp-3.0.1rc13-ldap/server/dhcpd.c	2004-03-23 13:49:03.000000000 -0500
-@@ -443,6 +443,9 @@
+diff -Naur dhcp-3.0.1rc14/server/dhcpd.c dhcp-3.0.1rc14-ldap/server/dhcpd.c
+--- dhcp-3.0.1rc14/server/dhcpd.c	2004-06-10 13:59:52.000000000 -0400
++++ dhcp-3.0.1rc14-ldap/server/dhcpd.c	2004-06-22 15:18:20.000000000 -0400
+@@ -434,6 +434,9 @@
  	/* Add the ddns update style enumeration prior to parsing. */
  	add_enumeration (&ddns_styles);
  	add_enumeration (&syslog_enum);
@@ -2843,16 +2982,16 @@ diff -Pru dhcp-3.0.1rc13/server/dhcpd.c dhcp-3.0.1rc13-ldap/server/dhcpd.c
  
  	if (!group_allocate (&root_group, MDL))
  		log_fatal ("Can't allocate root group!");
-diff -Pru dhcp-3.0.1rc13/server/ldap.c dhcp-3.0.1rc13-ldap/server/ldap.c
---- dhcp-3.0.1rc13/server/ldap.c	1969-12-31 19:00:00.000000000 -0500
-+++ dhcp-3.0.1rc13-ldap/server/ldap.c	2004-03-30 13:38:39.000000000 -0500
-@@ -0,0 +1,1146 @@
+diff -Naur dhcp-3.0.1rc14/server/ldap.c dhcp-3.0.1rc14-ldap/server/ldap.c
+--- dhcp-3.0.1rc14/server/ldap.c	1969-12-31 19:00:00.000000000 -0500
++++ dhcp-3.0.1rc14-ldap/server/ldap.c	2004-06-22 15:18:20.000000000 -0400
+@@ -0,0 +1,1479 @@
 +/* ldap.c
 +
 +   Routines for reading the configuration from LDAP */
 +
 +/*
-+ * Copyright (c) 2003 Ntelos, Inc.
++ * Copyright (c) 2003-2004 Ntelos, Inc.
 + * All rights reserved.
 + *
 + * Redistribution and use in source and binary forms, with or without
@@ -2896,10 +3035,19 @@ diff -Pru dhcp-3.0.1rc13/server/ldap.c dhcp-3.0.1rc13-ldap/server/ldap.c
 +            *ldap_password = NULL,
 +            *ldap_base_dn = NULL,
 +            *ldap_debug_file = NULL;
-+static int ldap_port = 389,
++static int ldap_port = LDAP_PORT,
 +           ldap_method = LDAP_METHOD_DYNAMIC,
 +           ldap_debug_fd = -1;
 +static struct ldap_config_stack *ldap_stack = NULL;
++
++typedef struct ldap_dn_node {
++    struct ldap_dn_node *next;
++    size_t refs;
++    char *dn;
++} ldap_dn_node;
++
++static ldap_dn_node *ldap_service_dn_head = NULL;
++static ldap_dn_node *ldap_service_dn_tail = NULL;
 +
 +
 +static void
@@ -2939,7 +3087,6 @@ diff -Pru dhcp-3.0.1rc13/server/ldap.c dhcp-3.0.1rc13-ldap/server/ldap.c
 +      return;
 +    }
 +
-+
 +  if ((classdata = ldap_get_values (ld, item->ldent, 
 +                                  "dhcpClassData")) == NULL || 
 +      classdata[0] == NULL)
@@ -2968,7 +3115,6 @@ diff -Pru dhcp-3.0.1rc13/server/ldap.c dhcp-3.0.1rc13-ldap/server/ldap.c
 +{
 +  char **tempstr, **hwaddr;
 +
-+
 +  if ((tempstr = ldap_get_values (ld, item->ldent, "cn")) == NULL ||
 +      tempstr[0] == NULL)
 +    {
@@ -2984,8 +3130,8 @@ diff -Pru dhcp-3.0.1rc13/server/ldap.c dhcp-3.0.1rc13-ldap/server/ldap.c
 +    {
 +      if (hwaddr != NULL)
 +        ldap_value_free (hwaddr);
-+      ldap_value_free (tempstr);
 +
++      ldap_value_free (tempstr);
 +      return;
 +    }
 +
@@ -3016,9 +3162,9 @@ diff -Pru dhcp-3.0.1rc13/server/ldap.c dhcp-3.0.1rc13-ldap/server/ldap.c
 +      return;
 +    }
 +
-+  strncat (cfile->inbuf, "shared-network ", LDAP_BUFFER_SIZE);
++  strncat (cfile->inbuf, "shared-network \"", LDAP_BUFFER_SIZE);
 +  strncat (cfile->inbuf, tempstr[0], LDAP_BUFFER_SIZE);
-+  strncat (cfile->inbuf, " {\n", LDAP_BUFFER_SIZE);
++  strncat (cfile->inbuf, "\" {\n", LDAP_BUFFER_SIZE);
 +
 +  item->close_brace = 1;
 +  ldap_value_free (tempstr);
@@ -3083,13 +3229,13 @@ diff -Pru dhcp-3.0.1rc13/server/ldap.c dhcp-3.0.1rc13-ldap/server/ldap.c
 +
 +  if ((tempstr = ldap_get_values (ld, item->ldent, "dhcpRange")) != NULL)
 +    {
-+      strncat (cfile->inbuf, "range", LDAP_BUFFER_SIZE);
 +      for (i=0; tempstr[i] != NULL; i++)
 +        {
++          strncat (cfile->inbuf, "range", LDAP_BUFFER_SIZE);
 +          strncat (cfile->inbuf, " ", LDAP_BUFFER_SIZE);
 +          strncat (cfile->inbuf, tempstr[i], LDAP_BUFFER_SIZE);
++          strncat (cfile->inbuf, ";\n", LDAP_BUFFER_SIZE);
 +        }
-+      strncat (cfile->inbuf, ";\n", LDAP_BUFFER_SIZE);
 +      ldap_value_free (tempstr);
 +    }
 +
@@ -3226,7 +3372,7 @@ diff -Pru dhcp-3.0.1rc13/server/ldap.c dhcp-3.0.1rc13-ldap/server/ldap.c
 +        {
 +          ldap_base_dn = dmalloc (db.len + 1, MDL);
 +          if (!ldap_base_dn)
-+            log_fatal ("no memory for ldap password");
++            log_fatal ("no memory for ldap base dn");
 +          memcpy (ldap_base_dn, db.data, db.len);
 +          ldap_base_dn[db.len] = 0;
 +          data_string_forget (&db, MDL);
@@ -3242,7 +3388,7 @@ diff -Pru dhcp-3.0.1rc13/server/ldap.c dhcp-3.0.1rc13-ldap/server/ldap.c
 +          if (db.len == 1) 
 +            ldap_method = db.data [0];
 +          else
-+            log_fatal ("invalid dns update type");
++            log_fatal ("invalid ldap method type");
 +          data_string_forget (&db, MDL);
 +        }
 +
@@ -3305,7 +3451,7 @@ diff -Pru dhcp-3.0.1rc13/server/ldap.c dhcp-3.0.1rc13-ldap/server/ldap.c
 +
 +  if ((ret = ldap_simple_bind_s (ld, ldap_username, ldap_password)) != LDAP_SUCCESS)
 +    {
-+      log_error ("Error: Cannot log into ldap server %s: %s", ldap_server,
++      log_error ("Error: Cannot login into ldap server %s: %s", ldap_server,
 +                 ldap_err2string (ret));
 +      ldap_unbind (ld);
 +      ld = NULL;
@@ -3327,7 +3473,10 @@ diff -Pru dhcp-3.0.1rc13/server/ldap.c dhcp-3.0.1rc13-ldap/server/ldap.c
 +  LDAPMessage * newres, * newent;
 +  struct ldap_config_stack *ns;
 +  char **tempstr;
-+  int i, ret;
++  int i, j, ret;
++#if defined (DEBUG_LDAP)
++  char *dn;
++#endif
 +
 +  if (ld == NULL)
 +    ldap_start ();
@@ -3339,26 +3488,43 @@ diff -Pru dhcp-3.0.1rc13/server/ldap.c dhcp-3.0.1rc13-ldap/server/ldap.c
 +      if ((tempstr = ldap_get_values (ld, ent, search[i])) == NULL)
 +        continue;
 +
-+      if ((ret = ldap_search_s (ld, tempstr[0], LDAP_SCOPE_BASE, 
-+                                "objectClass=*", NULL, 0, 
-+                                &newres)) != LDAP_SUCCESS)
++      for (j=0; tempstr[j] != NULL; j++)
 +        {
-+          ldap_value_free (tempstr);
-+          ldap_unbind (ld);
-+          ld = NULL;
-+          return;
++          if (*tempstr[j] == '\0')
++            continue;
++
++          if ((ret = ldap_search_s (ld, tempstr[j], LDAP_SCOPE_BASE, 
++                                    "objectClass=*", NULL, 0, 
++                                    &newres)) != LDAP_SUCCESS)
++            {
++              ldap_value_free (tempstr);
++              ldap_unbind (ld);
++              ld = NULL;
++              return;
++            }
++    
++#if defined (DEBUG_LDAP)
++          log_info ("Adding contents of subtree '%s' to config stack from '%s' reference", tempstr[j], search[i]);
++#endif
++          for (newent = ldap_first_entry (ld, newres);
++               newent != NULL;
++               newent = ldap_next_entry (ld, ent))
++            {
++#if defined (DEBUG_LDAP)
++              dn = ldap_get_dn (ld, newent);
++              if (dn != NULL)
++                {
++                  log_info ("Adding LDAP entry '%s' to config stack", dn);
++                  ldap_memfree (dn);
++                }
++#endif
++
++              add_to_config_stack (newres, newent);
++              /* don't free newres here */
++            }
 +        }
 +
 +      ldap_value_free (tempstr);
-+
-+      for (newent = ldap_first_entry (ld, newres);
-+           newent != NULL;
-+           newent = ldap_next_entry (ld, ent))
-+        {
-+          add_to_config_stack (newres, newent);
-+        }
-+
-+      ldap_msgfree (newres);
 +    }
 +}
 +
@@ -3405,10 +3571,119 @@ diff -Pru dhcp-3.0.1rc13/server/ldap.c dhcp-3.0.1rc13-ldap/server/ldap.c
 +}
 +
 +
++static char
++check_statement_end (const char *statement)
++{
++  char *ptr;
++
++  if (statement == NULL || *statement == '\0')
++    return ('\0');
++
++  /*
++  ** check if it ends with "}", e.g.:
++  **   "zone my.domain. { ... }"
++  ** optionally followed by spaces
++  */
++  ptr = strrchr (statement, '}');
++  if (ptr != NULL)
++    {
++      /* skip following white-spaces */
++      for (++ptr; isspace ((int)*ptr); ptr++);
++
++      /* check if we reached the end */
++      if (*ptr == '\0')
++        return ('}'); /* yes, block end */
++      else
++        return (*ptr);
++    }
++
++  /*
++  ** this should not happen, but...
++  ** check if it ends with ";", e.g.:
++  **   "authoritative;"
++  ** optionally followed by spaces
++  */
++  ptr = strrchr (statement, ';');
++  if (ptr != NULL)
++    {
++      /* skip following white-spaces */
++      for (++ptr; isspace ((int)*ptr); ptr++);
++
++      /* check if we reached the end */
++      if (*ptr == '\0')
++        return (';'); /* ends with a ; */
++      else
++        return (*ptr);
++    }
++
++  return ('\0');
++}
++
++
++static isc_result_t
++ldap_parse_entry_options (LDAPMessage *ent, char *buffer, size_t size,
++                          int *lease_limit)
++{
++  char **tempstr;
++  int i;
++
++  if (ent == NULL || buffer == NULL || size == 0)
++    return (ISC_R_FAILURE);
++
++  if ((tempstr = ldap_get_values (ld, ent, "dhcpStatements")) != NULL)
++    {
++      for (i=0; tempstr[i] != NULL; i++)
++        {
++          if (lease_limit != NULL &&
++              strncasecmp ("lease limit ", tempstr[i], 12) == 0)
++            {
++              *lease_limit = (int) strtol ((tempstr[i]) + 12, NULL, 10);
++              continue;
++            }
++
++          strncat (buffer, tempstr[i], size);
++
++          switch((int) check_statement_end (tempstr[i]))
++            {
++              case '}':
++              case ';':
++                strncat (buffer, "\n", size);
++                break;
++              default:
++                strncat (buffer, ";\n", size);
++                break;
++            }
++        }
++      ldap_value_free (tempstr);
++    }
++
++  if ((tempstr = ldap_get_values (ld, ent, "dhcpOption")) != NULL)
++    {
++      for (i=0; tempstr[i] != NULL; i++)
++        {
++          strncat (buffer, "option ", size);
++          strncat (buffer, tempstr[i], size);
++          switch ((int) check_statement_end (tempstr[i]))
++            {
++              case ';':
++                strncat (buffer, "\n", size);
++                break;
++              default:
++                strncat (buffer, ";\n", size);
++                break;
++            }
++        }
++      ldap_value_free (tempstr);
++    }
++
++  return (ISC_R_SUCCESS);
++}
++
++
 +static void
 +ldap_generate_config_string (struct parse *cfile)
 +{
-+  char **objectClass, **tempstr, *dn;
++  char **objectClass, *dn;
 +  struct ldap_config_stack *entry;
 +  LDAPMessage * ent, * res;
 +  int i, j, ignore, found;
@@ -3476,60 +3751,25 @@ diff -Pru dhcp-3.0.1rc13/server/ldap.c dhcp-3.0.1rc13-ldap/server/ldap.c
 +      return;
 +    }
 +
-+  if ((tempstr = ldap_get_values (ld, entry->ldent, "dhcpOption")) != NULL)
-+    {
-+      for (j=0; tempstr[j] != NULL; j++)
-+        {
-+          strncat (cfile->inbuf, "option ", LDAP_BUFFER_SIZE);
-+          strncat (cfile->inbuf, tempstr[j], LDAP_BUFFER_SIZE);
-+          strncat (cfile->inbuf, ";\n", LDAP_BUFFER_SIZE);
-+        }
-+      ldap_value_free (tempstr);
-+    }
-+
-+  if ((tempstr = ldap_get_values (ld, entry->ldent, "dhcpStatements")) != NULL)
-+    {
-+      char *ptr = NULL;
-+
-+      for (j=0; tempstr[j] != NULL; j++)
-+        {
-+          strncat (cfile->inbuf, tempstr[j], LDAP_BUFFER_SIZE);
-+
-+          /*
-+          ** check if it ends with "}", e.g.
-+          **   "zone my.domain. { ... }"
-+          */
-+          ptr = strrchr (tempstr[j], '}');
-+          if (ptr != NULL)
-+            {
-+              /* skip following white-spaces */
-+              for (++ptr; isspace ((int)*ptr); ptr++);
-+
-+              /* check if we reached the end */
-+              if (*ptr != '\0')
-+                ptr = NULL;
-+            }
-+
-+          if(ptr != NULL)
-+            strncat (cfile->inbuf, "\n", LDAP_BUFFER_SIZE);
-+          else
-+            strncat (cfile->inbuf, ";\n", LDAP_BUFFER_SIZE);
-+        }
-+      ldap_value_free (tempstr);
-+    }
++  ldap_parse_entry_options(entry->ldent, cfile->inbuf,
++                           LDAP_BUFFER_SIZE-1, NULL);
 +
 +  dn = ldap_get_dn (ld, entry->ldent);
 +
 +#if defined(DEBUG_LDAP)
-+  log_info ("Found LDAP entry '%s'", dn);
++  if (dn != NULL)
++    log_info ("Found LDAP entry '%s'", dn);
 +#endif
 +
-+  if ((ret = ldap_search_s (ld, dn, LDAP_SCOPE_ONELEVEL, "objectClass=*", 
++  if (dn == NULL ||
++      (ret = ldap_search_s (ld, dn, LDAP_SCOPE_ONELEVEL, "objectClass=*", 
 +                            NULL, 0, &res)) != LDAP_SUCCESS)
 +    {
++      if (dn)
++        ldap_memfree (dn);
++
 +      ldap_unbind (ld);
 +      ld = NULL;
-+      ldap_memfree (dn);
 +      return;
 +    }
 +
@@ -3549,6 +3789,32 @@ diff -Pru dhcp-3.0.1rc13/server/ldap.c dhcp-3.0.1rc13-ldap/server/ldap.c
 +}
 +
 +
++static void
++ldap_close_debug_fd()
++{
++  if (ldap_debug_fd != -1)
++    {
++      close (ldap_debug_fd);
++      ldap_debug_fd = -1;
++    }
++}
++
++
++static void
++ldap_write_debug (const void *buff, size_t size)
++{
++  if (ldap_debug_fd != -1)
++    {
++      if (write (ldap_debug_fd, buff, size) < 0)
++        {
++          log_error ("Error writing to LDAP debug file %s: %s."
++                     " Disabling log file.", ldap_debug_file,
++                     strerror (errno));
++          ldap_close_debug_fd();
++        }
++    }
++}
++
 +static char
 +ldap_read_function (struct parse *cfile)
 +{
@@ -3561,28 +3827,15 @@ diff -Pru dhcp-3.0.1rc13/server/ldap.c dhcp-3.0.1rc13-ldap/server/ldap.c
 +    ldap_generate_config_string (cfile);
 +
 +  cfile->buflen = strlen (cfile->inbuf);
-+
-+  if (ldap_debug_fd > 0 && cfile->buflen > 0)
-+    {
-+      if (write (ldap_debug_fd, cfile->inbuf, cfile->buflen) < 0)
-+        {
-+          log_error ("Error writing to LDAP debug file %s: %s. Disabling log file.",
-+                     ldap_debug_file, strerror (errno));
-+          close (ldap_debug_fd);
-+          ldap_debug_fd = -1;
-+        }
-+    }
++  if (cfile->buflen > 0)
++    ldap_write_debug (cfile->inbuf, cfile->buflen);
 +
 +#if defined (DEBUG_LDAP)
 +  log_info ("Sending config line '%s'", cfile->inbuf);
 +#endif
 +
 +  if (ldap_stack == NULL)
-+    {
-+      strncat (cfile->inbuf, eofstring, LDAP_BUFFER_SIZE);
-+      if (ldap_debug_fd > 0)
-+        close (ldap_debug_fd);
-+    }
++    strncat (cfile->inbuf, eofstring, LDAP_BUFFER_SIZE);
 +
 +  cfile->buflen = strlen (cfile->inbuf);
 +  cfile->bufix = 1;
@@ -3603,8 +3856,12 @@ diff -Pru dhcp-3.0.1rc13/server/ldap.c dhcp-3.0.1rc13-ldap/server/ldap.c
 +        ldap_value_free (name);
 +
 +#if defined (DEBUG_LDAP)
-+      log_info ("Cannot get cn attribute for LDAP entry %s",
-+                ldap_get_dn (ld, ent));
++      ret = ldap_get_dn (ld, ent);
++      if (ret != NULL)
++        {
++          log_info ("Cannot get cn attribute for LDAP entry %s", ret);
++          ldap_memfree(ret);
++        }
 +#endif
 +      return (NULL);
 +    }
@@ -3617,39 +3874,80 @@ diff -Pru dhcp-3.0.1rc13/server/ldap.c dhcp-3.0.1rc13-ldap/server/ldap.c
 +}
 +
 +
++static int
++getfqhostname(char *fqhost, size_t size)
++{
++#if defined(MAXHOSTNAMELEN)
++  char   hname[MAXHOSTNAMELEN];
++#else
++  char   hname[65];
++#endif
++  struct hostent *hp;
++
++  if(NULL == fqhost || 1 >= size)
++    return -1;
++
++  memset(hname, 0, sizeof(hname));
++  if( gethostname(hname, sizeof(hname)-1))
++    return -1;
++
++  if(NULL == (hp = gethostbyname(hname)))
++    return -1;
++
++  strncpy(fqhost, hp->h_name, size-1);
++  fqhost[size-1] = '\0';
++  return 0;
++}
++
++
 +isc_result_t
 +ldap_read_config (void)
 +{
 +  LDAPMessage * ldres, * hostres, * ent, * hostent;
-+  char *buffer, dn[256], **tempstr;
++  char hfilter[1024], sfilter[1024], fqdn[257];
++  char *buffer, **tempstr = NULL, *hostdn;
++  ldap_dn_node *curr = NULL;
 +  struct parse *cfile;
 +  struct utsname unme;
 +  isc_result_t res;
-+  int ret;
-+
-+
-+  buffer = dmalloc (LDAP_BUFFER_SIZE, MDL);
-+  cfile = (struct parse *) NULL;
-+  res = new_parse (&cfile, -1, buffer, LDAP_BUFFER_SIZE, "LDAP", 0);
-+  if (res != ISC_R_SUCCESS)
-+    return (res);
-+
-+  cfile->bufix = cfile->buflen = 0;
-+  cfile->read_function = ldap_read_function;
++  size_t length;
++  int ret, cnt;
 +
 +  if (ld == NULL)
 +    ldap_start ();
 +  if (ld == NULL)
 +    return (ldap_server == NULL ? ISC_R_SUCCESS : ISC_R_FAILURE);
-+  
-+  uname (&unme);
-+  snprintf (dn, sizeof (dn), "(&(objectClass=dhcpServer)(cn=%s))", 
-+            unme.nodename);
++ 
++  buffer = dmalloc (LDAP_BUFFER_SIZE+1, MDL);
++  if (buffer == NULL)
++    return (ISC_R_FAILURE);
 +
-+  if ((ret = ldap_search_s (ld, ldap_base_dn, LDAP_SCOPE_SUBTREE, dn, NULL, 
-+                            0, &hostres)) != LDAP_SUCCESS)
++  cfile = (struct parse *) NULL;
++  res = new_parse (&cfile, -1, buffer, LDAP_BUFFER_SIZE, "LDAP", 0);
++  if (res != ISC_R_SUCCESS)
++    return (res);
++ 
++  uname (&unme);
++  if(0 == getfqhostname(fqdn, sizeof(fqdn)))
 +    {
-+      log_error ("Cannot find host LDAP entry %s (%s)", unme.nodename, dn);
++      snprintf (hfilter, sizeof (hfilter),
++                "(&(objectClass=dhcpServer)(|(cn=%s)(cn=%s)))", 
++                unme.nodename, fqdn);
++    }
++  else
++    {
++      snprintf (hfilter, sizeof (hfilter),
++                "(&(objectClass=dhcpServer)(cn=%s))", unme.nodename);
++    }
++
++  hostres = NULL;
++  if ((ret = ldap_search_s (ld, ldap_base_dn, LDAP_SCOPE_SUBTREE,
++                            hfilter, NULL, 0, &hostres)) != LDAP_SUCCESS)
++    {
++      log_error ("Cannot find host LDAP entry %s %s",
++                 unme.nodename, hfilter);
++      if(NULL != hostres)
++        ldap_msgfree (hostres);
 +      ldap_unbind (ld);
 +      ld = NULL;
 +      return (ISC_R_FAILURE);
@@ -3657,60 +3955,169 @@ diff -Pru dhcp-3.0.1rc13/server/ldap.c dhcp-3.0.1rc13-ldap/server/ldap.c
 +
 +  if ((hostent = ldap_first_entry (ld, hostres)) == NULL)
 +    {
-+      log_error ("Error: Cannot find LDAP entry matching %s", dn);
++      log_error ("Error: Cannot find LDAP entry matching %s", hfilter);
++      ldap_msgfree (hostres);
++      ldap_unbind (ld);
++      ld = NULL;
++      return (ISC_R_FAILURE);
++    }
++
++  hostdn = ldap_get_dn (ld, hostent);
++#if defined(DEBUG_LDAP)
++  if (hostdn != NULL)
++    log_info ("Found dhcpServer LDAP entry '%s'", hostdn);
++#endif
++
++  if (hostdn == NULL ||
++      (tempstr = ldap_get_values (ld, hostent, "dhcpServiceDN")) == NULL ||
++      tempstr[0] == NULL)
++    {
++      log_error ("Error: Cannot find LDAP entry matching %s", hfilter);
++
++      if (tempstr != NULL)
++        ldap_value_free (tempstr);
++
++      if (hostdn)
++        ldap_memfree (hostdn);
++      ldap_msgfree (hostres);
 +      ldap_unbind (ld);
 +      ld = NULL;
 +      return (ISC_R_FAILURE);
 +    }
 +
 +#if defined(DEBUG_LDAP)
-+  buffer = ldap_get_dn (ld, hostent);
-+  log_info ("Found dhcpServer LDAP entry '%s'", buffer);
-+  ldap_memfree (buffer);
++  log_info ("LDAP: Parsing dhcpServer options '%s' ...", hostdn);
 +#endif
 +
-+  if ((tempstr = ldap_get_values (ld, hostent, "dhcpServiceDN")) == NULL ||
-+      tempstr[0] == NULL)
++  cfile->inbuf[0] = '\0';
++  ldap_parse_entry_options(hostent, cfile->inbuf, LDAP_BUFFER_SIZE, NULL);
++  cfile->buflen = strlen (cfile->inbuf);
++  if(cfile->buflen > 0)
 +    {
-+      log_error ("Error: Cannot find LDAP entry matching %s", dn);
++      ldap_write_debug (cfile->inbuf, cfile->buflen);
 +
-+      if (tempstr != NULL)
-+        ldap_value_free (tempstr);
-+
-+      ldap_unbind (ld);
-+      ld = NULL;
-+      return (ISC_R_FAILURE);
++      res = conf_file_subparse (cfile, root_group, ROOT_GROUP);
++      if (res != ISC_R_SUCCESS)
++        {
++          log_error ("LDAP: cannot parse dhcpServer entry '%s'", hostdn);
++          ldap_memfree (hostdn);
++          ldap_unbind (ld);
++          ld = NULL;
++          return res;
++        }
++      cfile->inbuf[0] = '\0';
 +    }
-+
-+  if ((ret = ldap_search_s (ld, tempstr[0], LDAP_SCOPE_BASE, 
-+                            "objectClass=*", NULL, 0, &ldres)) != LDAP_SUCCESS)
-+    {
-+      log_error ("Error searching for dhcpServiceDN '%s': %s. Please update the LDAP entry '%s'", tempstr[0], 
-+                 ldap_err2string (ret), ldap_get_dn (ld, hostent));
-+      ldap_value_free (tempstr);
-+      ldap_unbind (ld);
-+      ld = NULL;
-+      return (ISC_R_FAILURE);
-+    }
-+
-+  if ((ent = ldap_first_entry (ld, ldres)) == NULL)
-+    {
-+      log_error ("Error: Cannot find dhcpService DN '%s'. Please update the LDAP entry '%s'", 
-+                 tempstr[0], ldap_get_dn (ld, hostent));
-+      ldap_value_free (tempstr);
-+      ldap_unbind (ld);
-+      ld = NULL;
-+      return (ISC_R_FAILURE);
-+    }
-+
 +  ldap_msgfree (hostres);
 +
++  /*
++  ** attach ldap (tree) read function now
++  */
++  cfile->bufix = cfile->buflen = 0;
++  cfile->read_function = ldap_read_function;
++
++  res = ISC_R_SUCCESS;
++  for (cnt=0; tempstr[cnt] != NULL; cnt++)
++    {
++      snprintf(sfilter, sizeof(sfilter), "(&(objectClass=dhcpService)"
++                        "(|(dhcpPrimaryDN=%s)(dhcpSecondaryDN=%s)))",
++                        hostdn, hostdn);
++      ldres = NULL;
++      if ((ret = ldap_search_s (ld, tempstr[cnt], LDAP_SCOPE_BASE,
++                                sfilter, NULL, 0, &ldres)) != LDAP_SUCCESS)
++        {
++          log_error ("Error searching for dhcpServiceDN '%s': %s. Please update the LDAP entry '%s'",
++                     tempstr[cnt], ldap_err2string (ret), hostdn);
++          if(NULL != ldres)
++            ldap_msgfree(ldres);
++          res = ISC_R_FAILURE;
++          break;
++        }
++
++      if ((ent = ldap_first_entry (ld, ldres)) == NULL)
++        {
++          log_error ("Error: Cannot find dhcpService DN '%s' with primary or secondary server reference. Please update the LDAP server entry '%s'",
++                     tempstr[cnt], hostdn);
++
++          ldap_msgfree(ldres);
++          res = ISC_R_FAILURE;
++          break;
++        }
++
++      /*
++      ** FIXME: how to free the remembered dn's on exit?
++      **        This should be OK if dmalloc registers the
++      **        memory it allocated and frees it on exit..
++      */
++
++      curr = dmalloc (sizeof (*curr), MDL);
++      if (curr != NULL)
++        {
++          length = strlen (tempstr[cnt]);
++          curr->dn = dmalloc (length + 1, MDL);
++          if (curr->dn == NULL)
++            {
++              dfree (curr, MDL);
++              curr = NULL;
++            }
++          else
++            strcpy (curr->dn, tempstr[cnt]);
++        }
++
++      if (curr != NULL)
++        {
++          curr->refs++;
++
++          /* append to service-dn list */
++          if (ldap_service_dn_tail != NULL)
++            ldap_service_dn_tail->next = curr;
++          else
++            ldap_service_dn_head = curr;
++
++          ldap_service_dn_tail = curr;
++        }
++      else
++        log_fatal ("no memory to remember ldap service dn");
++
++#if defined (DEBUG_LDAP)
++      log_info ("LDAP: Parsing dhcpService DN '%s' ...", tempstr[cnt]);
++#endif
++      add_to_config_stack (ldres, ent);
++      res = conf_file_subparse (cfile, root_group, ROOT_GROUP);
++      if (res != ISC_R_SUCCESS)
++        {
++          log_error ("LDAP: cannot parse dhcpService entry '%s'", tempstr[cnt]);
++          break;
++        }
++    }
++
++  end_parse (&cfile);
++  ldap_close_debug_fd();
++
++  ldap_memfree (hostdn);
 +  ldap_value_free (tempstr);
 +
-+  add_to_config_stack (ldres, ent);
++  if (res != ISC_R_SUCCESS)
++    {
++      struct ldap_config_stack *temp_stack;
 +
-+  res = conf_file_subparse (cfile, root_group, ROOT_GROUP);
-+  end_parse (&cfile);
++      while ((curr = ldap_service_dn_head) != NULL)
++        {
++          ldap_service_dn_head = curr->next;
++          dfree (curr->dn, MDL);
++          dfree (curr, MDL);
++        }
++
++      ldap_service_dn_tail = NULL;
++
++      while ((temp_stack = ldap_stack) != NULL)
++        {
++          ldap_stack = temp_stack->next;
++          free_stack_entry (temp_stack);
++        }
++
++      ldap_unbind (ld);
++      ld = NULL;
++    }
 +
 +  return (res);
 +}
@@ -3727,8 +4134,8 @@ diff -Pru dhcp-3.0.1rc13/server/ldap.c dhcp-3.0.1rc13-ldap/server/ldap.c
 +                         int type, struct host_decl *host,
 +                         struct class **class)
 +{
-+  char **tempstr, option_buffer[8192];
 +  int i, declaration, lease_limit;
++  char option_buffer[8192];
 +  enum dhcp_token token;
 +  struct parse *cfile;
 +  isc_result_t res;
@@ -3736,33 +4143,12 @@ diff -Pru dhcp-3.0.1rc13/server/ldap.c dhcp-3.0.1rc13-ldap/server/ldap.c
 +
 +  lease_limit = 0;
 +  *option_buffer = '\0';
-+  if ((tempstr = ldap_get_values (ld, ent, "dhcpStatements")) != NULL)
-+    {
-+      for (i=0; tempstr[i] != NULL; i++)
-+        {
-+          if (strncasecmp ("lease limit ", tempstr[i], 12) == 0)
-+            {
-+              lease_limit = strtol ((tempstr[i]) + 12, NULL, 10);
-+              continue;
-+            }
++  res = ldap_parse_entry_options (ent, option_buffer, sizeof(option_buffer) - 1,
++                                  &lease_limit);
++  if (res != ISC_R_SUCCESS)
++    return (lease_limit);
 +
-+          strncat (option_buffer, tempstr[i], sizeof (option_buffer));
-+          strncat (option_buffer, ";\n", sizeof (option_buffer));
-+        }
-+      ldap_value_free (tempstr);
-+    }
-+
-+  if ((tempstr = ldap_get_values (ld, ent, "dhcpOption")) != NULL)
-+    {
-+      for (i=0; tempstr[i] != NULL; i++)
-+        {
-+          strncat (option_buffer, "option ", sizeof (option_buffer));
-+          strncat (option_buffer, tempstr[i], sizeof (option_buffer));
-+          strncat (option_buffer, ";\n", sizeof (option_buffer));
-+        }
-+      ldap_value_free (tempstr);
-+    }
-+
++  option_buffer[sizeof(option_buffer) - 1] = '\0';
 +  if (*option_buffer == '\0')
 +    return (lease_limit);
 +
@@ -3777,11 +4163,12 @@ diff -Pru dhcp-3.0.1rc13/server/ldap.c dhcp-3.0.1rc13-ldap/server/ldap.c
 +#endif
 +
 +  declaration = 0;
-+  do {
-+     token = peek_token (&val, NULL, cfile);
-+     if (token == END_OF_FILE)
-+       break;
-+      declaration = parse_statement (cfile, group, type, host, declaration);
++  do
++    {
++      token = peek_token (&val, NULL, cfile);
++      if (token == END_OF_FILE)
++        break;
++       declaration = parse_statement (cfile, group, type, host, declaration);
 +    } while (1);
 +
 +  end_parse (&cfile);
@@ -3795,10 +4182,11 @@ diff -Pru dhcp-3.0.1rc13/server/ldap.c dhcp-3.0.1rc13-ldap/server/ldap.c
 +find_haddr_in_ldap (struct host_decl **hp, int htype, unsigned hlen,
 +                    const unsigned char *haddr, const char *file, int line)
 +{
-+  char buf[128], *type_str, **tempstr;
++  char buf[128], *type_str, **tempstr, *addr_str;
 +  LDAPMessage * res, *ent;
 +  struct host_decl * host;
 +  isc_result_t status;
++  ldap_dn_node *curr;
 +  int ret;
 +
 +  if (ldap_method == LDAP_METHOD_STATIC)
@@ -3835,43 +4223,77 @@ diff -Pru dhcp-3.0.1rc13/server/ldap.c dhcp-3.0.1rc13-ldap/server/ldap.c
 +  */
 +  snprintf (buf, sizeof (buf),
 +            "(&(objectClass=dhcpHost)(dhcpHWAddress=%s %s))",
-+	    type_str, print_hw_addr (htype, hlen, haddr));
++           type_str, print_hw_addr (htype, hlen, haddr));
 +
-+#if defined (DEBUG_LDAP)
-+  log_info ("Searching for %s in LDAP tree %s", buf, ldap_base_dn);
-+#endif
-+
-+  if ((ret = ldap_search_s (ld, ldap_base_dn, LDAP_SCOPE_SUBTREE, 
-+                            buf, NULL, 0, &res)) != LDAP_SUCCESS)
++  res = ent = NULL;
++  for (curr = ldap_service_dn_head;
++       curr != NULL && *curr->dn != '\0';
++       curr = curr->next)
 +    {
-+      if (ret != LDAP_NO_SUCH_OBJECT)
-+        {
-+          log_error ("Cannot search for %s in LDAP tree %s: %s", buf, 
-+                     ldap_base_dn, ldap_err2string (ret));
-+          ldap_unbind (ld);
-+          ld = NULL;
-+        }
 +#if defined (DEBUG_LDAP)
-+      else
-+        log_info ("ldap_search_s returned %s when searching for %s in %s",
-+                  ldap_err2string (ret), buf, ldap_base_dn);
++      log_info ("Searching for %s in LDAP tree %s", buf, curr->dn);
 +#endif
++      ret = ldap_search_s (ld, curr->dn, LDAP_SCOPE_SUBTREE,
++                           buf, NULL, 0, &res);
++      if (ret == LDAP_SUCCESS)
++        {
++          if( (ent = ldap_first_entry (ld, res)) != NULL)
++            break; /* search OK and have entry */
 +
-+      return (0);
++#if defined (DEBUG_LDAP)
++          log_info ("No host entry for %s in LDAP tree %s",
++                    buf, curr->dn);
++#endif
++          if(res)
++            {
++              ldap_msgfree (res);
++              res = NULL;
++            }
++        }
++      else
++        {
++          if(res)
++            {
++              ldap_msgfree (res);
++              res = NULL;
++            }
++
++          if (ret != LDAP_NO_SUCH_OBJECT && ret != LDAP_SUCCESS)
++            {
++              log_error ("Cannot search for %s in LDAP tree %s: %s", buf, 
++                         curr->dn, ldap_err2string (ret));
++              ldap_unbind (ld);
++              ld = NULL;
++              return (0);
++            }
++#if defined (DEBUG_LDAP)
++          else
++            {
++              log_info ("ldap_search_s returned %s when searching for %s in %s",
++                        ldap_err2string (ret), buf, curr->dn);
++            }
++#endif
++        }
 +    }
 +
-+  if ((ent = ldap_first_entry (ld, res)) != NULL)
++  if (res && ent)
 +    {
 +#if defined (DEBUG_LDAP)
-+      log_info ("Found dhcpHWAddress LDAP entry %s", ldap_get_dn (ld, ent));
++      char *dn = ldap_get_dn (ld, ent);
++      if (dn != NULL)
++        {
++          log_info ("Found dhcpHWAddress LDAP entry %s", dn);
++          ldap_memfree(dn);
++        }
 +#endif
-+      
++
 +      host = (struct host_decl *)0;
 +      status = host_allocate (&host, MDL);
 +      if (status != ISC_R_SUCCESS)
 +        {
 +          log_fatal ("can't allocate host decl struct: %s", 
 +                     isc_result_totext (status)); 
++          ldap_msgfree (res);
 +          return (0);
 +        }
 +
@@ -3887,9 +4309,20 @@ diff -Pru dhcp-3.0.1rc13/server/ldap.c dhcp-3.0.1rc13-ldap/server/ldap.c
 +        {
 +          log_fatal ("can't clone group for host %s", host->name);
 +          host_dereference (&host, MDL);
++          ldap_msgfree (res);
 +          return (0);
 +        }
 +
++      /*
++      ** PROBLEM: since dhcpd uses no unique names for groups,
++      **          it seems to be not possible to find the right
++      **          one, our host may belong to.
++      **
++      ** PERHAPS: Check if parent DN is a dhcpGroup or the host-dn
++      **          is referenced via dhcpHostDN in a dhcpGroup.
++      **          If found, we may fetch and apply group options
++      **          and statements to above host->group ?
++      */
 +      ldap_parse_options (ent, host->group, HOST_DECL, host, NULL);
 +
 +      *hp = host;
@@ -3898,7 +4331,7 @@ diff -Pru dhcp-3.0.1rc13/server/ldap.c dhcp-3.0.1rc13-ldap/server/ldap.c
 +    }
 +
 +
-+  ldap_msgfree (res);
++  if(res) ldap_msgfree (res);
 +  return (0);
 +}
 +
@@ -3910,6 +4343,7 @@ diff -Pru dhcp-3.0.1rc13/server/ldap.c dhcp-3.0.1rc13-ldap/server/ldap.c
 +  LDAPMessage * res, * ent;
 +  int i, ret, lease_limit;
 +  isc_result_t status;
++  ldap_dn_node *curr;
 +  char buf[1024];
 +
 +  if (ldap_method == LDAP_METHOD_STATIC)
@@ -3925,35 +4359,73 @@ diff -Pru dhcp-3.0.1rc13/server/ldap.c dhcp-3.0.1rc13-ldap/server/ldap.c
 +  log_info ("Searching LDAP for %s", buf);
 +#endif
 +
-+  if ((ret = ldap_search_s (ld, ldap_base_dn, LDAP_SCOPE_SUBTREE, 
-+                            buf, NULL, 0, &res)) != LDAP_SUCCESS)
++  res = ent = NULL;
++  for (curr = ldap_service_dn_head;
++       curr != NULL && *curr->dn != '\0';
++       curr = curr->next)
 +    {
-+      if (ret != LDAP_NO_SUCH_OBJECT)
-+        {
-+          log_error ("Cannot search for %s in LDAP tree %s: %s", buf, 
-+                     ldap_base_dn, ldap_err2string (ret));
-+          ldap_unbind (ld);
-+          ld = NULL;
-+        }
 +#if defined (DEBUG_LDAP)
-+      else
-+        log_info ("ldap_search_s returned %s when searching for %s in %s",
-+                  ldap_err2string (ret), buf, ldap_base_dn);
++      log_info ("Searching for %s in LDAP tree %s", buf, curr->dn);
 +#endif
++      ret = ldap_search_s (ld, curr->dn, LDAP_SCOPE_SUBTREE,
++                           buf, NULL, 0, &res);
++      if (ret == LDAP_SUCCESS)
++        {
++          if( (ent = ldap_first_entry (ld, res)) != NULL)
++            break; /* search OK and have entry */
 +
-+      return (0);
++#if defined (DEBUG_LDAP)
++          log_info ("No subclass entry for %s in LDAP tree %s",
++                    buf, curr->dn);
++#endif
++          if(res)
++            {
++              ldap_msgfree (res);
++              res = NULL;
++            }
++        }
++      else
++        {
++          if(res)
++            {
++              ldap_msgfree (res);
++              res = NULL;
++            }
++
++          if (ret != LDAP_NO_SUCH_OBJECT && ret != LDAP_SUCCESS)
++            {
++              log_error ("Cannot search for %s in LDAP tree %s: %s", buf, 
++                         curr->dn, ldap_err2string (ret));
++              ldap_unbind (ld);
++              ld = NULL;
++              return (0);
++            }
++#if defined (DEBUG_LDAP)
++          else
++            {
++              log_info ("ldap_search_s returned %s when searching for %s in %s",
++                        ldap_err2string (ret), buf, curr->dn);
++            }
++#endif
++        }
 +    }
 +
-+  if ((ent = ldap_first_entry (ld, res)) != NULL)
++  if (res && ent)
 +    {
 +#if defined (DEBUG_LDAP)
-+      log_info ("Found subclass LDAP entry %s", ldap_get_dn (ld, ent));
++      char *dn = ldap_get_dn (ld, ent);
++      if (dn != NULL)
++        {
++          log_info ("Found subclass LDAP entry %s", dn);
++          ldap_memfree(dn);
++        }
 +#endif
-+      
++
 +      status = class_allocate (newclass, MDL);
 +      if (status != ISC_R_SUCCESS)
 +        {
 +          log_error ("Cannot allocate memory for a new class");
++          ldap_msgfree (res);
 +          return (0);
 +        }
 +
@@ -3974,6 +4446,7 @@ diff -Pru dhcp-3.0.1rc13/server/ldap.c dhcp-3.0.1rc13-ldap/server/ldap.c
 +            {
 +              log_error ("no memory for billing");
 +              class_dereference (newclass, MDL);
++              ldap_msgfree (res);
 +              return (0);
 +            }
 +          memset ((*newclass)->billed_leases, 0, 
@@ -3986,17 +4459,16 @@ diff -Pru dhcp-3.0.1rc13/server/ldap.c dhcp-3.0.1rc13-ldap/server/ldap.c
 +      return (1);
 +    }
 +
-+
-+  ldap_msgfree (res);
++  if(res) ldap_msgfree (res);
 +  return (0);
 +}
 +
 +#endif
 +
-diff -Pru dhcp-3.0.1rc13/server/mdb.c dhcp-3.0.1rc13-ldap/server/mdb.c
---- dhcp-3.0.1rc13/server/mdb.c	2002-04-27 01:18:05.000000000 -0400
-+++ dhcp-3.0.1rc13-ldap/server/mdb.c	2004-03-23 13:49:03.000000000 -0500
-@@ -384,6 +384,12 @@
+diff -Naur dhcp-3.0.1rc14/server/mdb.c dhcp-3.0.1rc14-ldap/server/mdb.c
+--- dhcp-3.0.1rc14/server/mdb.c	2004-06-10 13:59:56.000000000 -0400
++++ dhcp-3.0.1rc14-ldap/server/mdb.c	2004-06-22 15:18:20.000000000 -0400
+@@ -375,6 +375,12 @@
  {
  	struct host_decl *foo;
  	struct hardware h;
@@ -4009,10 +4481,10 @@ diff -Pru dhcp-3.0.1rc13/server/mdb.c dhcp-3.0.1rc13-ldap/server/mdb.c
  
  	h.hlen = hlen + 1;
  	h.hbuf [0] = htype;
-diff -Pru dhcp-3.0.1rc13/server/stables.c dhcp-3.0.1rc13-ldap/server/stables.c
---- dhcp-3.0.1rc13/server/stables.c	2003-02-09 20:22:54.000000000 -0500
-+++ dhcp-3.0.1rc13-ldap/server/stables.c	2004-03-23 13:49:03.000000000 -0500
-@@ -492,6 +492,15 @@
+diff -Naur dhcp-3.0.1rc14/server/stables.c dhcp-3.0.1rc14-ldap/server/stables.c
+--- dhcp-3.0.1rc14/server/stables.c	2004-06-10 13:59:58.000000000 -0400
++++ dhcp-3.0.1rc14-ldap/server/stables.c	2004-06-22 15:18:20.000000000 -0400
+@@ -483,6 +483,15 @@
  	{ "log-facility", "Nsyslog-facilities.",	&server_universe, 44 },
  	{ "do-forward-updates", "f",			&server_universe, 45 },
  	{ "ping-timeout", "T",				&server_universe, 46 },
@@ -4028,7 +4500,7 @@ diff -Pru dhcp-3.0.1rc13/server/stables.c dhcp-3.0.1rc13-ldap/server/stables.c
  	{ "unknown-47", "X",				&server_universe, 47 },
  	{ "unknown-48", "X",				&server_universe, 48 },
  	{ "unknown-49", "X",				&server_universe, 49 },
-@@ -499,6 +508,7 @@
+@@ -490,6 +499,7 @@
  	{ "unknown-51", "X",				&server_universe, 51 },
  	{ "unknown-52", "X",				&server_universe, 52 },
  	{ "unknown-53", "X",				&server_universe, 53 },
@@ -4036,7 +4508,7 @@ diff -Pru dhcp-3.0.1rc13/server/stables.c dhcp-3.0.1rc13-ldap/server/stables.c
  	{ "unknown-54", "X",				&server_universe, 54 },
  	{ "unknown-55", "X",				&server_universe, 55 },
  	{ "unknown-56", "X",				&server_universe, 56 },
-@@ -703,6 +713,20 @@
+@@ -694,6 +704,20 @@
  	{ "option-end", "e",				&server_universe, 255 },
  };
  
@@ -4057,9 +4529,9 @@ diff -Pru dhcp-3.0.1rc13/server/stables.c dhcp-3.0.1rc13-ldap/server/stables.c
  struct enumeration_value ddns_styles_values [] = {
  	{ "none", 0 },
  	{ "ad-hoc", 1 },
-diff -Pru dhcp-3.0.1rc13/site.conf dhcp-3.0.1rc13-ldap/site.conf
---- dhcp-3.0.1rc13/site.conf	1999-07-07 11:20:10.000000000 -0400
-+++ dhcp-3.0.1rc13-ldap/site.conf	2004-03-23 13:49:03.000000000 -0500
+diff -Naur dhcp-3.0.1rc14/site.conf dhcp-3.0.1rc14-ldap/site.conf
+--- dhcp-3.0.1rc14/site.conf	1999-07-07 11:20:10.000000000 -0400
++++ dhcp-3.0.1rc14-ldap/site.conf	2004-06-22 15:24:59.000000000 -0400
 @@ -1,2 +1,3 @@
  # Put local site configuration stuff here to override the default
  # settings in Makefile.conf
