@@ -15,7 +15,7 @@ Source3:	dhcp-relay.sysconfig
 Source4:	dhcpd.conf.sample
 Source5:	dhcp.sysconfig
 BuildRequires:	groff
-BuildRoot:   	/tmp/%{name}-%{version}-root
+BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 Prereq:		/sbin/chkconfig
 Requires:	rc-scripts
 
