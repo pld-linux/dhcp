@@ -110,17 +110,27 @@ gzip -9nf doc/* README RELNOTES
 touch $RPM_BUILD_ROOT/var/lib/%{name}/{dhcpd,dhclient}.leases
 
 %post
+/sbin/chkconfig --add dhcpd
 touch /var/lib/%{name}/dhcpd.leases
 
 if [ ! -d /var/lib/dhcp ]; then
 	install -d /var/lib/dhcp
 fi
 
-NAME=dhcpd; DESC="dhcpd daemon"; %chkconfig_add
+if [ -f /var/lock/subsys/dhcpd ]; then
+	/etc/rc.d/init.d/dhcpd restart >&2
+else
+	echo "Run \"/etc/rc.d/init.d/dhcpd start\" to start dhcpd daemon."
+fi
 
 %post relay
+/sbin/chkconfig --add dhcp-relay
 
-NAME=dhcp-relay; DESC="dhcp-relay daemon"; %chkconfig_add
+if [ -f /var/lock/subsys/dhcrelay ]; then
+	/etc/rc.d/init.d/dhcp-relay restart >&2
+else
+	echo "Run \"/etc/rc.d/init.d/dhcp-relay start\" to start dhcrelay daemon."
+fi
 
 %post client
 if [ -d /var/lib/dhcp ]; then
@@ -128,10 +138,20 @@ if [ -d /var/lib/dhcp ]; then
 fi
 
 %preun
-NAME=dhcpd; %chkconfig_del
+if [ "$1" = "0" ];then
+	if [ -f /var/lock/subsys/dhcpd ]; then
+		/etc/rc.d/init.d/dhcpd stop >&2
+	fi
+	/sbin/chkconfig --del dhcpd
+fi
 
 %preun relay
-NAME=dhcp-relay; %chkconfig_del
+if [ "$1" = "0" ];then
+	if [ -f /var/lock/subsys/dhcrelay ]; then
+		/etc/rc.d/init.d/dhcp-relay stop >&2
+	fi
+	/sbin/chkconfig --del dhcp-relay
+fi
 
 %clean
 rm -rf $RPM_BUILD_ROOT
