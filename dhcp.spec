@@ -1,5 +1,5 @@
-Summary:	DHCP Server 
-Summary(pl):	Serwer DHCP 
+Summary:	DHCP Server
+Summary(pl):	Serwer DHCP
 Name:		dhcp
 Version:	3.0
 Release:	2
@@ -36,14 +36,14 @@ du¿ymi sieciami IP.
 
 %package client
 Summary:	DHCP Client
-Summary(pl):	Klient DHCP 
+Summary(pl):	Klient DHCP
 Group:		Networking/Daemons
 Obsoletes:	pump
 
 %description client
 Dynamic Host Configuration Protocol Client.
 
-%description -l pl client
+%description client -l pl
 Klient DHCP (Dynamic Host Configuration Protocol).
 
 %package relay
@@ -60,10 +60,10 @@ DHCP server on it. Because DHCP packets can be broadcast, they will
 not be routed off of the local subnet. The DHCP relay takes care of
 this for the client.
 
-%description -l pl relay
+%description relay -l pl
 Agent przekazywania DHCP (Dynamic Host Configuration Protocol) miêdzy
 podsieciami. Poniewa¿ komunikaty DHCP mog± byæ przekazywane w formie
-rozg³oszeniowej, bez tego agenta nie zostan± przerutowane do innej 
+rozg³oszeniowej, bez tego agenta nie zostan± przerutowane do innej
 podsieci.
 
 %prep
@@ -102,7 +102,7 @@ install %{SOURCE5} $RPM_BUILD_ROOT/etc/sysconfig/dhcpd
 
 install client/scripts/linux $RPM_BUILD_ROOT%{_sysconfdir}/dhclient-script
 
-gzip -9nf doc/* README RELNOTES 
+gzip -9nf doc/* README RELNOTES
 
 touch $RPM_BUILD_ROOT/var/lib/%{name}/{dhcpd,dhclient}.leases
 
