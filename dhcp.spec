@@ -5,7 +5,7 @@ Version:	3.0
 Release:	2
 Epoch:		2
 Vendor:		ISC
-License:	Distributable
+License:	distributable
 Group:		Networking/Daemons
 Group(de):	Netzwerkwesen/Server
 Group(pl):	Sieciowe/Serwery
