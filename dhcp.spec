@@ -97,6 +97,10 @@ touch $RPM_BUILD_ROOT/var/lib/%{name}/{dhcpd,dhclient}.leases
 /sbin/chkconfig --add dhcpd
 touch /var/lib/%{name}/dhcpd.leases
 
+if [ ! -d /var/lib/dhcp ]; then
+	mkdir /var/lib/dhcp
+fi
+
 if [ -f /var/lock/subsys/dhcpd ]; then
 	/etc/rc.d/init.d/dhcpd restart >&2
 else
@@ -110,6 +114,11 @@ if [ -f /var/lock/subsys/dhcrelay ]; then
 	/etc/rc.d/init.d/dhcrelay restart >&2
 else
 	echo "Run \"/etc/rc.d/init.d/dhcrelay start\" to start dhcrelay daemon."
+fi
+
+%post client
+if [ -d /var/lib/dhcp ]; then
+	mkdir /var/lib/dhcp
 fi
 
 %preun
