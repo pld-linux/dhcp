@@ -1,7 +1,7 @@
 Summary:	DHCP Server 
 Summary(pl):	Serwer DHCP 
 Name:		dhcp
-Version:	3.0b1pl12
+Version:	3.0b1pl13
 Release:	1
 Serial:		1
 Group:		Networking/Daemons
@@ -26,21 +26,20 @@ information (IP address, subnetmask, broadcast address, etc.) from a DHCP
 server. The overall purpose of DHCP is to make it easier to administer a
 large network. 
 
-You should install dhcp if you want to set up a DHCP server on your network.
-
 %description -l pl
-Serwer DHCP (Dynamic Host Configuration Protocol)
+Serwer DHCP (Dynamic Host Configuration Protocol).
 
 %package client
 Summary:	DHCP Client
 Summary(pl):	Klient DHCP 
 Group:		Networking/Daemons
 Group(de):	Sieciowe/Serwery
+Obsoletes:	pump
 
 %description client
 Dynamic Host Configuration Protocol Client.
 
-%description client -l pl
+%description -l pl client
 Klient DHCP (Dynamic Host Configuration Protocol).
 
 %package relay
@@ -52,7 +51,7 @@ Group(de):	Sieciowe/Serwery
 %description relay
 Dynamic Host Configuration Protocol Relay Agent.
 
-%description relay -l pl
+%description -l pl relay
 Agent przekazywania DHCP (Dynamic Host Configuration Protocol).
 
 %prep
@@ -95,7 +94,7 @@ touch $RPM_BUILD_ROOT/var/state/%{name}/{dhcpd,dhclient}.leases
 /sbin/chkconfig --add dhcpd
 touch /var/state/%{name}/dhcpd.leases
 
-if [ -f /var/run/dhcpd.pid ]; then
+if [ -f /var/lock/subsys/dhcpd ]; then
 	/etc/rc.d/init.d/dhcpd restart >&2
 else
 	echo "Run \"/etc/rc.d/init.d/dhcpd start\" to start dhcpd daemon."
@@ -104,7 +103,7 @@ fi
 %post relay
 /sbin/chkconfig --add dhcrelay
 
-if [ -f /var/run/dhcrelay.pid ]; then
+if [ -f /var/lock/subsys/dhcrelay ]; then
 	/etc/rc.d/init.d/dhcrelay restart >&2
 else
 	echo "Run \"/etc/rc.d/init.d/dhcrelay start\" to start dhcrelay daemon."
@@ -112,14 +111,18 @@ fi
 
 %preun
 if [ "$1" = "0" ];then
+	if [ -f /var/lock/subsys/dhcpd ]; then
+		/etc/rc.d/init.d/dhcpd stop >&2
+	fi
 	/sbin/chkconfig --del dhcpd
-	/etc/rc.d/init.d/dhcpd stop >&2
 fi
 
 %preun relay
 if [ "$1" = "0" ];then
+	if [ -f /var/lock/subsys/dhcrelay ]; then
+		/etc/rc.d/init.d/dhrelay stop >&2
+	fi
 	/sbin/chkconfig --del dhcrelay
-	/etc/rc.d/init.d/dhrelay stop >&2
 fi
 
 %clean
