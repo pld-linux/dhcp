@@ -31,9 +31,6 @@ case "$1" in
 		nls "dhcpd already is running\n"
 	fi
 	touch /var/lock/subsys/dhcpd
-	show Starting DHCP Server
-	daemon dhcpd
-	touch /var/lock/subsys/dhcpd
 	;;
   stop)
 	show Stopping DHCP Server
