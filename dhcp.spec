@@ -121,20 +121,19 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man5/dhcp*
 %{_mandir}/man8/dhcp*
 %attr(755,root,root) %{_sbindir}/dhcpd
-%attr(755,root,root) /etc/rc.d/init.d/dhcpd
+%attr(754,root,root) /etc/rc.d/init.d/dhcpd
 %attr(750,root,root) %dir /var/state/%{name}
 %ghost /var/state/%{name}/dhcpd.leases
 
 %files client
 %defattr(644,root,root,755)
 %attr(755,root,root) /sbin/dhclient
-%{_mandir}/man8/dhclient*
-%{_mandir}/man5/dhclient*
+%{_mandir}/man[58]/dhclient*
 %ghost /var/state/%{name}/dhclient.leases
 
 %files relay
 %defattr(644,root,root,755)
 %{_mandir}/man8/dhcrelay*
-/etc/sysconfig/dhcrelay
+%config(noreplace) /etc/sysconfig/dhcrelay
 %attr(755,root,root) %{_sbindir}/dhcrelay
-%attr(755,root,root) /etc/rc.d/init.d/dhcrelay
+%attr(754,root,root) /etc/rc.d/init.d/dhcrelay
