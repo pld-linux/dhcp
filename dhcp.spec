@@ -3,8 +3,8 @@ Summary(es):	Servidor DHCP (Protocolo de configuración dinámica de hosts)
 Summary(pl):	Serwer DHCP
 Summary(pt_BR):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
-Version:	3.0pl1
-Release:	2
+Version:	3.0pl2
+Release:	1
 Epoch:		2
 Vendor:		ISC
 License:	distributable
