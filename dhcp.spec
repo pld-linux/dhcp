@@ -4,14 +4,15 @@ Summary(es):	Servidor DHCP (Protocolo de configuración dinámica de hosts)
 Summary(pl):	Serwer DHCP
 Summary(pt_BR):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
-Version:	3.0.1rc14
-Release:	2
-Epoch:		2
+Version:	3.0.1
+%define		_rc	rc14
+Release:	0.%{_rc}.2
+Epoch:		3
 Vendor:		ISC
 License:	distributable
 Group:		Networking/Daemons
 #Source0:	ftp://ftp.freenet.de/pub/ftp.isc.org/isc/dhcp/%{name}-%{version}.tar.gz
-Source0:	ftp://ftp.isc.org/isc/dhcp/%{name}-%{version}.tar.gz
+Source0:	ftp://ftp.isc.org/isc/dhcp/%{name}-%{version}%{_rc}.tar.gz
 # Source0-md5:	a68074d9ebdeb355c293d9b3645b3c2c
 Source1:	%{name}.init
 Source2:	%{name}-relay.init
@@ -120,7 +121,7 @@ dhcpctl to zbiór funkcji tworz±cych API, które mo¿e byæ u¿ywane do
 komunikacji z dzia³aj±cym serwerem ISC DHCP i jego kontroli.
 
 %prep
-%setup -q
+%setup -q -n %{name}-%{version}%{_rc}
 install %{SOURCE4} .
 %patch0 -p1
 %{?with_ldap:%patch1 -p1}
