@@ -1,18 +1,33 @@
 #!/bin/sh
 # DHCP Server
 #
-# chkconfig: 345 80 20
-# description: DHCP Server
+# chkconfig:	345 80 20
+# description:	DHCP Server
 
-# Source function library.
+# Source function library
 . /etc/rc.d/init.d/functions
 
-# Nice level for running sshd
-[ -f /etc/dhcpd.conf ] || exit 0
+# Get network config
+. /etc/sysconfig/network
+
+# Get service config
+[ -f /etc/sysconfig/dhcp ] && . /etc/sysconfig/dhcp
+
+# Check that networking is up.
+[ "${NETWORKING}" = "no" ] && echo "Error: Networking is down" && exit 0
+
 
 # See how we were called.
 case "$1" in
   start)
+	# Check if the service is already running?
+	if [ ! -f /var/lock/subsys/dhcpd ]; then
+		show Starting dhcpd
+		daemon dhcpd
+	else
+		echo "dhcpd already is running"
+	fi
+	touch /var/lock/subsys/dhcpd
 	show Starting DHCP Server
 	daemon dhcpd
 	touch /var/lock/subsys/dhcpd
@@ -23,7 +38,7 @@ case "$1" in
 	rm -f /var/run/dhcpd.pid
 	rm -f /var/lock/subsys/dhcpd
 	;;
-  restart)
+  restart|reload)
 	$0 stop
 	$0 start
 	;;
@@ -31,7 +46,7 @@ case "$1" in
 	status dhcpd
 	;;
   *)
-	echo "Usage: $0 {start|stop|restart|status}"
+	echo "Usage: $0 {start|stop|restart|reload|status}"
 	exit 1
 esac
 
