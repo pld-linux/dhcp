@@ -2,7 +2,7 @@ Summary:	DHCP Server
 Summary(pl):	Serwer DHCP 
 Name:		dhcp
 Version:	3.0b1pl13
-Release:	1
+Release:	2
 Serial:		1
 Group:		Networking/Daemons
 Group(de):	Sieciowe/Serwery
