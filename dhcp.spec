@@ -1,7 +1,7 @@
 Summary:	DHCP Server
 Summary(pl):	Serwer DHCP 
 Name:		dhcp
-Version:	2.0b1pl6
+Version:	2.0
 Release:	1
 Group:		Networking/Daemons
 Group(de):	Sieciowe/Serwery
@@ -9,7 +9,7 @@ Copyright:	ISC
 Vendor:         PLD
 Source0:	ftp://ftp.isc.org/isc/dhcp/%{name}-%{version}.tar.gz
 Source1:	dhcp.init
-Patch0:		dhcp-man.patch
+#Patch0:		dhcp-man.patch
 BuildRoot:   	/tmp/%{name}-%{version}-root
 Prereq:		/sbin/chkconfig
 
@@ -21,25 +21,20 @@ Serwer DHCP (Dynamic Host Configuration Protocol)
 
 %prep
 %setup -q
-%patch -p1
+#%patch -p1
 
 %build
-%configure
 
 LDFLAGS="-s" ; export LDFLAGS
+%configure
 
 make
 
 %install
 rm -rf $RPM_BUILD_ROOT
 
-install -d $RPM_BUILD_ROOT/sbin
-install -d $RPM_BUILD_ROOT%{_sbindir}
-install -d $RPM_BUILD_ROOT%{_mandir}/man8
-install -d $RPM_BUILD_ROOT%{_mandir}/man5
-install -d $RPM_BUILD_ROOT%{_defaultdocdir}
-install -d $RPM_BUILD_ROOT/var/dhcpd
-install -d $RPM_BUILD_ROOT/etc/rc.d/init.d
+install -d $RPM_BUILD_ROOT{/sbin,%{_sbindir},%{_mandir}/man{5,8}} \
+	$RPM_BUILD_ROOT{/var/state/dhcpd,/etc/rc.d/init.d}
 
 make install \
 	CLIENTBINDIR=$RPM_BUILD_ROOT/sbin \
@@ -77,7 +72,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_sbindir}/dhcpd
 %attr(755,root,root) %{_sbindir}/dhcrelay
 %attr(755,root,root) /etc/rc.d/init.d/dhcpd
-%attr(644,root,root) %{_mandir}/man*/*
+%{_mandir}/man*/*
 
 %changelog
 * Fri Jul 2 1999 Bartosz Waszak <waszi@pld.org.pl>
