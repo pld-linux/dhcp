@@ -2,7 +2,7 @@ Summary:	DHCP Server
 Summary(pl):	Serwer DHCP 
 Name:		dhcp
 Version:	3.0b1pl13
-Release:	2
+Release:	3
 Serial:		1
 Group:		Networking/Daemons
 Group(pl):	Sieciowe/Serwery
@@ -66,13 +66,13 @@ LDFLAGS="-s" ; export LDFLAGS
 %configure
 
 make COPTS="$RPM_OPT_FLAGS" DEBUG="" \
-	VARDB="/var/state/%{name}"
+	VARDB="/var/lib/%{name}"
 
 %install
 rm -rf $RPM_BUILD_ROOT
 
 install -d $RPM_BUILD_ROOT{/sbin,%{_sbindir},%{_mandir}/man{5,8}} \
-	$RPM_BUILD_ROOT{/var/state/%{name},/etc/{rc.d/init.d,sysconfig}}
+	$RPM_BUILD_ROOT{/var/lib/%{name},/etc/{rc.d/init.d,sysconfig}}
 
 make install \
 	CLIENTBINDIR=$RPM_BUILD_ROOT/sbin \
@@ -90,11 +90,11 @@ install %{SOURCE5} $RPM_BUILD_ROOT/etc/sysconfig/dhcpd
 gzip -9nf $RPM_BUILD_ROOT%{_mandir}/man*/* \
 	  doc/* README RELNOTES 
 
-touch $RPM_BUILD_ROOT/var/state/%{name}/{dhcpd,dhclient}.leases
+touch $RPM_BUILD_ROOT/var/lib/%{name}/{dhcpd,dhclient}.leases
 
 %post
 /sbin/chkconfig --add dhcpd
-touch /var/state/%{name}/dhcpd.leases
+touch /var/lib/%{name}/dhcpd.leases
 
 if [ -f /var/lock/subsys/dhcpd ]; then
 	/etc/rc.d/init.d/dhcpd restart >&2
@@ -138,14 +138,14 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %verify(not size mtime md5) /etc/sysconfig/dhcpd
 %attr(755,root,root) %{_sbindir}/dhcpd
 %attr(754,root,root) /etc/rc.d/init.d/dhcpd
-%attr(750,root,root) %dir /var/state/%{name}
-%ghost /var/state/%{name}/dhcpd.leases
+%attr(750,root,root) %dir /var/lib/%{name}
+%ghost /var/lib/%{name}/dhcpd.leases
 
 %files client
 %defattr(644,root,root,755)
 %attr(755,root,root) /sbin/dhclient
 %{_mandir}/man[58]/dhclient*
-%ghost /var/state/%{name}/dhclient.leases
+%ghost /var/lib/%{name}/dhclient.leases
 
 %files relay
 %defattr(644,root,root,755)
