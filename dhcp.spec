@@ -4,7 +4,7 @@ Summary(pl):	Serwer DHCP
 Summary(pt_BR):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
 Version:	3.0pl2
-Release:	1
+Release:	2
 Epoch:		2
 Vendor:		ISC
 License:	distributable
@@ -116,6 +116,12 @@ komunikacji z dzia³aj±cym serwerem ISC DHCP i jego kontroli.
 %setup -q
 %patch0 -p1
 install %{SOURCE4} .
+
+cd doc
+echo "dhcpd complies with the following RFCs:" > rfc-compliance
+ls rfc*.txt >> rfc-compliance
+rm -f rfc*.txt
+cd ..
 
 %build
 # Notice: this is not autoconf configure!!!!!!!
