@@ -4,23 +4,23 @@ Summary(es):	Servidor DHCP (Protocolo de configuración dinámica de hosts)
 Summary(pl):	Serwer DHCP
 Summary(pt_BR):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
-Version:	3.0.1rc13
+Version:	3.0.1rc14
 Release:	1
 Epoch:		2
 Vendor:		ISC
 License:	distributable
 Group:		Networking/Daemons
-# Source0:	ftp://ftp.isc.org/isc/dhcp/%{name}-%{version}.tar.gz
-Source0:	ftp://ftp.freenet.de/pub/ftp.isc.org/isc/dhcp/%{name}-%{version}.tar.gz
-# Source0-md5:	68624d95b91aefa72a000a29e5e82408
+#Source0:	ftp://ftp.freenet.de/pub/ftp.isc.org/isc/dhcp/%{name}-%{version}.tar.gz
+Source0:	ftp://ftp.isc.org/isc/dhcp/%{name}-%{version}.tar.gz
+# Source0-md5:	a68074d9ebdeb355c293d9b3645b3c2c
 Source1:	%{name}.init
 Source2:	%{name}-relay.init
 Source3:	%{name}-relay.sysconfig
 Source4:	%{name}d.conf.sample
 Source5:	%{name}.sysconfig
 Patch0:		%{name}-if_buffer_size.patch
-Patch1:		%{name}-%{version}-ldap-patch
-Patch2:		%{name}-%{version}-ldap1.patch
+Patch1:		%{name}-ldap.patch
+Patch2:		%{name}-ldap1.patch
 BuildRequires:	groff
 %{?with_ldap:BuildRequires:	openldap-devel}
 PreReq:		rc-scripts >= 0.2.0
