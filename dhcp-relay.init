@@ -1,8 +1,8 @@
 #!/bin/sh
 # DHCP Server
 #
-# chkconfig: 345 80 20
-# description: DHCP Relay
+# chkconfig:	345 80 20
+# description:	DHCP Relay
 
 # Source function library.
 . /etc/rc.d/init.d/functions
