@@ -141,19 +141,19 @@ install -d $RPM_BUILD_ROOT{/sbin,%{_sbindir},%{_bindir},%{_mandir}/man{5,8}} \
 	$RPM_BUILD_ROOT{/var/lib/%{name},%{_sysconfdir}/{rc.d/init.d,sysconfig}}
 
 %{__make} install \
-	DESTDIR="$RPM_BUILD_ROOT" \
-	CLIENTBINDIR="/sbin" \
-	BINDIR="%{_sbindir}" \
-	LIBDIR="%{_libdir}" \
-	INCDIR="%{_includedir}" \
-	ADMMANDIR="%{_mandir}/man8" \
+	DESTDIR=$RPM_BUILD_ROOT \
+	CLIENTBINDIR=/sbin \
+	BINDIR=%{_sbindir} \
+	LIBDIR=%{_libdir} \
+	INCDIR=%{_includedir} \
+	ADMMANDIR=%{_mandir}/man8 \
 	ADMMANEXT=.8 \
-	FFMANDIR="%{_mandir}/man5" \
-	LIBMANDIR="%{_mandir}/man3" \
+	FFMANDIR=%{_mandir}/man5 \
+	LIBMANDIR=%{_mandir}/man3 \
 	LIBMANEXT=.3 \
-	USRMANDIR="%{_mandir}/man1" \
+	USRMANDIR=%{_mandir}/man1 \
 	USRMANEXT=.1 \
-	VARDB="/var/lib/%{name}" \
+	VARDB=/var/lib/%{name} \
 	FFMANEXT=.5
 
 install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/dhcpd
