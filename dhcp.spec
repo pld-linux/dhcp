@@ -1,4 +1,4 @@
-Summary:	DHCP Server
+Summary:	DHCP Server 
 Summary(pl):	Serwer DHCP 
 Name:		dhcp
 Version:	2.0
@@ -9,7 +9,6 @@ Copyright:	ISC
 Vendor:         PLD
 Source0:	ftp://ftp.isc.org/isc/dhcp/%{name}-%{version}.tar.gz
 Source1:	dhcp.init
-#Patch0:		dhcp-man.patch
 BuildRoot:   	/tmp/%{name}-%{version}-root
 Prereq:		/sbin/chkconfig
 
@@ -19,22 +18,35 @@ Dynamic Host Configuration Protocol Server
 %description -l pl
 Serwer DHCP (Dynamic Host Configuration Protocol)
 
+%package client
+Summary:	DHCP Client
+Summary(pl):	Klient DHCP 
+Group:		Networking/Daemons
+Group(de):	Sieciowe/Serwery
+
+%description client
+Dynamic Host Configuration Protocol Client
+
+%description client -l pl
+Klient DHCP (Dynamic Host Configuration Protocol)
+
 %prep
+
 %setup -q
-#%patch -p1
 
 %build
 
 LDFLAGS="-s" ; export LDFLAGS
 %configure
 
-make COPTS="$RPM_OPT_FLAGS" DEBUG=""
+make COPTS="$RPM_OPT_FLAGS" DEBUG="" \
+	VARDB="/var/state/%{name}"
 
 %install
 rm -rf $RPM_BUILD_ROOT
 
 install -d $RPM_BUILD_ROOT{/sbin,%{_sbindir},%{_mandir}/man{5,8}} \
-	$RPM_BUILD_ROOT{/var/state/dhcpd,/etc/rc.d/init.d}
+	$RPM_BUILD_ROOT{/var/state/%{name},/etc/rc.d/init.d}
 
 make install \
 	CLIENTBINDIR=$RPM_BUILD_ROOT/sbin \
@@ -48,6 +60,8 @@ install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/dhcpd
 
 gzip -9nf $RPM_BUILD_ROOT%{_mandir}/man*/* \
 	  doc/* README RELNOTES CHANGES
+
+touch $RPM_BUILD_ROOT/var/state/%{name}/dhcpd.leases
 
 %post
 /sbin/chkconfig --add dhcpd
@@ -67,13 +81,19 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(644,root,root,755)
 %doc doc/* README.gz RELNOTES.gz CHANGES.gz
-
-%attr(755,root,root) /sbin/dhclient
+%{_mandir}/man8/dhcrelay*
+%{_mandir}/man5/dhcp*
+%{_mandir}/man8/dhcp*
 %attr(755,root,root) %{_sbindir}/dhcpd
 %attr(755,root,root) %{_sbindir}/dhcrelay
 %attr(755,root,root) /etc/rc.d/init.d/dhcpd
-%{_mandir}/man*/*
-/var/state/dhcpd
+%attr(750,root,root) %dir /var/state/%{name}
+%ghost /var/state/%{name}/dhcpd.leases
+
+%files client
+%attr(755,root,root) /sbin/dhclient
+%{_mandir}/man8/dhclient*
+%{_mandir}/man5/dhclient*
 
 %changelog
 * Fri Jul 2 1999 Bartosz Waszak <waszi@pld.org.pl>
