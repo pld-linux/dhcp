@@ -1,7 +1,7 @@
 Summary:	DHCP Server 
 Summary(pl):	Serwer DHCP 
 Name:		dhcp
-Version:	3.0b2pl11
+Version:	3.0b2pl16
 Release:	1
 Epoch:		1
 Group:		Networking/Daemons
