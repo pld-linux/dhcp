@@ -1,0 +1,11 @@
+--- dhcp-3.0.1rc13/Makefile.conf.orig	Thu Apr  1 21:46:26 2004
++++ dhcp-3.0.1rc13/Makefile.conf	Thu Apr  1 21:47:49 2004
+@@ -40,7 +40,7 @@
+ VARDB = /var/db
+ LIBDIR=/usr/local/lib
+ INCDIR=/usr/local/include
+-LIBS =
++LIBS = -lldap
+ COPTS = $(BINDDEF) $(CC_OPTIONS)
+ DEBUG = -g
+ RANLIB = ranlib
