@@ -1,17 +1,18 @@
-%bcond_with ldap		# added support for ldap storage
+#
+# Conditional build:
+%bcond_with	ldap	# with support for ldap storage
+#
 Summary:	DHCP Server
 Summary(es):	Servidor DHCP (Protocolo de configuración dinámica de hosts)
 Summary(pl):	Serwer DHCP
 Summary(pt_BR):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
 Version:	3.0.1
-%define		_rc	rc14
 Release:	1
 Epoch:		3
 Vendor:		ISC
 License:	distributable
 Group:		Networking/Daemons
-#Source0:	ftp://ftp.freenet.de/pub/ftp.isc.org/isc/dhcp/%{name}-%{version}.tar.gz
 Source0:	ftp://ftp.isc.org/isc/dhcp/%{name}-%{version}.tar.gz
 # Source0-md5:	44f72d16a12acc3fbe09703157aa42d2
 Source1:	%{name}.init
@@ -121,7 +122,7 @@ dhcpctl to zbiór funkcji tworz±cych API, które mo¿e byæ u¿ywane do
 komunikacji z dzia³aj±cym serwerem ISC DHCP i jego kontroli.
 
 %prep
-%setup -q -n %{name}-%{version}
+%setup -q
 install %{SOURCE4} .
 %patch0 -p1
 %{?with_ldap:%patch1 -p1}
@@ -138,7 +139,8 @@ cd ..
 #         do not change it to %%configure
 ./configure
 
-%{__make} COPTS="%{rpmcflags} \
+%{__make} \
+	COPTS="%{rpmcflags} \
 	-D_PATH_DHCPD_DB=\\\"/var/lib/%{name}/dhcpd.leases\\\" \
 	-D_PATH_DHCLIENT_DB=\\\"/var/lib/%{name}/dhclient.leases\\\"" \
 	DEBUG="" VARDB="/var/lib/%{name}"
