@@ -10,7 +10,6 @@ Epoch:		2
 Vendor:		ISC
 License:	distributable
 Group:		Networking/Daemons
-#Source0:	ftp://ftp.freenet.de/pub/ftp.isc.org/isc/dhcp/%{name}-%{version}.tar.gz
 Source0:	ftp://ftp.isc.org/isc/dhcp/%{name}-%{version}.tar.gz
 # Source0-md5:	44f72d16a12acc3fbe09703157aa42d2
 Source1:	%{name}.init
@@ -137,7 +136,8 @@ cd ..
 #         do not change it to %%configure
 ./configure
 
-%{__make} COPTS="%{rpmcflags} \
+%{__make} \
+	COPTS="%{rpmcflags} \
 	-D_PATH_DHCPD_DB=\\\"/var/lib/%{name}/dhcpd.leases\\\" \
 	-D_PATH_DHCLIENT_DB=\\\"/var/lib/%{name}/dhclient.leases\\\"" \
 	DEBUG="" VARDB="/var/lib/%{name}"
@@ -166,6 +166,7 @@ install -d $RPM_BUILD_ROOT{/sbin,%{_sbindir},%{_bindir},%{_mandir}/man{5,8}} \
 install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/dhcpd
 install %{SOURCE2} $RPM_BUILD_ROOT/etc/rc.d/init.d/dhcp-relay
 install %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/dhcp-relay
+install %{SOURCE4} $RPM_BUILD_ROOT/etc/dhcpd.conf
 install %{SOURCE5} $RPM_BUILD_ROOT/etc/sysconfig/dhcpd
 
 mv $RPM_BUILD_ROOT%{_mandir}/man3/omshell.3 \
@@ -241,6 +242,7 @@ fi
 %{_mandir}/man5/dhcp*
 %{_mandir}/man8/dhcp*
 %config(noreplace) %verify(not size mtime md5) /etc/sysconfig/dhcpd
+%config(noreplace) %verify(not size mtime md5) /etc/dhcpd.conf
 %attr(755,root,root) %{_bindir}/*
 %attr(755,root,root) %{_sbindir}/dhcpd
 %attr(754,root,root) /etc/rc.d/init.d/dhcpd
