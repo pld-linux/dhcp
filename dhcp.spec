@@ -2,21 +2,28 @@ Summary:	DHCP Server
 Summary(pl):	Serwer DHCP 
 Name:		dhcp
 Version:	2.0
-Release:	1
+Release:	3
 Serial:		1
 Group:		Networking/Daemons
 Group(de):	Sieciowe/Serwery
-Copyright:	ISC
-Vendor:         PLD
+Copyright:	distributable
+Vendor:         ISC
 Source0:	ftp://ftp.isc.org/isc/dhcp/%{name}-%{version}.tar.gz
 Source1:	dhcp.init
 Source2:	dhcp-relay.init
 Source3:	dhcp-relay.sysconfig
+Source4:	dhcpd.conf.sample
 BuildRoot:   	/tmp/%{name}-%{version}-root
 Prereq:		/sbin/chkconfig
 
 %description
-Dynamic Host Configuration Protocol Server
+DHCP (Dynamic Host Configuration Protocol) is a protocol which allows
+individual devices on an IP network to get their own network configuration
+information (IP address, subnetmask, broadcast address, etc.) from a DHCP
+server. The overall purpose of DHCP is to make it easier to administer a
+large network. 
+
+You should install dhcp if you want to set up a DHCP server on your network.
 
 %description -l pl
 Serwer DHCP (Dynamic Host Configuration Protocol)
@@ -28,10 +35,10 @@ Group:		Networking/Daemons
 Group(de):	Sieciowe/Serwery
 
 %description client
-Dynamic Host Configuration Protocol Client
+Dynamic Host Configuration Protocol Client.
 
 %description client -l pl
-Klient DHCP (Dynamic Host Configuration Protocol)
+Klient DHCP (Dynamic Host Configuration Protocol).
 
 %package relay
 Summary:	DHCP Relay Agent
@@ -40,17 +47,17 @@ Group:		Networking/Daemons
 Group(de):	Sieciowe/Serwery
 
 %description relay
-Dynamic Host Configuration Protocol Relay Agent
+Dynamic Host Configuration Protocol Relay Agent.
 
 %description relay -l pl
-Agent przekazywania DHCP (Dynamic Host Configuration Protocol)
+Agent przekazywania DHCP (Dynamic Host Configuration Protocol).
 
 %prep
-
 %setup -q
 
-%build
+cp %{SOURCE4} .
 
+%build
 LDFLAGS="-s" ; export LDFLAGS
 %configure
 
@@ -117,7 +124,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(644,root,root,755)
-%doc doc/* README.gz RELNOTES.gz CHANGES.gz
+%doc doc/* README.gz RELNOTES.gz CHANGES.gz dhcpd.conf.sample
 %{_mandir}/man5/dhcp*
 %{_mandir}/man8/dhcp*
 %attr(755,root,root) %{_sbindir}/dhcpd
