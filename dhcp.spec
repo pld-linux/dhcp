@@ -133,7 +133,7 @@ install %{SOURCE5} $RPM_BUILD_ROOT/etc/sysconfig/dhcpd
 mv $RPM_BUILD_ROOT%{_mandir}/man3/omshell.3 \
 	$RPM_BUILD_ROOT%{_mandir}/man1/omshell.1
 
-install client/scripts/linux $RPM_BUILD_ROOT%{_sysconfdir}/dhclient-script
+install client/scripts/linux $RPM_BUILD_ROOT%{_sbindir}/dhclient-script
 
 gzip -9nf doc/* README RELNOTES
 
