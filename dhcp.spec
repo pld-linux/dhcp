@@ -18,6 +18,7 @@ Source5:	%{name}.sysconfig
 BuildRequires:	groff
 Prereq:		rc-scripts >= 0.2.0
 Prereq:		/sbin/chkconfig
+Provides:	dhcpd
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
