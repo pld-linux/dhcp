@@ -230,7 +230,7 @@ fi
 %files client
 %defattr(644,root,root,755)
 %attr(755,root,root) /sbin/dhclient
-%attr(755,root,root) %{_sysconfdir}/dhclient-script
+%attr(755,root,root) /sbin/dhclient-script
 %{_mandir}/man[58]/dhclient*
 %ghost /var/lib/%{name}/dhclient.leases
 
