@@ -1,14 +1,14 @@
 Summary:	DHCP Server 
 Summary(pl):	Serwer DHCP 
 Name:		dhcp
-Version:	3.0rc8rc2
+Version:	3.0rc9
 Release:	1
 Epoch:		1
+Vendor:		ISC
 Group:		Networking/Daemons
 Group(de):	Netzwerkwesen/Server
 Group(pl):	Sieciowe/Serwery
 Copyright:	distributable
-Vendor:		ISC
 Source0:	ftp://ftp.isc.org/isc/dhcp/%{name}-%{version}.tar.gz
 Source1:	%{name}.init
 Source2:	%{name}-relay.init
