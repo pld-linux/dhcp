@@ -1,7 +1,7 @@
 Summary:	DHCP Server 
 Summary(pl):	Serwer DHCP 
 Name:		dhcp
-Version:	3.0rc8
+Version:	3.0rc8rc2
 Release:	1
 Epoch:		1
 Group:		Networking/Daemons
