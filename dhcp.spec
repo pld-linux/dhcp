@@ -65,7 +65,7 @@ cp %{SOURCE4} .
 LDFLAGS="-s" ; export LDFLAGS
 %configure
 
-make COPTS="$RPM_OPT_FLAGS -D_PATH_DHCPD_DB=\\\"/var/lib/%{name}/dhcpd.leases\\\" \
+%{__make} COPTS="$RPM_OPT_FLAGS -D_PATH_DHCPD_DB=\\\"/var/lib/%{name}/dhcpd.leases\\\" \
 	-D_PATH_DHCLIENT_DB=\\\"/var/lib/%{name}/dhclient.leases\\\"" \
 	DEBUG="" VARDB="/var/lib/%{name}"
 
@@ -75,7 +75,7 @@ rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT{/sbin,%{_sbindir},%{_mandir}/man{5,8}} \
 	$RPM_BUILD_ROOT{/var/lib/%{name},%{_sysconfdir}/{rc.d/init.d,sysconfig}}
 
-make install \
+%{__make} install \
 	CLIENTBINDIR=$RPM_BUILD_ROOT/sbin \
 	BINDIR=$RPM_BUILD_ROOT%{_sbindir} \
 	ADMMANDIR=$RPM_BUILD_ROOT%{_mandir}/man8 \
