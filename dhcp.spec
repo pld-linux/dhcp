@@ -17,6 +17,7 @@ Source5:	dhcp.sysconfig
 BuildRequires:	groff
 BuildRoot:   	/tmp/%{name}-%{version}-root
 Prereq:		/sbin/chkconfig
+Requires:	rc-scripts
 
 %description
 DHCP (Dynamic Host Configuration Protocol) is a protocol which allows
