@@ -1,19 +1,19 @@
 Summary:	DHCP Server 
 Summary(pl):	Serwer DHCP 
 Name:		dhcp
-Version:	3.0b1pl16
+Version:	3.0b1pl17
 Release:	1
-Serial:		1
+Epoch:		1
 Group:		Networking/Daemons
 Group(pl):	Sieciowe/Serwery
 Copyright:	distributable
 Vendor:		ISC
 Source0:	ftp://ftp.isc.org/isc/dhcp/%{name}-%{version}.tar.gz
-Source1:	dhcp.init
-Source2:	dhcp-relay.init
-Source3:	dhcp-relay.sysconfig
-Source4:	dhcpd.conf.sample
-Source5:	dhcp.sysconfig
+Source1:	%{name}.init
+Source2:	%{name}-relay.init
+Source3:	%{name}-relay.sysconfig
+Source4:	%{name}d.conf.sample
+Source5:	%{name}.sysconfig
 BuildRequires:	groff
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 Prereq:		/sbin/chkconfig
@@ -50,7 +50,12 @@ Group(pl):	Sieciowe/Serwery
 Requires:	rc-scripts >= 0.2.0
 
 %description relay
-Dynamic Host Configuration Protocol Relay Agent.
+Dhcp relay is a relay agent for DHCP packets. It is used on a subnet
+with DHCP clients to "relay" their requests to a subnet that has a
+DHCP server on it. Because DHCP packets can be broadcast, they will
+not be routed off of the local subnet. The DHCP relay takes care of
+this for the client.
+
 
 %description -l pl relay
 Agent przekazywania DHCP (Dynamic Host Configuration Protocol) miêdzy
