@@ -8,7 +8,7 @@ Summary(pl):	Serwer DHCP
 Summary(pt_BR):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
 Version:	3.0.1
-Release:	2
+Release:	3
 Epoch:		3
 Vendor:		ISC
 License:	distributable
@@ -169,6 +169,7 @@ install -d $RPM_BUILD_ROOT{/sbin,%{_sbindir},%{_bindir},%{_mandir}/man{5,8}} \
 install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/dhcpd
 install %{SOURCE2} $RPM_BUILD_ROOT/etc/rc.d/init.d/dhcp-relay
 install %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/dhcp-relay
+install %{SOURCE4} $RPM_BUILD_ROOT/etc/dhcpd.conf
 install %{SOURCE5} $RPM_BUILD_ROOT/etc/sysconfig/dhcpd
 
 mv $RPM_BUILD_ROOT%{_mandir}/man3/omshell.3 \
@@ -244,6 +245,7 @@ fi
 %{_mandir}/man5/dhcp*
 %{_mandir}/man8/dhcp*
 %config(noreplace) %verify(not size mtime md5) /etc/sysconfig/dhcpd
+%config(noreplace) %verify(not size mtime md5) /etc/dhcpd.conf
 %attr(755,root,root) %{_bindir}/*
 %attr(755,root,root) %{_sbindir}/dhcpd
 %attr(754,root,root) /etc/rc.d/init.d/dhcpd
