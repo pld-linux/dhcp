@@ -225,6 +225,6 @@ fi
 
 %files devel
 %defattr(644,root,root,755)
-%{_mandir}/man3/omapi*
+%{_mandir}/man3/*
 %{_libdir}/*.a
 %{_includedir}/*
