@@ -7,7 +7,7 @@ Serial:		1
 Group:		Networking/Daemons
 Group(pl):	Sieciowe/Serwery
 Copyright:	distributable
-Vendor:         ISC
+Vendor:		ISC
 Source0:	ftp://ftp.isc.org/isc/dhcp/%{name}-%{version}.tar.gz
 Source1:	dhcp.init
 Source2:	dhcp-relay.init
@@ -24,7 +24,7 @@ DHCP (Dynamic Host Configuration Protocol) is a protocol which allows
 individual devices on an IP network to get their own network configuration
 information (IP address, subnetmask, broadcast address, etc.) from a DHCP
 server. The overall purpose of DHCP is to make it easier to administer a
-large network. 
+large network.
 
 %description -l pl
 Serwer DHCP (Dynamic Host Configuration Protocol).
@@ -73,7 +73,7 @@ make COPTS="$RPM_OPT_FLAGS -D_PATH_DHCPD_DB=\\\"/var/lib/%{name}/dhcpd.leases\\\
 rm -rf $RPM_BUILD_ROOT
 
 install -d $RPM_BUILD_ROOT{/sbin,%{_sbindir},%{_mandir}/man{5,8}} \
-	$RPM_BUILD_ROOT{/var/lib/%{name},/etc/{rc.d/init.d,sysconfig}}
+	$RPM_BUILD_ROOT{/var/lib/%{name},%{_sysconfdir}/{rc.d/init.d,sysconfig}}
 
 make install \
 	CLIENTBINDIR=$RPM_BUILD_ROOT/sbin \
@@ -88,7 +88,7 @@ install %{SOURCE2} $RPM_BUILD_ROOT/etc/rc.d/init.d/dhcp-relay
 install %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/dhcp-relay
 install %{SOURCE5} $RPM_BUILD_ROOT/etc/sysconfig/dhcpd
 
-install client/scripts/linux $RPM_BUILD_ROOT/etc/dhclient-script
+install client/scripts/linux $RPM_BUILD_ROOT%{_sysconfdir}/dhclient-script
 
 gzip -9nf $RPM_BUILD_ROOT%{_mandir}/man*/* \
 	  doc/* README RELNOTES 
@@ -156,7 +156,7 @@ rm -rf $RPM_BUILD_ROOT
 %files client
 %defattr(644,root,root,755)
 %attr(755,root,root) /sbin/dhclient
-%attr(755,root,root) /etc/dhclient-script
+%attr(755,root,root) %{_sysconfdir}/dhclient-script
 %{_mandir}/man[58]/dhclient*
 %ghost /var/lib/%{name}/dhclient.leases
 
