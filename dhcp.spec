@@ -1,8 +1,10 @@
 Summary:	DHCP Server
+Summary(es):	Servidor DHCP (Protocolo de configuración dinámica de hosts)
 Summary(pl):	Serwer DHCP
+Summary(pt_BR):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
 Version:	3.0
-Release:	3
+Release:	4
 Epoch:		2
 Vendor:		ISC
 License:	distributable
@@ -26,6 +28,14 @@ configuration information (IP address, subnetmask, broadcast address,
 etc.) from a DHCP server. The overall purpose of DHCP is to make it
 easier to administer a large network.
 
+%description -l es
+DHCP permite que hosts en una red TCP/IP soliciten y tengan sus
+direcciones IP alocadas dinámicamente, permite también descubrir
+información sobre la red en que están conectados. BOOTP provee una
+funcionalidad similar, con ciertas restricciones. Este servidor
+también las atiende. Esta versión aún está considerada como un
+software BETA.
+
 %description -l pl
 Serwer DHCP (Dynamic Host Configuration Protocol).
 
@@ -33,6 +43,14 @@ DHCP to protokó³ pozwalaj±cy urz±dzeniom pracuj±cym w sieci IP na
 pobieranie ich konfiguracji IP (adresu, maski podsieci, adresu
 rozg³oszeniowego itp.) z serwera DHCP. U³atwia on administrowanie
 du¿ymi sieciami IP.
+
+%description -l pt_BR
+DHCP permite que hosts numa rede TCP/IP requisitem e tenham seus
+endereços IP alocados dinamicamente, permite também descobrir
+informações sobre a rede em que estão conectados. BOOTP provê uma
+funcionalidade similar, com certas restrições. Este servidor também
+atende aquelas requisições. Esta versão é ainda considerada um
+software BETA.
 
 %package client
 Summary:	DHCP Client
