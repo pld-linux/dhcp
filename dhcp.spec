@@ -4,7 +4,7 @@
 #
 %define	_rc	rc1
 Summary:	DHCP Server
-Summary(es):	Servidor DHCP (Protocolo de configuración dinámica de hosts)
+Summary(es):	Servidor DHCP
 Summary(pl):	Serwer DHCP
 Summary(pt_BR):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
@@ -45,8 +45,7 @@ DHCP permite que hosts en una red TCP/IP soliciten y tengan sus
 direcciones IP alocadas dinámicamente, permite también descubrir
 información sobre la red en que están conectados. BOOTP provee una
 funcionalidad similar, con ciertas restricciones. Este servidor
-también las atiende. Esta versión aún está considerada como un
-software BETA.
+también las atiende.
 
 %description -l pl
 Serwer DHCP (Dynamic Host Configuration Protocol).
