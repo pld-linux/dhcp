@@ -18,7 +18,7 @@ fi
 case "$1" in
   start)
 	show Starting DHCP Relay
-	daemon dhcrelay $SERVER
+	daemon dhcrelay $DHCP_SERVERS
 	touch /var/lock/subsys/dhcrelay
 	;;
   stop)
