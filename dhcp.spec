@@ -10,6 +10,8 @@ Copyright:	ISC
 Vendor:         PLD
 Source0:	ftp://ftp.isc.org/isc/dhcp/%{name}-%{version}.tar.gz
 Source1:	dhcp.init
+Source2:	dhcp-relay.init
+Source3:	dhcp-relay.sysconfig
 BuildRoot:   	/tmp/%{name}-%{version}-root
 Prereq:		/sbin/chkconfig
 
@@ -59,7 +61,7 @@ make COPTS="$RPM_OPT_FLAGS" DEBUG="" \
 rm -rf $RPM_BUILD_ROOT
 
 install -d $RPM_BUILD_ROOT{/sbin,%{_sbindir},%{_mandir}/man{5,8}} \
-	$RPM_BUILD_ROOT{/var/state/%{name},/etc/rc.d/init.d}
+	$RPM_BUILD_ROOT{/var/state/%{name},/etc/{rc.d/init.d,sysconfig}}
 
 make install \
 	CLIENTBINDIR=$RPM_BUILD_ROOT/sbin \
@@ -70,6 +72,8 @@ make install \
 	FFMANEXT=.5
 
 install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/dhcpd
+install %{SOURCE2} $RPM_BUILD_ROOT/etc/rc.d/init.d/dhcrelay
+install %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/dhcrelay
 
 gzip -9nf $RPM_BUILD_ROOT%{_mandir}/man*/* \
 	  doc/* README RELNOTES CHANGES
@@ -86,11 +90,27 @@ else
 	echo "Run \"/etc/rc.d/init.d/dhcpd start\" to start dhcpd daemon."
 fi
 
+%post relay
+/sbin/chkconfig --add dhcrelay
+
+if [ -f /var/run/dhcrelay.pid ]; then
+	/etc/rc.d/init.d/dhcrelay restart >&2
+else
+	echo "Run \"/etc/rc.d/init.d/dhcrelay start\" to start dhcrelay daemon."
+fi
+
 %preun
 if [ "$1" = "0" ];then
 	/sbin/chkconfig --del dhcpd
 	/etc/rc.d/init.d/dhcpd stop >&2
 fi
+
+%preun relay
+if [ "$1" = "0" ];then
+	/sbin/chkconfig --del dhcrelay
+	/etc/rc.d/init.d/dhrelay stop >&2
+fi
+
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -115,4 +135,6 @@ rm -rf $RPM_BUILD_ROOT
 %files relay
 %defattr(644,root,root,755)
 %{_mandir}/man8/dhcrelay*
+/etc/sysconfig/dhcrelay
 %attr(755,root,root) %{_sbindir}/dhcrelay
+%attr(755,root,root) /etc/rc.d/init.d/dhcrelay
