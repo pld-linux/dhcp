@@ -129,7 +129,7 @@ rm -rf $RPM_BUILD_ROOT
 %doc doc/* README.gz RELNOTES.gz CHANGES.gz dhcpd.conf.sample
 %{_mandir}/man5/dhcp*
 %{_mandir}/man8/dhcp*
-%config(noreplace) %verify(not size mtime md5sum) /etc/sysconfig/dhcrelay
+%config(noreplace) %verify(not size mtime md5) /etc/sysconfig/dhcrelay
 %attr(755,root,root) %{_sbindir}/dhcpd
 %attr(754,root,root) /etc/rc.d/init.d/dhcpd
 %attr(750,root,root) %dir /var/state/%{name}
@@ -144,6 +144,6 @@ rm -rf $RPM_BUILD_ROOT
 %files relay
 %defattr(644,root,root,755)
 %{_mandir}/man8/dhcrelay*
-%config(noreplace) %verify(not size mtime md5sum) /etc/sysconfig/dhcrelay
+%config(noreplace) %verify(not size mtime md5) /etc/sysconfig/dhcrelay
 %attr(755,root,root) %{_sbindir}/dhcrelay
 %attr(754,root,root) /etc/rc.d/init.d/dhcrelay
