@@ -17,7 +17,7 @@ Source5:	dhcp.sysconfig
 BuildRequires:	groff
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 Prereq:		/sbin/chkconfig
-Requires:	rc-scripts
+Requires:	rc-scripts >= 0.2.0
 
 %description
 DHCP (Dynamic Host Configuration Protocol) is a protocol which allows
@@ -44,15 +44,17 @@ Klient DHCP (Dynamic Host Configuration Protocol).
 
 %package relay
 Summary:	DHCP Relay Agent
-Summary(pl):	Agent przekazywania DHCP
+Summary(pl):	Agent przekazywania informacji DHCP
 Group:		Networking/Daemons
 Group(de):	Sieciowe/Serwery
+Requires:	rc-scripts >= 0.2.0
 
 %description relay
 Dynamic Host Configuration Protocol Relay Agent.
 
 %description -l pl relay
-Agent przekazywania DHCP (Dynamic Host Configuration Protocol).
+Agent przekazywania DHCP (Dynamic Host Configuration Protocol) miêdzy
+podsieciami.
 
 %prep
 %setup -q
