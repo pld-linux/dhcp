@@ -9,7 +9,8 @@ Epoch:		2
 Vendor:		ISC
 License:	distributable
 Group:		Networking/Daemons
-Source0:	ftp://ftp.isc.org/isc/dhcp/%{name}-%{version}.tar.gz
+# Source0:	ftp://ftp.isc.org/isc/dhcp/%{name}-%{version}.tar.gz
+Source0:	ftp://ftp.freenet.de/pub/ftp.isc.org/isc/dhcp/%{name}-%{version}.tar.gz
 # Source0-md5:	af79b0453ac67fb6824247d3d48fff91
 Source1:	%{name}.init
 Source2:	%{name}-relay.init
