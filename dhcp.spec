@@ -88,6 +88,8 @@ install %{SOURCE2} $RPM_BUILD_ROOT/etc/rc.d/init.d/dhcp-relay
 install %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/dhcp-relay
 install %{SOURCE5} $RPM_BUILD_ROOT/etc/sysconfig/dhcpd
 
+install client/scripts/linux $RPM_BUILD_ROOT/etc/dhclient-script
+
 gzip -9nf $RPM_BUILD_ROOT%{_mandir}/man*/* \
 	  doc/* README RELNOTES 
 
@@ -154,6 +156,7 @@ rm -rf $RPM_BUILD_ROOT
 %files client
 %defattr(644,root,root,755)
 %attr(755,root,root) /sbin/dhclient
+%attr(755,root,root) /etc/dhclient-script
 %{_mandir}/man[58]/dhclient*
 %ghost /var/lib/%{name}/dhclient.leases
 
