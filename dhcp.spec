@@ -1,7 +1,7 @@
 Summary:	DHCP Server 
 Summary(pl):	Serwer DHCP 
 Name:		dhcp
-Version:	3.0rc7
+Version:	3.0rc8
 Release:	1
 Epoch:		1
 Group:		Networking/Daemons
@@ -16,9 +16,8 @@ Source3:	%{name}-relay.sysconfig
 Source4:	%{name}d.conf.sample
 Source5:	%{name}.sysconfig
 BuildRequires:	groff
+Prereq:		rc-scripts >= 0.2.0
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
-Prereq:		/sbin/chkconfig
-Prereq:			rc-scripts >= 0.2.0
 
 %description
 DHCP (Dynamic Host Configuration Protocol) is a protocol which allows
@@ -76,7 +75,7 @@ install %{SOURCE4} .
 
 %build
 # Notice: this is not autoconf configure!!!!!!!
-#         do not change it to %configure
+#         do not change it to %%configure
 ./configure
 
 %{__make} COPTS="%{rpmcflags} \
@@ -86,7 +85,7 @@ install %{SOURCE4} .
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT{/sbin,%{_sbindir},%{_mandir}/man{5,8}} \
+install -d $RPM_BUILD_ROOT{/sbin,%{_sbindir},%{_bindir},%{_mandir}/man{5,8}} \
 	$RPM_BUILD_ROOT{/var/lib/%{name},%{_sysconfdir}/{rc.d/init.d,sysconfig}}
 
 %{__make} install \
