@@ -7,8 +7,6 @@ Epoch:		2
 Vendor:		ISC
 License:	distributable
 Group:		Networking/Daemons
-Group(de):	Netzwerkwesen/Server
-Group(pl):	Sieciowe/Serwery
 Source0:	ftp://ftp.isc.org/isc/dhcp/%{name}-%{version}.tar.gz
 Source1:	%{name}.init
 Source2:	%{name}-relay.init
@@ -40,8 +38,6 @@ du¿ymi sieciami IP.
 Summary:	DHCP Client
 Summary(pl):	Klient DHCP 
 Group:		Networking/Daemons
-Group(de):	Netzwerkwesen/Server
-Group(pl):	Sieciowe/Serwery
 Obsoletes:	pump
 
 %description client
@@ -54,8 +50,6 @@ Klient DHCP (Dynamic Host Configuration Protocol).
 Summary:	DHCP Relay Agent
 Summary(pl):	Agent przekazywania informacji DHCP
 Group:		Networking/Daemons
-Group(de):	Netzwerkwesen/Server
-Group(pl):	Sieciowe/Serwery
 Prereq:		rc-scripts >= 0.2.0
 Prereq:		/sbin/chkconfig
 
