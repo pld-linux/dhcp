@@ -21,10 +21,10 @@ Requires:	rc-scripts >= 0.2.0
 
 %description
 DHCP (Dynamic Host Configuration Protocol) is a protocol which allows
-individual devices on an IP network to get their own network configuration
-information (IP address, subnetmask, broadcast address, etc.) from a DHCP
-server. The overall purpose of DHCP is to make it easier to administer a
-large network.
+individual devices on an IP network to get their own network
+configuration information (IP address, subnetmask, broadcast address,
+etc.) from a DHCP server. The overall purpose of DHCP is to make it
+easier to administer a large network.
 
 %description -l pl
 Serwer DHCP (Dynamic Host Configuration Protocol).
