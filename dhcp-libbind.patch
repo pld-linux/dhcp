@@ -1,0 +1,14 @@
+diff -durN dhcp-3.0b1pl17.orig/Makefile.conf dhcp-3.0b1pl17/Makefile.conf
+--- dhcp-3.0b1pl17.orig/Makefile.conf	Thu Jul 20 06:13:05 2000
++++ dhcp-3.0b1pl17/Makefile.conf	Fri Oct  6 09:02:39 2000
+@@ -37,8 +37,8 @@
+ COPTS = $(BINDDEF)
+ RANLIB = ranlib
+ 
+-BINDLIBDEF = -L/usr/local/bind/lib -lbind
+-BINDINCDEF = -I/usr/local/bind/include
++BINDLIBDEF = -L/usr/lib/bind/lib -lbind
++BINDINCDEF = -I/usr/lib/bind/include
+ 
+ ## Dynamic DNS update support
+ CLIENT_PATH = '"PATH=/usr/ucb:/usr/bin:/usr/sbin:/bin:/sbin"'
