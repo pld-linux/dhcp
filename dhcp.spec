@@ -98,7 +98,7 @@ touch $RPM_BUILD_ROOT/var/lib/%{name}/{dhcpd,dhclient}.leases
 touch /var/lib/%{name}/dhcpd.leases
 
 if [ ! -d /var/lib/dhcp ]; then
-	mkdir /var/lib/dhcp
+	install -d /var/lib/dhcp
 fi
 
 if [ -f /var/lock/subsys/dhcpd ]; then
@@ -118,7 +118,7 @@ fi
 
 %post client
 if [ -d /var/lib/dhcp ]; then
-	mkdir /var/lib/dhcp
+	install -d /var/lib/dhcp
 fi
 
 %preun
