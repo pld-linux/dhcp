@@ -14,7 +14,10 @@
 [ -f /etc/sysconfig/dhcp ] && . /etc/sysconfig/dhcp
 
 # Check that networking is up.
-[ "${NETWORKING}" = "no" ] && echo "Error: Networking is down" && exit 0
+if [ "${NETWORKING}" = "no" ]; then
+	echo "WARNING: Networking is down. Dhcpd sercice can't be runed."
+	exit 1
+fi
 
 
 # See how we were called.
