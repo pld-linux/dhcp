@@ -17,8 +17,9 @@ Source4:	%{name}d.conf.sample
 Source5:	%{name}.sysconfig
 Patch0:		%{name}-sh.patch
 BuildRequires:	groff
-Prereq:		rc-scripts >= 0.2.0
-Prereq:		/sbin/chkconfig
+PreReq:		rc-scripts >= 0.2.0
+Requires(post,preun):	/sbin/chkconfig
+Requires(post):	fileutils
 Provides:	dhcpd
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -57,6 +58,7 @@ software BETA.
 Summary:	DHCP Client
 Summary(pl):	Klient DHCP
 Group:		Networking/Daemons
+Requires(post):	fileutils
 Obsoletes:	pump
 
 %description client
@@ -69,8 +71,9 @@ Klient DHCP (Dynamic Host Configuration Protocol).
 Summary:	DHCP Relay Agent
 Summary(pl):	Agent przekazywania informacji DHCP
 Group:		Networking/Daemons
-Prereq:		rc-scripts >= 0.2.0
-Prereq:		/sbin/chkconfig
+PreReq:		rc-scripts >= 0.2.0
+Requires(post,preun):	/sbin/chkconfig
+Requires(post):	fileutils
 
 %description relay
 Dhcp relay is a relay agent for DHCP packets. It is used on a subnet
@@ -174,15 +177,12 @@ else
 	echo "Run \"/etc/rc.d/init.d/dhcpd start\" to start dhcpd daemon."
 fi
 
-%post relay
-/sbin/chkconfig --add dhcp-relay
-if [ -f /var/lock/subsys/dhcrelay ]; then
-	mv /var/lock/subsys/dhcrelay /var/lock/subsys/dhcp-relay
-fi
-if [ -f /var/lock/subsys/dhcp-relay ]; then
-	/etc/rc.d/init.d/dhcp-relay restart >&2
-else
-	echo "Run \"/etc/rc.d/init.d/dhcp-relay start\" to start dhcrelay daemon."
+%preun
+if [ "$1" = "0" ];then
+	if [ -f /var/lock/subsys/dhcpd ]; then
+		/etc/rc.d/init.d/dhcpd stop >&2
+	fi
+	/sbin/chkconfig --del dhcpd
 fi
 
 %post client
@@ -190,12 +190,15 @@ if [ -d /var/lib/dhcp ]; then
 	install -d /var/lib/dhcp
 fi
 
-%preun
-if [ "$1" = "0" ];then
-	if [ -f /var/lock/subsys/dhcpd ]; then
-		/etc/rc.d/init.d/dhcpd stop >&2
-	fi
-	/sbin/chkconfig --del dhcpd
+%post relay
+/sbin/chkconfig --add dhcp-relay
+if [ -f /var/lock/subsys/dhcrelay ]; then
+	mv -f /var/lock/subsys/dhcrelay /var/lock/subsys/dhcp-relay
+fi
+if [ -f /var/lock/subsys/dhcp-relay ]; then
+	/etc/rc.d/init.d/dhcp-relay restart >&2
+else
+	echo "Run \"/etc/rc.d/init.d/dhcp-relay start\" to start dhcrelay daemon."
 fi
 
 %preun relay
@@ -208,6 +211,7 @@ fi
 
 %triggerpostun -- dhcp < 3.0
 if [ `grep ddns-update-style /etc/dhcpd.conf` = "" ]; then
+	umask 027
 	echo "ddns-update-style none;" > /etc/dhcpd.conf.tmp
 	echo "" >> /etc/dhcpd.conf.tmp
 	cat /etc/dhcpd.conf >>/etc/dhcpd.conf.tmp
