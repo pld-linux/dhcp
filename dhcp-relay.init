@@ -1,8 +1,8 @@
 #!/bin/sh
-# DHCP Server
+# DHCP relay agent
 #
 # chkconfig:	345 80 20
-# description:	DHCP Relay
+# description:	DHCP relay agent
 
 # Source function library.
 . /etc/rc.d/init.d/functions
@@ -15,7 +15,7 @@
 
 # Check that networking is up.
 if is_no "${NETWORKING}"; then
-	msg_Network_Down "DHCP Realay"
+	msg_Network_Down "DHCP realay"
 	exit 1
 fi
 
@@ -27,16 +27,22 @@ fi
 # See how we were called.
 case "$1" in
   start)
-	msg_starting "DHCP Relay"
-	daemon dhcrelay $OPTIONS $DHCP_SERVERS_IP
-	touch /var/lock/subsys/dhcrelay
+	# Check if the service is already running?
+	if [ ! -f /var/lock/subsys/dhcrelay ]; then
+		msg_starting "DHCP relay"
+		daemon dhcrelay $OPTIONS $DHCP_SERVERS_IP
+		RETVAL=$?
+		[ $RETVAL -eq 0 ] && touch /var/lock/subsys/dhcrelay
+	else
+		msg_Already_Running "DHCP relay"
+		exit 1
 	;;
   stop)
-	msg_stopping "DHCP Relay"
+	msg_stopping "DHCP relay"
 	killproc dhcrelay
 	rm -f /var/lock/subsys/dhcrelay
 	;;
-  restart)
+  restart|reload)
 	$0 stop
 	$0 start
 	;;
@@ -44,9 +50,8 @@ case "$1" in
 	status dhcrelay
 	;;
   *)
-	msg_Usage "$0 {start|stop|restart|status}"
+	msg_Usage "$0 {start|stop|restart|reload|status}"
 	exit 1
 esac
 
-exit 0
-
+exit $RETVAL

@@ -26,11 +26,12 @@ case "$1" in
 	if [ ! -f /var/lock/subsys/dhcpd ]; then
 		msg_starting "DHCP Server"
 		daemon dhcpd $DHCPD_INTERFACES
+		RETVAL=$?
+		[ $RETVAL -eq 0 ] && touch /var/lock/subsys/dhcpd
 	else
 		msg_Already_Running DHCPD
 		exit 1
 	fi
-	touch /var/lock/subsys/dhcpd
 	;;
   stop)
 	msg_stopping "DHCP Server"
@@ -50,5 +51,4 @@ case "$1" in
 	exit 1
 esac
 
-exit 0
-
+exit $RETVAL
