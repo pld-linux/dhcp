@@ -69,13 +69,16 @@ touch $RPM_BUILD_ROOT/var/state/%{name}/{dhcpd,dhclient}.leases
 touch /var/state/%{name}/dhcpd.leases
 
 if [ -f /var/run/dhcpd.pid ]; then
-	/etc/rc.d/init.d/dhcpd restart
+	/etc/rc.d/init.d/dhcpd restart >&2
+else
+	echo "Run \"/etc/rc.d/init.d/dhcpd start\" to start dhcpd daemon."
 fi
 
 %preun
-if [ $1 = 0 ];then
-	/etc/rc.d/init.d/dhcpd stop
+if [ "$1" = "0" ];then
 	/sbin/chkconfig --del dhcpd
+	/etc/rc.d/init.d/dhcpd stop >&2
+fi
 
 %clean
 rm -rf $RPM_BUILD_ROOT
