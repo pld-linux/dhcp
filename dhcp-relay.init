@@ -31,7 +31,7 @@ case "$1" in
 	$0 start
 	;;
   status)
-	status dhcpd
+	status dhcrelay
 	;;
   *)
 	echo "Usage: $0 {start|stop|restart|status}"
