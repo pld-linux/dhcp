@@ -21,6 +21,7 @@ Source5:	%{name}.sysconfig
 Patch0:		%{name}-if_buffer_size.patch
 Patch1:		%{name}-ldap.patch
 Patch2:		%{name}-ldap1.patch
+URL:		http://www.isc.org/sw/dhcp/
 BuildRequires:	groff
 %{?with_ldap:BuildRequires:	openldap-devel}
 PreReq:		rc-scripts >= 0.2.0
