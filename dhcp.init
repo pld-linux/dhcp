@@ -11,11 +11,11 @@
 . /etc/sysconfig/network
 
 # Get service config
-[ -f /etc/sysconfig/dhcp ] && . /etc/sysconfig/dhcp
+[ -f /etc/sysconfig/dhcpd ] && . /etc/sysconfig/dhcpd
 
 # Check that networking is up.
 if [ "${NETWORKING}" = "no" ]; then
-	echo "WARNING: Networking is down. Dhcpd sercice can't be runed."
+	nls "WARNING: Networking is down. Dhcpd sercice can't be runed."
 	exit 1
 fi
 
@@ -26,9 +26,9 @@ case "$1" in
 	# Check if the service is already running?
 	if [ ! -f /var/lock/subsys/dhcpd ]; then
 		show Starting DHCP Server
-		daemon dhcpd
+		daemon dhcpd $DHCPD_INTERFACES
 	else
-		echo "dhcpd already is running"
+		nls "dhcpd already is running\n"
 	fi
 	touch /var/lock/subsys/dhcpd
 	show Starting DHCP Server
@@ -49,7 +49,7 @@ case "$1" in
 	status dhcpd
 	;;
   *)
-	echo "Usage: $0 {start|stop|restart|reload|status}"
+	nls "Usage: $0 {start|stop|restart|reload|status}"
 	exit 1
 esac
 
