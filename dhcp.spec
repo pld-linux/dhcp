@@ -28,7 +28,7 @@ Serwer DHCP (Dynamic Host Configuration Protocol)
 LDFLAGS="-s" ; export LDFLAGS
 %configure
 
-make
+make COPTS="$RPM_OPT_FLAGS" DEBUG=""
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -47,7 +47,7 @@ make install \
 install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/dhcpd
 
 gzip -9nf $RPM_BUILD_ROOT%{_mandir}/man*/* \
-	  doc/* README RELNOTES TODO CHANGES
+	  doc/* README RELNOTES CHANGES
 
 %post
 /sbin/chkconfig --add dhcpd
@@ -66,7 +66,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(644,root,root,755)
-%doc doc/* README.gz RELNOTES.gz CHANGES.gz TODO.gz
+%doc doc/* README.gz RELNOTES.gz CHANGES.gz
 
 %attr(755,root,root) /sbin/dhclient
 %attr(755,root,root) %{_sbindir}/dhcpd
