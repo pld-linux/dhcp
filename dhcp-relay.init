@@ -28,11 +28,11 @@ fi
 case "$1" in
   start)
 	# Check if the service is already running?
-	if [ ! -f /var/lock/subsys/dhcrelay ]; then
+	if [ ! -f /var/lock/subsys/dhcp-relay ]; then
 		msg_starting "DHCP relay"
 		daemon dhcrelay $OPTIONS $DHCP_SERVERS_IP
 		RETVAL=$?
-		[ $RETVAL -eq 0 ] && touch /var/lock/subsys/dhcrelay
+		[ $RETVAL -eq 0 ] && touch /var/lock/subsys/dhcp-relay
 	else
 		msg_Already_Running "DHCP relay"
 		exit 1
@@ -41,7 +41,7 @@ case "$1" in
   stop)
 	msg_stopping "DHCP relay"
 	killproc dhcrelay
-	rm -f /var/lock/subsys/dhcrelay
+	rm -f /var/lock/subsys/dhcp-relay
 	;;
   restart|reload)
 	$0 stop
