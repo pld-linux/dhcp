@@ -2,7 +2,7 @@ Summary:	DHCP Server
 Summary(pl):	Serwer DHCP 
 Name:		dhcp
 Version:	3.0rc10
-Release:	2
+Release:	3
 Epoch:		1
 Vendor:		ISC
 Group:		Networking/Daemons
@@ -125,8 +125,10 @@ fi
 
 %post relay
 /sbin/chkconfig --add dhcp-relay
-
 if [ -f /var/lock/subsys/dhcrelay ]; then
+	mv /var/lock/subsys/dhcrelay /var/lock/subsys/dhcp-relay
+fi
+if [ -f /var/lock/subsys/dhcp-relay ]; then
 	/etc/rc.d/init.d/dhcp-relay restart >&2
 else
 	echo "Run \"/etc/rc.d/init.d/dhcp-relay start\" to start dhcrelay daemon."
@@ -147,7 +149,7 @@ fi
 
 %preun relay
 if [ "$1" = "0" ];then
-	if [ -f /var/lock/subsys/dhcrelay ]; then
+	if [ -f /var/lock/subsys/dhcp-relay ]; then
 		/etc/rc.d/init.d/dhcp-relay stop >&2
 	fi
 	/sbin/chkconfig --del dhcp-relay
