@@ -2,7 +2,7 @@ Summary:	DHCP Server
 Summary(pl):	Serwer DHCP 
 Name:		dhcp
 Version:	3.0
-Release:	1
+Release:	2
 Epoch:		2
 Vendor:		ISC
 License:	Distributable
