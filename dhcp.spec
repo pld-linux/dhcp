@@ -65,8 +65,9 @@ cp %{SOURCE4} .
 LDFLAGS="-s" ; export LDFLAGS
 %configure
 
-make COPTS="$RPM_OPT_FLAGS" DEBUG="" \
-	VARDB="/var/lib/%{name}"
+make COPTS="$RPM_OPT_FLAGS -D_PATH_DHCPD_DB=\\\"/var/lib/%{name}/dhcpd.leases\\\" \
+	-D_PATH_DHCLIENT_DB=\\\"/var/lib/%{name}/dhclient.leases\\\"" \
+	DEBUG="" VARDB="/var/lib/%{name}"
 
 %install
 rm -rf $RPM_BUILD_ROOT
