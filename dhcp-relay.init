@@ -27,7 +27,7 @@ if [ -n "DHCP_REALY_INTERFACES" ]; then
 	OPTIONS="-i $DHCP_REALY_INTERFACES"
 fi
 
-
+RETVAL=0
 # See how we were called.
 case "$1" in
   start)
@@ -39,24 +39,29 @@ case "$1" in
 		[ $RETVAL -eq 0 ] && touch /var/lock/subsys/dhcp-relay
 	else
 		msg_already_running "DHCP relay"
-		exit 1
 	fi
 	;;
   stop)
-	msg_stopping "DHCP relay"
-	killproc dhcrelay
-	rm -f /var/lock/subsys/dhcp-relay
+	if [ -f /var/lock/subsys/dhcp-relay ]; then
+		msg_stopping "DHCP relay"
+		killproc dhcrelay
+		rm -f /var/lock/subsys/dhcp-relay
+	else
+		msg_not_running "DHCP relay"
+	fi
 	;;
-  restart|reload)
+  restart|force-reload)
 	$0 stop
 	$0 start
+	exit $?
 	;;
   status)
 	status dhcrelay
+	exit $?
 	;;
   *)
-	msg_usage "$0 {start|stop|restart|reload|status}"
-	exit 1
+	msg_usage "$0 {start|stop|restart|force-reload|status}"
+	exit 3
 esac
 
 exit $RETVAL
