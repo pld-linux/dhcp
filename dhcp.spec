@@ -33,8 +33,8 @@ make COPTS="$RPM_OPT_FLAGS" DEBUG=""
 %install
 rm -rf $RPM_BUILD_ROOT
 
-install -d $RPM_BUILD_ROOT{/sbin,%{_sbindir},%{_mandir}/man{5,8}}
-install -d $RPM_BUILD_ROOT{/var/state/dhcpd,/etc/rc.d/init.d}
+install -d $RPM_BUILD_ROOT{/sbin,%{_sbindir},%{_mandir}/man{5,8}} \
+	$RPM_BUILD_ROOT{/var/state/dhcpd,/etc/rc.d/init.d}
 
 make install \
 	CLIENTBINDIR=$RPM_BUILD_ROOT/sbin \
@@ -73,6 +73,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_sbindir}/dhcrelay
 %attr(755,root,root) /etc/rc.d/init.d/dhcpd
 %{_mandir}/man*/*
+/var/state/dhcpd
 
 %changelog
 * Fri Jul 2 1999 Bartosz Waszak <waszi@pld.org.pl>
