@@ -1,8 +1,8 @@
 Summary:	DHCP Server 
 Summary(pl):	Serwer DHCP 
 Name:		dhcp
-Version:	3.0b1pl17
-Release:	2
+Version:	3.0b2pl11
+Release:	1
 Epoch:		1
 Group:		Networking/Daemons
 Group(de):	Netzwerkwesen/Server
@@ -15,11 +15,9 @@ Source2:	%{name}-relay.init
 Source3:	%{name}-relay.sysconfig
 Source4:	%{name}d.conf.sample
 Source5:	%{name}.sysconfig
-Patch0:		%{name}-libbind.patch
 BuildRequires:	groff
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 Prereq:		/sbin/chkconfig
-BuildRequires:	bind-devel
 Requires:	rc-scripts >= 0.2.0
 
 %description
@@ -67,15 +65,12 @@ podsieciami.
 
 %prep
 %setup -q
-%patch0 -p1
-
-cp %{SOURCE4} .
+install %{SOURCE4} .
 
 %build
-LDFLAGS="-L%{_libdir}/lib/bind/lib" ; export LDFLAGS
 # Notice: this is not autoconf configure!!!!!!!
 #         do not change it to %configure
-./configure --with-nsupdate
+./configure
 
 %{__make} COPTS="$RPM_OPT_FLAGS -D_PATH_DHCPD_DB=\\\"/var/lib/%{name}/dhcpd.leases\\\" \
 	-D_PATH_DHCLIENT_DB=\\\"/var/lib/%{name}/dhclient.leases\\\"" \
