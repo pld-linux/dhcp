@@ -7,22 +7,27 @@
 # Source function library.
 . /etc/rc.d/init.d/functions
 
-if [ -f /etc/sysconfig/dhcrelay ]; then
-	. /etc/sysconfig/dhcrelay
-else
-	exit 0
-fi
+# Source networking configuration.
+. /etc/sysconfig/network
 
+# Demon specified configuration.
+. /etc/sysconfig/dhcp-relay
+
+# Check that networking is up.
+if is_no "${NETWORKING}"; then
+	msg_Network_Down "DHCP Realay"
+	exit 1
+fi
 
 # See how we were called.
 case "$1" in
   start)
-	show Starting DHCP Relay
+	msg_starting "DHCP Relay"
 	daemon dhcrelay $DHCP_SERVERS
 	touch /var/lock/subsys/dhcrelay
 	;;
   stop)
-	show Stopping DHCP Relay
+	msg_stopping "DHCP Relay"
 	killproc dhcrelay
 	rm -f /var/lock/subsys/dhcrelay
 	;;
@@ -34,7 +39,7 @@ case "$1" in
 	status dhcrelay
 	;;
   *)
-	echo "Usage: $0 {start|stop|restart|status}"
+	msg_Usage "$0 {start|stop|restart|status}"
 	exit 1
 esac
 
