@@ -1,7 +1,7 @@
 Summary:	DHCP Server 
 Summary(pl):	Serwer DHCP 
 Name:		dhcp
-Version:	3.0rc9
+Version:	3.0rc10
 Release:	1
 Epoch:		1
 Vendor:		ISC
