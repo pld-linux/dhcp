@@ -61,7 +61,7 @@ install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/dhcpd
 gzip -9nf $RPM_BUILD_ROOT%{_mandir}/man*/* \
 	  doc/* README RELNOTES CHANGES
 
-touch $RPM_BUILD_ROOT/var/state/%{name}/dhcpd.leases
+touch $RPM_BUILD_ROOT/var/state/%{name}/{dhcpd,dhclient}.leases
 
 %post
 /sbin/chkconfig --add dhcpd
@@ -94,6 +94,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) /sbin/dhclient
 %{_mandir}/man8/dhclient*
 %{_mandir}/man5/dhclient*
+%ghost /var/state/%{name}/dhclient.leases
 
 %changelog
 * Fri Jul 2 1999 Bartosz Waszak <waszi@pld.org.pl>
