@@ -2,7 +2,7 @@ Summary:	DHCP Server
 Summary(pl):	Serwer DHCP 
 Name:		dhcp
 Version:	2.0
-Release:	4
+Release:	5
 Serial:		1
 Group:		Networking/Daemons
 Group(de):	Sieciowe/Serwery
@@ -122,7 +122,6 @@ if [ "$1" = "0" ];then
 	/etc/rc.d/init.d/dhrelay stop >&2
 fi
 
-
 %clean
 rm -rf $RPM_BUILD_ROOT
 
@@ -131,7 +130,7 @@ rm -rf $RPM_BUILD_ROOT
 %doc doc/* README.gz RELNOTES.gz CHANGES.gz dhcpd.conf.sample
 %{_mandir}/man5/dhcp*
 %{_mandir}/man8/dhcp*
-%config(noreplace) %verify(not size mtime md5) /etc/sysconfig/dhcrelay
+%config(noreplace) %verify(not size mtime md5) /etc/sysconfig/dhcpd
 %attr(755,root,root) %{_sbindir}/dhcpd
 %attr(754,root,root) /etc/rc.d/init.d/dhcpd
 %attr(750,root,root) %dir /var/state/%{name}
