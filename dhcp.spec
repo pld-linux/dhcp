@@ -3,6 +3,7 @@ Summary(pl):	Serwer DHCP
 Name:		dhcp
 Version:	2.0
 Release:	1
+Serial:		1
 Group:		Networking/Daemons
 Group(de):	Sieciowe/Serwery
 Copyright:	ISC
@@ -65,6 +66,7 @@ touch $RPM_BUILD_ROOT/var/state/%{name}/{dhcpd,dhclient}.leases
 
 %post
 /sbin/chkconfig --add dhcpd
+touch /var/state/%{name}/dhcpd.leases
 
 if [ -f /var/run/dhcpd.pid ]; then
 	/etc/rc.d/init.d/dhcpd restart
@@ -91,6 +93,7 @@ rm -rf $RPM_BUILD_ROOT
 %ghost /var/state/%{name}/dhcpd.leases
 
 %files client
+%defattr(644,root,root,755)
 %attr(755,root,root) /sbin/dhclient
 %{_mandir}/man8/dhclient*
 %{_mandir}/man5/dhclient*
