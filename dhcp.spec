@@ -1,8 +1,8 @@
 Summary:	DHCP Server 
 Summary(pl):	Serwer DHCP 
 Name:		dhcp
-Version:	2.0
-Release:	5
+Version:	3.0b1pl12
+Release:	1
 Serial:		1
 Group:		Networking/Daemons
 Group(de):	Sieciowe/Serwery
@@ -87,7 +87,7 @@ install %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/dhcp-relay
 install %{SOURCE5} $RPM_BUILD_ROOT/etc/sysconfig/dhcpd
 
 gzip -9nf $RPM_BUILD_ROOT%{_mandir}/man*/* \
-	  doc/* README RELNOTES CHANGES
+	  doc/* README RELNOTES 
 
 touch $RPM_BUILD_ROOT/var/state/%{name}/{dhcpd,dhclient}.leases
 
@@ -127,7 +127,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(644,root,root,755)
-%doc doc/* README.gz RELNOTES.gz CHANGES.gz dhcpd.conf.sample
+%doc doc/* README.gz RELNOTES.gz dhcpd.conf.sample
 %{_mandir}/man5/dhcp*
 %{_mandir}/man8/dhcp*
 %config(noreplace) %verify(not size mtime md5) /etc/sysconfig/dhcpd
