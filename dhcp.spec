@@ -101,7 +101,3 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/dhclient*
 %{_mandir}/man5/dhclient*
 %ghost /var/state/%{name}/dhclient.leases
-
-%changelog
-* Fri Jul 2 1999 Bartosz Waszak <waszi@pld.org.pl>
-- initial rpm release
