@@ -1,0 +1,9 @@
+diff -ruN dhcp-3.0pl11/client/scripts/linux dhcp-3.0pl1/client/scripts/linux
+--- dhcp-3.0pl11/client/scripts/linux	Thu Aug  9 11:53:27 2001
++++ dhcp-3.0pl1/client/scripts/linux	Fri Nov  8 21:52:11 2002
+@@ -1,4 +1,4 @@
+-#!/bin/sh
++#!/bin/bash
+ # dhclient-script for Linux. Dan Halbert, March, 1997.
+ # Updated for Linux 2.[12] by Brian J. Murrell, January 1999.
+ # No guarantees about this. I'm a novice at the details of Linux
