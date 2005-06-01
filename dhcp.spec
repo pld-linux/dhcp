@@ -8,7 +8,7 @@ Summary(pl):	Serwer DHCP
 Summary(pt_BR):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
 Version:	3.0.2
-Release:	2
+Release:	2.1
 Epoch:		3
 Vendor:		ISC
 License:	distributable
@@ -144,7 +144,8 @@ cd ..
 %{__make} \
 	COPTS="%{rpmcflags} \
 	-D_PATH_DHCPD_DB=\\\"/var/lib/%{name}/dhcpd.leases\\\" \
-	-D_PATH_DHCLIENT_DB=\\\"/var/lib/%{name}/dhclient.leases\\\"" \
+	-D_PATH_DHCLIENT_DB=\\\"/var/lib/%{name}/dhclient.leases\\\" \
+	-DUSE_SOCKET_FALLBACK" \
 	DEBUG="" VARDB="/var/lib/%{name}"
 
 %install
