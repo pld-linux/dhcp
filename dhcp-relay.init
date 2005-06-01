@@ -11,6 +11,7 @@
 . /etc/sysconfig/network
 
 # Demon specified configuration.
+OPTIONS=""
 . /etc/sysconfig/dhcp-relay
 
 # Check that networking is up.
@@ -23,8 +24,10 @@ else
 	exit 0
 fi
 
-if [ -n "DHCP_REALY_INTERFACES" ]; then
-	OPTIONS="-i $DHCP_REALY_INTERFACES"
+if [ -n "DHCP_RELAY_INTERFACES" ]; then
+	for iface in $DHCP_RELAY_INTERFACES ; do
+		OPTIONS="$OPTIONS -i $iface"
+	done
 fi
 
 RETVAL=0
