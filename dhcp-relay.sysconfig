@@ -1,8 +1,8 @@
 # space-separated DHCP servers
 DHCP_SERVERS_IP="<IP.parent.dhcp.serwers>"
 
-# bind dhcp relay agent to interfaces
-DHCP_REALY_INTERFACES="<interfaces>"
+# bind dhcp relay agent to interfaces, empty to autodetect
+DHCP_RELAY_INTERFACES=""
 
 # Nice level for at
 SERVICE_RUN_NICE_LEVEL="+0"
