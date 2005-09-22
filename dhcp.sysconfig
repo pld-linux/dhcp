@@ -1,4 +1,4 @@
-# Nice level for at
+# Nice level for dhcp
 SERVICE_RUN_NICE_LEVEL="+0"
 
 # The  names of the network interfaces on which dhcpd should
