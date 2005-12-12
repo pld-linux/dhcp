@@ -26,9 +26,9 @@ Patch2:		%{name}-ldap1.patch
 URL:		http://www.isc.org/sw/dhcp/
 BuildRequires:	groff
 %{?with_ldap:BuildRequires:	openldap-devel}
-PreReq:		rc-scripts >= 0.2.0
-Requires(post,preun):	/sbin/chkconfig
 Requires(post):	fileutils
+Requires(post,preun):	/sbin/chkconfig
+Requires:	rc-scripts >= 0.2.0
 Provides:	dhcpd
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -80,9 +80,9 @@ Klient DHCP (Dynamic Host Configuration Protocol).
 Summary:	DHCP Relay Agent
 Summary(pl):	Agent przekazywania informacji DHCP
 Group:		Networking/Daemons
-PreReq:		rc-scripts >= 0.2.0
-Requires(post,preun):	/sbin/chkconfig
 Requires(post):	fileutils
+Requires(post,preun):	/sbin/chkconfig
+Requires:	rc-scripts >= 0.2.0
 
 %description relay
 Dhcp relay is a relay agent for DHCP packets. It is used on a subnet
@@ -170,7 +170,7 @@ install -d $RPM_BUILD_ROOT{/sbin,%{_sbindir},%{_bindir},%{_mandir}/man{5,8}} \
 install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/dhcpd
 install %{SOURCE2} $RPM_BUILD_ROOT/etc/rc.d/init.d/dhcp-relay
 install %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/dhcp-relay
-install %{SOURCE4} $RPM_BUILD_ROOT/etc/dhcpd.conf
+install %{SOURCE4} $RPM_BUILD_ROOT%{_sysconfdir}/dhcpd.conf
 install %{SOURCE5} $RPM_BUILD_ROOT/etc/sysconfig/dhcpd
 
 mv $RPM_BUILD_ROOT%{_mandir}/man3/omshell.3 \
@@ -245,8 +245,8 @@ fi
 %{_mandir}/man1/*
 %{_mandir}/man5/dhcp*
 %{_mandir}/man8/dhcp*
-%config(noreplace) %verify(not size mtime md5) /etc/sysconfig/dhcpd
-%config(noreplace) %verify(not size mtime md5) /etc/dhcpd.conf
+%config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/dhcpd
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/dhcpd.conf
 %attr(755,root,root) %{_bindir}/*
 %attr(755,root,root) %{_sbindir}/dhcpd
 %attr(754,root,root) /etc/rc.d/init.d/dhcpd
@@ -263,7 +263,7 @@ fi
 %files relay
 %defattr(644,root,root,755)
 %{_mandir}/man8/dhcrelay*
-%config(noreplace) %verify(not size mtime md5) /etc/sysconfig/dhcp-relay
+%config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/dhcp-relay
 %attr(755,root,root) %{_sbindir}/dhcrelay
 %attr(754,root,root) /etc/rc.d/init.d/dhcp-relay
 
