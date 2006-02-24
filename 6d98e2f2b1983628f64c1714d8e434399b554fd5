@@ -1,0 +1,2 @@
+- added sysconfig file to dhcpd
+- added %verify to sysconfig files
