@@ -1,0 +1,4 @@
+- build with USE_SOCKET_FALLBACK. Without that dhcp-relay always uses
+  the last interface detected/specified for sending messages to
+  servers, ignoring host's routing table. Needs testing to see if
+  nothing is broken.
