@@ -10,7 +10,6 @@ Name:		dhcp
 Version:	3.0.3
 Release:	3
 Epoch:		3
-Vendor:		ISC
 License:	distributable
 Group:		Networking/Daemons
 Source0:	ftp://ftp.isc.org/isc/dhcp/%{name}-%{version}.tar.gz
@@ -27,6 +26,7 @@ Patch3:		%{name}-client-script-redhat.patch
 URL:		http://www.isc.org/sw/dhcp/
 BuildRequires:	groff
 %{?with_ldap:BuildRequires:	openldap-devel}
+BuildRequires:	rpmbuild(macros) >= 1.268
 Requires(post):	fileutils
 Requires(post,preun):	/sbin/chkconfig
 Requires:	rc-scripts >= 0.2.0
@@ -68,8 +68,8 @@ Summary:	DHCP Client
 Summary(pl):	Klient DHCP
 Group:		Networking/Daemons
 Requires(post):	fileutils
-Obsoletes:	pump
 Obsoletes:	dhclient
+Obsoletes:	pump
 
 %description client
 Dynamic Host Configuration Protocol Client.
@@ -188,51 +188,37 @@ rm -rf $RPM_BUILD_ROOT
 %post
 /sbin/chkconfig --add dhcpd
 touch /var/lib/%{name}/dhcpd.leases
-
 if [ ! -d /var/lib/dhcp ]; then
 	install -d /var/lib/dhcp
 fi
-
-if [ -f /var/lock/subsys/dhcpd ]; then
-	/etc/rc.d/init.d/dhcpd restart >&2
-else
-	echo "Run \"/etc/rc.d/init.d/dhcpd start\" to start dhcpd daemon."
-fi
+%service dhcpd restart "dhcpd daemon"
 
 %preun
 if [ "$1" = "0" ];then
-	if [ -f /var/lock/subsys/dhcpd ]; then
-		/etc/rc.d/init.d/dhcpd stop >&2
-	fi
+	%service dhcpd stop
 	/sbin/chkconfig --del dhcpd
 fi
 
 %post client
-if [ -d /var/lib/dhcp ]; then
+if [ ! -d /var/lib/dhcp ]; then
 	install -d /var/lib/dhcp
 fi
 
 %post relay
 /sbin/chkconfig --add dhcp-relay
 if [ -f /var/lock/subsys/dhcrelay ]; then
-	mv -f /var/lock/subsys/dhcrelay /var/lock/subsys/dhcp-relay
+	mv -f /var/lock/subsys/{dhcrelay,dhcp-relay}
 fi
-if [ -f /var/lock/subsys/dhcp-relay ]; then
-	/etc/rc.d/init.d/dhcp-relay restart >&2
-else
-	echo "Run \"/etc/rc.d/init.d/dhcp-relay start\" to start dhcrelay daemon."
-fi
+%service dhcp-relay restart "dhcrelay daemon"
 
 %preun relay
 if [ "$1" = "0" ];then
-	if [ -f /var/lock/subsys/dhcp-relay ]; then
-		/etc/rc.d/init.d/dhcp-relay stop >&2
-	fi
+	%service dhcp-relay stop
 	/sbin/chkconfig --del dhcp-relay
 fi
 
 %triggerpostun -- dhcp < 3.0
-if [ `grep ddns-update-style /etc/dhcpd.conf` = "" ]; then
+if [ "`grep ddns-update-style /etc/dhcpd.conf`" = "" ]; then
 	umask 027
 	echo "ddns-update-style none;" > /etc/dhcpd.conf.tmp
 	echo "" >> /etc/dhcpd.conf.tmp
