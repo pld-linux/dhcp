@@ -1,0 +1,6 @@
+- release 2,
+- added "%triggerpostun -- dhcp < 3.0" script with add on top dhcpd.conf
+  "ddns-update-style none;" line if not exist. Thos allow smooth upgrade from
+  < 3.0 dhcp to current because new dhcpd requires in dhcpd.conf entry with info
+  about dynamic dns update style handling. This trigger by default adds
+  disabled ddns update.
