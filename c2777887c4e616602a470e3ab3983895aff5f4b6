@@ -1,0 +1,4 @@
+- 3.0rc7
+  STB
+  NOTE: previous clients were vulnerable to a root attack by a corrupt DHCP
+  server
