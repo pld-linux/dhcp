@@ -142,6 +142,7 @@ cd ..
 ./configure
 
 %{__make} \
+	CC="%{__cc}" \
 	COPTS="%{rpmcflags} \
 	-D_PATH_DHCPD_DB=\\\"/var/lib/%{name}/dhcpd.leases\\\" \
 	-D_PATH_DHCLIENT_DB=\\\"/var/lib/%{name}/dhclient.leases\\\" \
