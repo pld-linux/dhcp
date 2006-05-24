@@ -8,7 +8,7 @@ Summary(pl):	Serwer DHCP
 Summary(pt_BR):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
 Version:	3.0.4
-Release:	1
+Release:	2
 Epoch:		3
 License:	distributable
 Group:		Networking/Daemons
@@ -23,6 +23,7 @@ Patch0:		%{name}-if_buffer_size.patch
 Patch1:		%{name}-ldap.patch
 Patch2:		%{name}-ldap1.patch
 Patch3:		%{name}-client-script-redhat.patch
+Patch4:		%{name}-dhcpd_lease_time.patch
 URL:		http://www.isc.org/sw/dhcp/
 BuildRequires:	groff
 %{?with_ldap:BuildRequires:	openldap-devel}
@@ -129,6 +130,7 @@ install %{SOURCE4} .
 %{?with_ldap:%patch1 -p1}
 %{?with_ldap:%patch2 -p1}
 %patch3 -p1
+%patch4 -p1
 
 cd doc
 echo "dhcpd complies with the following RFCs:" > rfc-compliance
