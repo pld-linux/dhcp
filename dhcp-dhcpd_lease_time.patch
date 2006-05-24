@@ -1,0 +1,11 @@
+--- dhcp-3.0.4/includes/dhcpd.h.bz191470	2006-05-16 10:42:13.000000000 -0400
++++ dhcp-3.0.4/includes/dhcpd.h	2006-05-16 12:22:26.000000000 -0400
+@@ -339,7 +339,7 @@
+ 	struct option_state *options;
+ 	struct data_string parameter_request_list;
+ 	int max_message_size;
+-	TIME expiry, renewal, rebind;
++	u_int32_t expiry, renewal, rebind;
+ 	struct data_string filename, server_name;
+ 	int got_requested_address;
+ 	int got_server_identifier;
