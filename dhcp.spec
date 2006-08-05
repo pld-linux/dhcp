@@ -145,10 +145,9 @@ cd ..
 
 %{__make} \
 	CC="%{__cc}" \
-	COPTS="%{rpmcflags} \
+	CC_OPTIONS="%{rpmcflags} \
 	-D_PATH_DHCPD_DB=\\\"/var/lib/%{name}/dhcpd.leases\\\" \
-	-D_PATH_DHCLIENT_DB=\\\"/var/lib/%{name}/dhclient.leases\\\" \
-	-DUSE_SOCKET_FALLBACK" \
+	-D_PATH_DHCLIENT_DB=\\\"/var/lib/%{name}/dhclient.leases\\\" " \
 	DEBUG="" VARDB="/var/lib/%{name}"
 
 %install
