@@ -148,7 +148,9 @@ cd ..
 	CC_OPTIONS="%{rpmcflags} \
 	-D_PATH_DHCPD_DB=\\\"/var/lib/%{name}/dhcpd.leases\\\" \
 	-D_PATH_DHCLIENT_DB=\\\"/var/lib/%{name}/dhclient.leases\\\" " \
-	DEBUG="" VARDB="/var/lib/%{name}"
+	LFLAGS="%{rpmldflags}" \
+	DEBUG="" \
+	VARDB="/var/lib/%{name}"
 
 %install
 rm -rf $RPM_BUILD_ROOT
