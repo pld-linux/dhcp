@@ -24,6 +24,7 @@ Patch1:		%{name}-ldap.patch
 Patch2:		%{name}-ldap1.patch
 Patch3:		%{name}-client-script-redhat.patch
 Patch4:		%{name}-dhcpd_lease_time.patch
+Patch5:		%{name}-3.0.3-x-option.patch
 URL:		http://www.isc.org/sw/dhcp/
 BuildRequires:	groff
 %{?with_ldap:BuildRequires:	openldap-devel}
@@ -131,6 +132,7 @@ install %{SOURCE4} .
 %{?with_ldap:%patch2 -p1}
 %patch3 -p1
 %patch4 -p1
+%patch5 -p1
 
 cd doc
 echo "dhcpd complies with the following RFCs:" > rfc-compliance
@@ -147,6 +149,7 @@ cd ..
 	CC="%{__cc}" \
 	CC_OPTIONS="%{rpmcflags} \
 	-D_PATH_DHCPD_DB=\\\"/var/lib/%{name}/dhcpd.leases\\\" \
+	-DEXTENDED_NEW_OPTION_INFO \
 	-D_PATH_DHCLIENT_DB=\\\"/var/lib/%{name}/dhclient.leases\\\" " \
 	LFLAGS="%{rpmldflags}" \
 	DEBUG="" \
