@@ -8,7 +8,7 @@ Summary(pl):	Serwer DHCP
 Summary(pt_BR):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
 Version:	3.0.4
-Release:	2
+Release:	3
 Epoch:		3
 License:	distributable
 Group:		Networking/Daemons
@@ -235,7 +235,9 @@ fi
 
 %files
 %defattr(644,root,root,755)
-%doc doc/* README RELNOTES dhcpd.conf.sample
+%doc README RELNOTES dhcpd.conf.sample
+%doc doc/{IANA-arp-parameters,api+protocol,draft-ietf-dhc-authentication-14.txt,draft-ietf-dhc-dhcp-dns-12.txt,draft-ietf-dhc-failover-07.txt,rfc-compliance}
+%lang(ja) %doc doc/ja_JP.eucJP
 %{?with_ldap:%doc contrib/*}
 %{_mandir}/man1/*
 %{_mandir}/man5/dhcp*
