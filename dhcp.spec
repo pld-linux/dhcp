@@ -8,7 +8,7 @@ Summary(pl):	Serwer DHCP
 Summary(pt_BR):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
 Version:	3.1.0a1
-Release:	0.1
+Release:	0.2
 Epoch:		3
 License:	distributable
 Group:		Networking/Daemons
@@ -24,6 +24,7 @@ Patch1:		%{name}-ldap.patch
 Patch2:		%{name}-ldap1.patch
 Patch3:		%{name}-client-script-redhat.patch
 Patch4:		%{name}-3.0.3-x-option.patch
+Patch5:		%{name}-typo.patch
 URL:		http://www.isc.org/sw/dhcp/
 BuildRequires:	groff
 %{?with_ldap:BuildRequires:	openldap-devel}
@@ -132,6 +133,7 @@ install %{SOURCE4} .
 %patch3 -p1
 # WTF is this?
 #%patch4 -p1
+%patch5 -p1
 
 %build
 # Notice: this is not autoconf configure!!!!!!!
