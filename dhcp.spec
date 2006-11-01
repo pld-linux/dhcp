@@ -1,7 +1,6 @@
 #
 # Conditional build:
 %bcond_with	ldap	# with support for ldap storage
-%bcond_with	socket_fallback	# add support so dhcp is able to work on kernels without CONFIG_PACKET (Packet socket) and CONFIG_FILTER (Socket Filtering) 
 #
 Summary:	DHCP Server
 Summary(es):	Servidor DHCP
@@ -139,8 +138,7 @@ install %{SOURCE4} .
 %patch6 -p1
 
 %build
-# Notice: this is not autoconf configure!!!!!!!
-#         do not change it to %%configure
+# NOTE: this is not autoconf configure - do not change it to %%configure
 ./configure
 
 %{__make} \
@@ -149,7 +147,6 @@ install %{SOURCE4} .
 		-D_PATH_DHCPD_DB=\\\"/var/lib/%{name}/dhcpd.leases\\\" \
 		-DEXTENDED_NEW_OPTION_INFO \
 		-D_PATH_DHCLIENT_DB=\\\"/var/lib/%{name}/dhclient.leases\\\" \
-		%{?with_socket_fallback:-DUSE_SOCKET_FALLBACK} \
 	"
 	LFLAGS="%{rpmldflags}" \
 	DEBUG="" \
@@ -195,9 +192,6 @@ rm -rf $RPM_BUILD_ROOT
 %post
 /sbin/chkconfig --add dhcpd
 touch /var/lib/%{name}/dhcpd.leases
-if [ ! -d /var/lib/dhcp ]; then
-	install -d /var/lib/dhcp
-fi
 %service dhcpd restart "dhcpd daemon"
 
 %preun
@@ -207,6 +201,7 @@ if [ "$1" = "0" ];then
 fi
 
 %post client
+# TODO: fix this
 if [ ! -d /var/lib/dhcp ]; then
 	install -d /var/lib/dhcp
 fi
