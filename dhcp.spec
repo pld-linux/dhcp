@@ -1,6 +1,7 @@
 #
 # Conditional build:
 %bcond_with	ldap	# with support for ldap storage
+%bcond_with	socket_fallback	# add support so dhcp is able to work on kernels without CONFIG_PACKET (Packet socket) and CONFIG_FILTER (Socket Filtering) 
 #
 Summary:	DHCP Server
 Summary(es):	Servidor DHCP
@@ -8,7 +9,7 @@ Summary(pl):	Serwer DHCP
 Summary(pt_BR):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
 Version:	3.1.0a1
-Release:	0.3
+Release:	0.5
 Epoch:		3
 License:	distributable
 Group:		Networking/Daemons
@@ -145,9 +146,11 @@ install %{SOURCE4} .
 %{__make} \
 	CC="%{__cc}" \
 	CC_OPTIONS="%{rpmcflags} \
-	-D_PATH_DHCPD_DB=\\\"/var/lib/%{name}/dhcpd.leases\\\" \
-	-DEXTENDED_NEW_OPTION_INFO \
-	-D_PATH_DHCLIENT_DB=\\\"/var/lib/%{name}/dhclient.leases\\\" " \
+		-D_PATH_DHCPD_DB=\\\"/var/lib/%{name}/dhcpd.leases\\\" \
+		-DEXTENDED_NEW_OPTION_INFO \
+		-D_PATH_DHCLIENT_DB=\\\"/var/lib/%{name}/dhclient.leases\\\" \
+		%{?with_socket_fallback:-DUSE_SOCKET_FALLBACK} \
+	"
 	LFLAGS="%{rpmldflags}" \
 	DEBUG="" \
 	VARDB="/var/lib/%{name}"
