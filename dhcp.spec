@@ -1,4 +1,6 @@
 #
+# TODO:
+# - wait for dhcbdb to be able to work with versions 3.1
 # Conditional build:
 %bcond_with	ldap	# with support for ldap storage
 #
