@@ -7,13 +7,13 @@ Summary(es):	Servidor DHCP
 Summary(pl):	Serwer DHCP
 Summary(pt_BR):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
-Version:	3.0.5
-Release:	1
+Version:	3.1.0a1
+Release:	0.6
 Epoch:		4
 License:	distributable
 Group:		Networking/Daemons
 Source0:	ftp://ftp.isc.org/isc/dhcp/%{name}-%{version}.tar.gz
-# Source0-md5:	ce5d30d4645e4eab1f54561b487d1ec7
+# Source0-md5:	a326c6f135b9fa3ad24988312c784be5
 Source1:	%{name}.init
 Source2:	%{name}-relay.init
 Source3:	%{name}-relay.sysconfig
@@ -24,7 +24,8 @@ Patch1:		%{name}-ldap.patch
 Patch2:		%{name}-ldap1.patch
 Patch3:		%{name}-client-script-redhat.patch
 Patch4:		%{name}-3.0.3-x-option.patch
-Patch5:		%{name}-arg-concat.patch
+Patch5:		%{name}-typo.patch
+Patch6:		%{name}-arg-concat.patch
 URL:		http://www.isc.org/sw/dhcp/
 BuildRequires:	groff
 %{?with_ldap:BuildRequires:	openldap-devel}
@@ -131,10 +132,9 @@ install %{SOURCE4} .
 %{?with_ldap:%patch1 -p1}
 %{?with_ldap:%patch2 -p1}
 %patch3 -p1
-# WTF is this?
-# This is a patch from dhcdbd
 %patch4 -p1
 %patch5 -p1
+%patch6 -p1
 
 %build
 # NOTE: this is not autoconf configure - do not change it to %%configure
