@@ -1,9 +1,9 @@
 --- dhcp-3.0.2/common/parse.c.extended_option_environment	2005-04-05 17:49:36.513062562 -0400
 +++ dhcp-3.0.2/common/parse.c	2005-04-05 17:49:36.580052656 -0400
 @@ -1270,6 +1270,10 @@
- 	option_hash_add (option -> universe -> hash,
- 			 (const char *)option -> name,
- 			 0, option, MDL);
+ 			     option, MDL);
+ 	option_name_hash_add(option->universe->name_hash, option->name, 0,
+ 			     option, MDL);
 +#ifdef EXTENDED_NEW_OPTION_INFO
 +	if ( new_option_info_tree != 0L )
 +		add_new_option_info( option );
