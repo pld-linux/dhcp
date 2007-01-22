@@ -54,7 +54,7 @@ case "$1" in
   stop)
   	stop
 	;;
-  restart|reload)
+  restart)
 	stop
 	start
 	;;
@@ -63,7 +63,7 @@ case "$1" in
 	exit $?
 	;;
   *)
-	msg_usage "$0 {start|stop|restart|force-reload|status}"
+	msg_usage "$0 {start|stop|restart|status}"
 	exit 3
 esac
 
