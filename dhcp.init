@@ -16,7 +16,7 @@
 # Check that networking is up.
 if is_yes "${NETWORKING}"; then
 	if [ ! -f /var/lock/subsys/network -a "$1" != stop -a "$1" != status ]; then
-		msg_network_down DHCPD
+		msg_network_down "DHCP Server"
 		exit 1
 	fi
 else
@@ -24,7 +24,7 @@ else
 fi
 
 checkconfig() {
-	show "Checking %s configuration" DHCPD
+	show "Checking %s configuration" "DHCP Server"
 	out=`/usr/sbin/dhcpd -t 2>&1`; rc=$?
 	if [ $rc -gt 0 ]; then
 		fail
@@ -43,7 +43,7 @@ start() {
 		RETVAL=$?
 		[ $RETVAL -eq 0 ] && touch /var/lock/subsys/dhcpd
 	else
-		msg_already_running DHCPD
+		msg_already_running "DHCP Server"
 	fi
 }
 
@@ -53,7 +53,7 @@ stop() {
 		killproc dhcpd
 		rm -f /var/run/dhcpd.pid /var/lock/subsys/dhcpd >/dev/null 2>&1
 	else
-		msg_not_running DHCPD
+		msg_not_running "DHCP Server"
 	fi
 }
 
