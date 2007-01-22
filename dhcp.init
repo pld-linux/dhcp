@@ -24,7 +24,7 @@ else
 fi
 
 checkconfig() {
-  	show "Checking %s configuration" DHCPD
+	show "Checking %s configuration" DHCPD
 	out=`/usr/sbin/dhcpd -t 2>&1`; rc=$?
 	if [ $rc -gt 0 ]; then
 		fail
@@ -61,19 +61,19 @@ RETVAL=0
 # See how we were called.
 case "$1" in
   start)
-  	checkconfig || exit 1
-  	start
+	checkconfig || exit 1
+	start
 	;;
   stop)
-  	stop
+	stop
 	;;
   restart)
-  	checkconfig || exit 1
+	checkconfig || exit 1
 	stop
 	start
 	;;
   checkconfig)
-  	checkconfig
+	checkconfig
 	;;
   status)
 	status dhcpd
