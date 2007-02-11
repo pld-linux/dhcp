@@ -7,13 +7,13 @@ Summary(es):	Servidor DHCP
 Summary(pl):	Serwer DHCP
 Summary(pt_BR):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
-Version:	3.1.0a2
+Version:	3.1.0a3
 Release:	0.1
 Epoch:		4
 License:	distributable
 Group:		Networking/Daemons
 Source0:	ftp://ftp.isc.org/isc/dhcp/%{name}-%{version}.tar.gz
-# Source0-md5:	4842c6fe6371d699b45cc977b32097de
+# Source0-md5:	d09be1a80982b78482e8fbd416924468
 Source1:	%{name}.init
 Source2:	%{name}-relay.init
 Source3:	%{name}-relay.sysconfig
