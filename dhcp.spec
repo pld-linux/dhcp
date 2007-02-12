@@ -5,9 +5,9 @@
 %bcond_with	ldap	# with support for ldap storage
 #
 Summary:	DHCP Server
-Summary(es):	Servidor DHCP
-Summary(pl):	Serwer DHCP
-Summary(pt_BR):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
+Summary(es.UTF-8):   Servidor DHCP
+Summary(pl.UTF-8):   Serwer DHCP
+Summary(pt_BR.UTF-8):   Servidor DHCP (Protocolo de configuraÃ§Ã£o dinÃ¢mica de hosts)
 Name:		dhcp
 Version:	3.0.4
 Release:	3
@@ -44,32 +44,32 @@ configuration information (IP address, subnetmask, broadcast address,
 etc.) from a DHCP server. The overall purpose of DHCP is to make it
 easier to administer a large network.
 
-%description -l es
+%description -l es.UTF-8
 DHCP permite que hosts en una red TCP/IP soliciten y tengan sus
-direcciones IP alocadas dinámicamente, permite también descubrir
-información sobre la red en que están conectados. BOOTP provee una
+direcciones IP alocadas dinÃ¡micamente, permite tambiÃ©n descubrir
+informaciÃ³n sobre la red en que estÃ¡n conectados. BOOTP provee una
 funcionalidad similar, con ciertas restricciones. Este servidor
-también las atiende.
+tambiÃ©n las atiende.
 
-%description -l pl
+%description -l pl.UTF-8
 Serwer DHCP (Dynamic Host Configuration Protocol).
 
-DHCP to protokó³ pozwalaj±cy urz±dzeniom pracuj±cym w sieci IP na
+DHCP to protokÃ³Å‚ pozwalajÄ…cy urzÄ…dzeniom pracujÄ…cym w sieci IP na
 pobieranie ich konfiguracji IP (adresu, maski podsieci, adresu
-rozg³oszeniowego itp.) z serwera DHCP. U³atwia on administrowanie
-du¿ymi sieciami IP.
+rozgÅ‚oszeniowego itp.) z serwera DHCP. UÅ‚atwia on administrowanie
+duÅ¼ymi sieciami IP.
 
-%description -l pt_BR
+%description -l pt_BR.UTF-8
 DHCP permite que hosts numa rede TCP/IP requisitem e tenham seus
-endereços IP alocados dinamicamente, permite também descobrir
-informações sobre a rede em que estão conectados. BOOTP provê uma
-funcionalidade similar, com certas restrições. Este servidor também
-atende aquelas requisições. Esta versão é ainda considerada um
+endereÃ§os IP alocados dinamicamente, permite tambÃ©m descobrir
+informaÃ§Ãµes sobre a rede em que estÃ£o conectados. BOOTP provÃª uma
+funcionalidade similar, com certas restriÃ§Ãµes. Este servidor tambÃ©m
+atende aquelas requisiÃ§Ãµes. Esta versÃ£o Ã© ainda considerada um
 software BETA.
 
 %package client
 Summary:	DHCP Client
-Summary(pl):	Klient DHCP
+Summary(pl.UTF-8):   Klient DHCP
 Group:		Networking/Daemons
 Requires(post):	fileutils
 Obsoletes:	dhclient
@@ -78,12 +78,12 @@ Obsoletes:	pump
 %description client
 Dynamic Host Configuration Protocol Client.
 
-%description client -l pl
+%description client -l pl.UTF-8
 Klient DHCP (Dynamic Host Configuration Protocol).
 
 %package relay
 Summary:	DHCP Relay Agent
-Summary(pl):	Agent przekazywania informacji DHCP
+Summary(pl.UTF-8):   Agent przekazywania informacji DHCP
 Group:		Networking/Daemons
 Requires(post):	fileutils
 Requires(post,preun):	/sbin/chkconfig
@@ -96,15 +96,15 @@ DHCP server on it. Because DHCP packets can be broadcast, they will
 not be routed off of the local subnet. The DHCP relay takes care of
 this for the client.
 
-%description relay -l pl
-Agent przekazywania DHCP (Dynamic Host Configuration Protocol) miêdzy
-podsieciami. Poniewa¿ komunikaty DHCP mog± byæ przekazywane w formie
-rozg³oszeniowej, bez tego agenta nie zostan± przerutowane do innej
+%description relay -l pl.UTF-8
+Agent przekazywania DHCP (Dynamic Host Configuration Protocol) miÄ™dzy
+podsieciami. PoniewaÅ¼ komunikaty DHCP mogÄ… byÄ‡ przekazywane w formie
+rozgÅ‚oszeniowej, bez tego agenta nie zostanÄ… przerutowane do innej
 podsieci.
 
 %package devel
 Summary:	DHCP development includes and libs
-Summary(pl):	Pliki nag³ówkowe i biblioteki dla oprogramowania DHCP
+Summary(pl.UTF-8):   Pliki nagÅ‚Ã³wkowe i biblioteki dla oprogramowania DHCP
 Group:		Development/Libraries
 
 %description devel
@@ -117,14 +117,14 @@ used by the ISC DHCP server.
 The dhcpctl set of functions provide an API that can be used to
 communicate with and manipulate a running ISC DHCP server.
 
-%description devel -l pl
+%description devel -l pl.UTF-8
 Zawiera biblioteki OMAPI oraz dhcpctl.
 
 OMAPI to warstwa programowa stworzona do kontroli zdalnych aplikacji i
-odpytywania o ich stan. Aktualnie jest u¿ywana przez serwer ISC DHCP.
+odpytywania o ich stan. Aktualnie jest uÅ¼ywana przez serwer ISC DHCP.
 
-dhcpctl to zbiór funkcji tworz±cych API, które mo¿e byæ u¿ywane do
-komunikacji z dzia³aj±cym serwerem ISC DHCP i jego kontroli.
+dhcpctl to zbiÃ³r funkcji tworzÄ…cych API, ktÃ³re moÅ¼e byÄ‡ uÅ¼ywane do
+komunikacji z dziaÅ‚ajÄ…cym serwerem ISC DHCP i jego kontroli.
 
 %prep
 %setup -q
