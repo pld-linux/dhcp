@@ -3,9 +3,9 @@
 %bcond_with	ldap	# with support for ldap storage
 #
 Summary:	DHCP Server
-Summary(es.UTF-8):   Servidor DHCP
-Summary(pl.UTF-8):   Serwer DHCP
-Summary(pt_BR.UTF-8):   Servidor DHCP (Protocolo de configuração dinâmica de hosts)
+Summary(es.UTF-8):	Servidor DHCP
+Summary(pl.UTF-8):	Serwer DHCP
+Summary(pt_BR.UTF-8):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
 Version:	3.1.0a3
 Release:	0.1
@@ -68,7 +68,7 @@ software BETA.
 
 %package client
 Summary:	DHCP Client
-Summary(pl.UTF-8):   Klient DHCP
+Summary(pl.UTF-8):	Klient DHCP
 Group:		Networking/Daemons
 Requires(post):	fileutils
 Obsoletes:	dhclient
@@ -82,7 +82,7 @@ Klient DHCP (Dynamic Host Configuration Protocol).
 
 %package relay
 Summary:	DHCP Relay Agent
-Summary(pl.UTF-8):   Agent przekazywania informacji DHCP
+Summary(pl.UTF-8):	Agent przekazywania informacji DHCP
 Group:		Networking/Daemons
 Requires(post):	fileutils
 Requires(post,preun):	/sbin/chkconfig
@@ -103,7 +103,7 @@ podsieci.
 
 %package devel
 Summary:	DHCP development includes and libs
-Summary(pl.UTF-8):   Pliki nagłówkowe i biblioteki dla oprogramowania DHCP
+Summary(pl.UTF-8):	Pliki nagłówkowe i biblioteki dla oprogramowania DHCP
 Group:		Development/Libraries
 
 %description devel
