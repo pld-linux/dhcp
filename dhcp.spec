@@ -230,7 +230,7 @@ fi
 
 %files
 %defattr(644,root,root,755)
-%doc doc/* README RELNOTES dhcpd.conf.sample
+%doc doc/* README RELNOTES dhcpd.conf.sample LICENSE
 %{?with_ldap:%doc contrib/*}
 %{_mandir}/man1/*
 %{_mandir}/man5/dhcp*
