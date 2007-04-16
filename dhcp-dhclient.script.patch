@@ -1,6 +1,6 @@
 --- dhcp-3.1.0a3/client/scripts/linux.orig	2006-07-22 04:24:16.000000000 +0200
 +++ dhcp-3.1.0a3/client/scripts/linux	2007-04-16 17:25:06.000000000 +0200
-@@ -1,208 +1,228 @@
+@@ -1,208 +1,227 @@
 -#!/bin/bash
 +#!/bin/sh
  # dhclient-script for Linux. Dan Halbert, March, 1997.
@@ -35,7 +35,6 @@
 +
 +	local ret=0
 +	local endp=0
-+	echo $netmask
 +	for n in $netmask ; do
 +		for i in 128 64 32 16 8 4 2 1 ; do
 +			if [ $(($n & $i)) -ne 0 ]; then
