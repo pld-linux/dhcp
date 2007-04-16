@@ -2801,9 +2801,9 @@ diff -Naur dhcp-3.0.1rc14/includes/dhcpd.h dhcp-3.0.1rc14-ldap/includes/dhcpd.h
 +# include <sys/utsname.h> /* for uname() */
 +#endif
 +
- #if !defined (OPTION_HASH_SIZE)
- # define OPTION_HASH_SIZE 17
- # define OPTION_HASH_PTWO 32	/* Next power of two above option hash. */
+ #if !defined (BYTE_NAME_HASH_SIZE)
+ # define BYTE_NAME_HASH_SIZE	401	/* Default would be rediculous. */
+ #endif
 @@ -139,6 +144,8 @@
  	char *inbuf;
  	unsigned bufix, buflen;
@@ -2905,11 +2905,11 @@ diff -Naur dhcp-3.0.1rc14/server/Makefile.dist dhcp-3.0.1rc14-ldap/server/Makefi
  CATMANPAGES = dhcpd.cat8 dhcpd.conf.cat5 dhcpd.leases.cat5
  SEDMANPAGES = dhcpd.man8 dhcpd.conf.man5 dhcpd.leases.man5
  SRCS   = dhcpd.c dhcp.c bootp.c confpars.c db.c class.c failover.c \
--	 omapi.c mdb.c stables.c salloc.c ddns.c
-+	 ldap.c omapi.c mdb.c stables.c salloc.c ddns.c
+-	 omapi.c mdb.c stables.c salloc.c ddns.c dhcpleasequery.c
++	 ldap.c omapi.c mdb.c stables.c salloc.c ddns.c dhcpleasequery.c
  OBJS   = dhcpd.o dhcp.o bootp.o confpars.o db.o class.o failover.o \
--	 omapi.o mdb.o stables.o salloc.o ddns.o
-+	 ldap.o omapi.o mdb.o stables.o salloc.o ddns.o
+-	 omapi.o mdb.o stables.o salloc.o ddns.o dhcpleasequery.o
++	 ldap.o omapi.o mdb.o stables.o salloc.o ddns.o dhcpleasequery.o
  PROG   = dhcpd
  MAN    = dhcpd.8 dhcpd.conf.5 dhcpd.leases.5
  
@@ -4484,32 +4484,20 @@ diff -Naur dhcp-3.0.1rc14/server/mdb.c dhcp-3.0.1rc14-ldap/server/mdb.c
 diff -Naur dhcp-3.0.1rc14/server/stables.c dhcp-3.0.1rc14-ldap/server/stables.c
 --- dhcp-3.0.1rc14/server/stables.c	2004-06-10 13:59:58.000000000 -0400
 +++ dhcp-3.0.1rc14-ldap/server/stables.c	2004-06-22 15:18:20.000000000 -0400
-@@ -483,6 +483,15 @@
- 	{ "log-facility", "Nsyslog-facilities.",	&server_universe, 44 },
- 	{ "do-forward-updates", "f",			&server_universe, 45 },
- 	{ "ping-timeout", "T",				&server_universe, 46 },
+@@ -236,9 +236,32 @@
+ 	{ "update-conflict-detection", "f",	&server_universe,  48, 1 },
+ 	{ "leasequery", "f",			&server_universe,  49, 1 },
+ 	{ "adaptive-lease-time-threshold", "B",	&server_universe,  50, 1 },
 +#if defined(LDAP_CONFIGURATION)
-+	{ "ldap-server", "t",				&server_universe, 47 },
-+	{ "ldap-port", "d",				&server_universe, 48 },
-+	{ "ldap-username", "t",				&server_universe, 49 },
-+	{ "ldap-password", "t",				&server_universe, 50 },
-+	{ "ldap-base-dn", "t",				&server_universe, 51 },
-+	{ "ldap-method", "Nldap-methods.",		&server_universe, 52 },
-+	{ "ldap-debug-file", "t",			&server_universe, 53 },
-+#else
- 	{ "unknown-47", "X",				&server_universe, 47 },
- 	{ "unknown-48", "X",				&server_universe, 48 },
- 	{ "unknown-49", "X",				&server_universe, 49 },
-@@ -490,6 +499,7 @@
- 	{ "unknown-51", "X",				&server_universe, 51 },
- 	{ "unknown-52", "X",				&server_universe, 52 },
- 	{ "unknown-53", "X",				&server_universe, 53 },
++	{ "ldap-server", "t",				&server_universe, 51 },
++	{ "ldap-port", "d",				&server_universe, 52 },
++	{ "ldap-username", "t",				&server_universe, 53 },
++	{ "ldap-password", "t",				&server_universe, 54 },
++	{ "ldap-base-dn", "t",				&server_universe, 55 },
++	{ "ldap-method", "Nldap-methods.",		&server_universe, 56 },
++	{ "ldap-debug-file", "t",			&server_universe, 57 },
 +#endif
- 	{ "unknown-54", "X",				&server_universe, 54 },
- 	{ "unknown-55", "X",				&server_universe, 55 },
- 	{ "unknown-56", "X",				&server_universe, 56 },
-@@ -694,6 +704,20 @@
- 	{ "option-end", "e",				&server_universe, 255 },
+ 	{ NULL, NULL, NULL, 0, 0 }
  };
  
 +#if defined(LDAP_CONFIGURATION)
