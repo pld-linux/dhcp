@@ -1,25 +1,23 @@
---- dhcp-3.0.3/client/scripts/linux.orig	2006-02-08 23:30:26.277493500 +0100
-+++ dhcp-3.0.3/client/scripts/linux	2006-02-08 23:32:49.746459750 +0100
-@@ -22,6 +22,22 @@
- # 4. TIMEOUT not tested. ping has a flag I don't know, and I'm suspicious
- # of the $1 in its args.
+--- dhcp-3.1.0a3/client/scripts/linux.orig	2007-04-16 17:29:17.000000000 +0200
++++ dhcp-3.1.0a3/client/scripts/linux	2007-04-16 18:04:52.000000000 +0200
+@@ -65,6 +65,20 @@
+ 	exit $exit_status
+ }
  
-+if [ -n "${dhc_dbus}" ]; then
-+  if [ -x /usr/bin/dbus-send ]; then
-+    /usr/bin/dbus-send \
-+      --system \
-+      --dest=com.redhat.dhcp \
-+      --type=method_call \
-+      /com/redhat/dhcp/$interface \
-+      com.redhat.dhcp.set \
-+      'string:'"`env | /bin/egrep -v '^(PATH|SHLVL|_|PWD|dhc_dbus)\='`";
++if [ -n "$dhc_dbus" -a -x /usr/bin/dbus-send ]; then
++	/usr/bin/dbus-send \
++		--system \
++		--dest=com.redhat.dhcp \
++		--type=method_call \
++		/com/redhat/dhcp/$interface \
++		com.redhat.dhcp.set \
++		'string:'"$(unset PATH SHLVL _ PWD dhc_dbus ; env)"
 +
-+    if (( ( dhc_dbus & 31 ) == 31 )); then
-+      exit 0;
-+    fi;
-+  fi;
-+fi;
++	if [ $(($dhc_dbus & 31)) -eq 31 ]; then
++		exit 0
++	fi
++fi
 +
- make_resolv_conf() {
-   if [ "x$new_domain_name" != x ] && [ x"$new_domain_name_servers" != x ]; then
-     echo search $new_domain_name >/etc/resolv.conf
+ # Invoke the local dhcp client enter hooks, if they exist.
+ if [ -f /etc/dhclient-enter-hooks ]; then
+ 	exit_status=0
