@@ -8,7 +8,7 @@ Summary(pl.UTF-8):	Serwer DHCP
 Summary(pt_BR.UTF-8):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
 Version:	3.1.0a3
-Release:	0.1
+Release:	0.2
 Epoch:		4
 License:	distributable
 Group:		Networking/Daemons
@@ -26,6 +26,7 @@ Patch3:		%{name}-client-script-redhat.patch
 Patch4:		%{name}-3.0.3-x-option.patch
 Patch5:		%{name}-typo.patch
 Patch6:		%{name}-arg-concat.patch
+Patch7:		%{name}-split-VARDB.patch
 URL:		http://www.isc.org/sw/dhcp/
 BuildRequires:	groff
 %{?with_ldap:BuildRequires:	openldap-devel}
@@ -136,6 +137,7 @@ install %{SOURCE4} .
 %patch4 -p1
 %patch5 -p1
 %patch6 -p1
+%patch7 -p1
 
 %build
 # NOTE: this is not autoconf configure - do not change it to %%configure
@@ -146,11 +148,12 @@ install %{SOURCE4} .
 	CC_OPTIONS="%{rpmcflags} \
 		-D_PATH_DHCPD_DB=\\\"/var/lib/%{name}/dhcpd.leases\\\" \
 		-DEXTENDED_NEW_OPTION_INFO \
-		-D_PATH_DHCLIENT_DB=\\\"/var/lib/%{name}/dhclient.leases\\\" \
+		-D_PATH_DHCLIENT_DB=\\\"/var/lib/dhclient/dhclient.leases\\\" \
 	"
 	LFLAGS="%{rpmldflags}" \
 	DEBUG="" \
-	VARDB="/var/lib/%{name}"
+	VARDBS="/var/lib/%{name}"
+	VARDBC="/var/lib/dhclient"
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -170,7 +173,8 @@ install -d $RPM_BUILD_ROOT{/sbin,%{_sbindir},%{_bindir},%{_mandir}/man{5,8}} \
 	LIBMANEXT=.3 \
 	USRMANDIR=%{_mandir}/man1 \
 	USRMANEXT=.1 \
-	VARDB=/var/lib/%{name} \
+	VARDBS=/var/lib/%{name} \
+	VARDBC=/var/lib/dhclient \
 	FFMANEXT=.5
 
 install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/dhcpd
@@ -184,7 +188,8 @@ mv $RPM_BUILD_ROOT%{_mandir}/man3/omshell.3 \
 
 install client/scripts/linux $RPM_BUILD_ROOT%{_sbindir}/dhclient-script
 
-touch $RPM_BUILD_ROOT/var/lib/%{name}/{dhcpd,dhclient}.leases
+touch $RPM_BUILD_ROOT/var/lib/%{name}/dhcpd.leases
+touch $RPM_BUILD_ROOT/var/lib/dhclient/dhclient.leases
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -201,9 +206,8 @@ if [ "$1" = "0" ];then
 fi
 
 %post client
-# TODO: fix this
-if [ ! -d /var/lib/dhcp ]; then
-	install -d /var/lib/dhcp
+if [ -f /var/lib/dhcp/dhclient.leases.rpmsave ]; then
+	mv /var/lib/dhcp/dhclient.leases.rpmsave /var/lib/dhclient/dhclient.leases
 fi
 
 %post relay
@@ -248,7 +252,8 @@ fi
 %attr(755,root,root) /sbin/dhclient
 %attr(755,root,root) /sbin/dhclient-script
 %{_mandir}/man[58]/dhclient*
-%ghost /var/lib/%{name}/dhclient.leases
+%attr(750,root,root) %dir /var/lib/dhclient
+%ghost /var/lib/dhclient/dhclient.leases
 
 %files relay
 %defattr(644,root,root,755)
