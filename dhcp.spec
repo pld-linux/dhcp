@@ -8,7 +8,7 @@ Summary(pl.UTF-8):	Serwer DHCP
 Summary(pt_BR.UTF-8):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
 Version:	3.1.0a3
-Release:	0.2
+Release:	0.3
 Epoch:		4
 License:	distributable
 Group:		Networking/Daemons
@@ -19,14 +19,15 @@ Source2:	%{name}-relay.init
 Source3:	%{name}-relay.sysconfig
 Source4:	%{name}d.conf.sample
 Source5:	%{name}.sysconfig
-Patch0:		%{name}-if_buffer_size.patch
-Patch1:		%{name}-ldap.patch
-Patch2:		%{name}-ldap1.patch
-Patch3:		%{name}-client-script-redhat.patch
-Patch4:		%{name}-3.0.3-x-option.patch
-Patch5:		%{name}-typo.patch
-Patch6:		%{name}-arg-concat.patch
-Patch7:		%{name}-split-VARDB.patch
+Patch0:		%{name}-dhclient.script.patch
+Patch1:		%{name}-if_buffer_size.patch
+Patch2:		%{name}-ldap.patch
+Patch3:		%{name}-ldap1.patch
+Patch4:		%{name}-client-script-redhat.patch
+Patch5:		%{name}-3.0.3-x-option.patch
+Patch6:		%{name}-typo.patch
+Patch7:		%{name}-arg-concat.patch
+Patch8:		%{name}-split-VARDB.patch
 URL:		http://www.isc.org/sw/dhcp/
 BuildRequires:	groff
 %{?with_ldap:BuildRequires:	openldap-devel}
@@ -72,6 +73,9 @@ Summary:	DHCP Client
 Summary(pl.UTF-8):	Klient DHCP
 Group:		Networking/Daemons
 Requires(post):	fileutils
+Requires:	coreutils
+Requires:	iproute2
+Requires:	net-tools
 Obsoletes:	dhclient
 Obsoletes:	pump
 
@@ -130,14 +134,16 @@ komunikacji z działającym serwerem ISC DHCP i jego kontroli.
 %setup -q
 install %{SOURCE4} .
 %patch0 -p1
-%{?with_ldap:%patch1 -p1}
+%patch1 -p1
 %{?with_ldap:%patch2 -p1}
-%patch3 -p1
-# This patch is required for dhcdbd to function
+%{?with_ldap:%patch3 -p1}
+# These two patches are required for dhcdbd to function
 %patch4 -p1
 %patch5 -p1
+#
 %patch6 -p1
 %patch7 -p1
+%patch8 -p1
 
 %build
 # NOTE: this is not autoconf configure - do not change it to %%configure
