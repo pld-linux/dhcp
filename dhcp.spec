@@ -92,7 +92,6 @@ Requires:	coreutils
 Requires:	iproute2
 Requires:	net-tools
 Obsoletes:	dhclient
-Obsoletes:	pump
 
 %description client
 Dynamic Host Configuration Protocol Client.
