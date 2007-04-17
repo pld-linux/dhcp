@@ -1,6 +1,6 @@
 #
 # Conditional build:
-%bcond_with	ldap	# with support for ldap storage
+%bcond_without	ldap	# without support for ldap storage
 #
 Summary:	DHCP Server
 Summary(es.UTF-8):	Servidor DHCP
@@ -17,9 +17,8 @@ Source0:	ftp://ftp.isc.org/isc/dhcp/%{name}-%{version}%{_pre}.tar.gz
 # Source0-md5:	d09be1a80982b78482e8fbd416924468
 Source1:	%{name}.init
 Source2:	%{name}-relay.init
-Source3:	%{name}-relay.sysconfig
-Source4:	%{name}d.conf.sample
-Source5:	%{name}.sysconfig
+Source3:	%{name}.sysconfig
+Source4:	%{name}-relay.sysconfig
 Patch0:		%{name}-dhclient.script.patch
 Patch1:		%{name}-if_buffer_size.patch
 # http://home.ntelos.net/~masneyb/dhcp-3.0.5-ldap-patch
@@ -33,12 +32,14 @@ URL:		http://www.isc.org/sw/dhcp/
 BuildRequires:	groff
 %{?with_ldap:BuildRequires:	openldap-devel}
 %{?with_ldap:BuildRequires:	openssl-devel}
-BuildRequires:	rpmbuild(macros) >= 1.268
-Requires(post):	fileutils
+BuildRequires:	rpmbuild(macros) >= 1.304
+Requires(post):	coreutils
 Requires(post,preun):	/sbin/chkconfig
 Requires:	rc-scripts >= 0.2.0
 Provides:	dhcpd
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
+
+%define		schemadir	/usr/share/openldap/schema
 
 %description
 DHCP (Dynamic Host Configuration Protocol) is a protocol which allows
@@ -70,11 +71,23 @@ funcionalidade similar, com certas restrições. Este servidor também
 atende aquelas requisições. Esta versão é ainda considerada um
 software BETA.
 
+%package ldap-schema
+Summary:	LDAP Schema for DHCP Server
+Summary(pl.UTF-8):	Schemat LDAP dla serwera DHCP
+Group:		Networking/Daemons
+Requires(post,postun):	sed >= 4.0
+Requires:	openldap-servers
+
+%description ldap-schema
+This package contains LDAPv3 schema for use with the DHCP Server.
+
+%description ldap-schema -l pl.UTF-8
+Ten pakiet zawiera schemat LDAPv3 do używania z serwerem DHCP.
+
 %package client
 Summary:	DHCP Client
 Summary(pl.UTF-8):	Klient DHCP
 Group:		Networking/Daemons
-Requires(post):	fileutils
 Requires:	coreutils
 Requires:	iproute2
 Requires:	net-tools
@@ -91,7 +104,7 @@ Klient DHCP (Dynamic Host Configuration Protocol).
 Summary:	DHCP Relay Agent
 Summary(pl.UTF-8):	Agent przekazywania informacji DHCP
 Group:		Networking/Daemons
-Requires(post):	fileutils
+Requires(post):	coreutils
 Requires(post,preun):	/sbin/chkconfig
 Requires:	rc-scripts >= 0.2.0
 
@@ -134,7 +147,6 @@ komunikacji z działającym serwerem ISC DHCP i jego kontroli.
 
 %prep
 %setup -q -n %{name}-%{version}%{_pre}
-install %{SOURCE4} .
 %patch0 -p1
 %patch1 -p1
 %{?with_ldap:%patch2 -p1}
@@ -164,8 +176,7 @@ install %{SOURCE4} .
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT{/sbin,%{_sbindir},%{_bindir},%{_mandir}/man{5,8}} \
-	$RPM_BUILD_ROOT{/var/lib/%{name},%{_sysconfdir}/{rc.d/init.d,sysconfig}}
+install -d $RPM_BUILD_ROOT{%{_sysconfdir}/{rc.d/init.d,sysconfig},%{schemadir}}
 
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT \
@@ -184,16 +195,19 @@ install -d $RPM_BUILD_ROOT{/sbin,%{_sbindir},%{_bindir},%{_mandir}/man{5,8}} \
 	VARDBC=/var/lib/dhclient \
 	FFMANEXT=.5
 
+rm $RPM_BUILD_ROOT%{_mandir}/man3/omshell.3*
+
 install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/dhcpd
 install %{SOURCE2} $RPM_BUILD_ROOT/etc/rc.d/init.d/dhcp-relay
-install %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/dhcp-relay
-install %{SOURCE4} $RPM_BUILD_ROOT%{_sysconfdir}/dhcpd.conf
-install %{SOURCE5} $RPM_BUILD_ROOT/etc/sysconfig/dhcpd
+install %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/dhcpd
+install %{SOURCE4} $RPM_BUILD_ROOT/etc/sysconfig/dhcp-relay
 
-mv $RPM_BUILD_ROOT%{_mandir}/man3/omshell.3 \
-	$RPM_BUILD_ROOT%{_mandir}/man1/omshell.1
+install server/dhcpd.conf $RPM_BUILD_ROOT%{_sysconfdir}
+%if %{with ldap}
+install contrib/dhcp.schema $RPM_BUILD_ROOT%{schemadir}
+%endif
 
-install client/scripts/linux $RPM_BUILD_ROOT%{_sbindir}/dhclient-script
+touch $RPM_BUILD_ROOT%{_sysconfdir}/dhclient.conf
 
 touch $RPM_BUILD_ROOT/var/lib/%{name}/dhcpd.leases
 touch $RPM_BUILD_ROOT/var/lib/dhclient/dhclient.leases
@@ -210,6 +224,16 @@ touch /var/lib/%{name}/dhcpd.leases
 if [ "$1" = "0" ];then
 	%service dhcpd stop
 	/sbin/chkconfig --del dhcpd
+fi
+
+%post ldap-schema
+%openldap_schema_register %{schemadir}/dhcp.schema -d core
+%service -q ldap restart
+
+%postun ldap-schema
+if [ "$1" = "0" ]; then
+	%openldap_schema_unregister %{schemadir}/dhcp.schema
+	%service -q ldap restart
 fi
 
 %post client
@@ -241,21 +265,31 @@ fi
 
 %files
 %defattr(644,root,root,755)
-%doc doc/* README RELNOTES dhcpd.conf.sample LICENSE
-%{?with_ldap:%doc contrib/*}
+%doc doc/* README RELNOTES server/dhcpd.conf LICENSE
+%doc contrib/ms2isc
+%{?with_ldap:%doc README.ldap Changelog-LDAP contrib/dhcpd-conf-to-ldap.pl}
 %{_mandir}/man1/*
 %{_mandir}/man5/dhcp*
 %{_mandir}/man8/dhcp*
 %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/dhcpd
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/dhcpd.conf
-%attr(755,root,root) %{_bindir}/*
+%attr(755,root,root) %{_bindir}/omshell
 %attr(755,root,root) %{_sbindir}/dhcpd
 %attr(754,root,root) /etc/rc.d/init.d/dhcpd
 %attr(750,root,root) %dir /var/lib/%{name}
 %ghost /var/lib/%{name}/dhcpd.leases
 
+%if %{with ldap}
+%files ldap-schema
+%defattr(644,root,root,755)
+%doc contrib/dhcpd-conf-to-ldap.pl
+%{schemadir}/*.schema
+%endif
+
 %files client
 %defattr(644,root,root,755)
+%doc contrib/sethostname.sh
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/dhclient.conf
 %attr(755,root,root) /sbin/dhclient
 %attr(755,root,root) /sbin/dhclient-script
 %{_mandir}/man[58]/dhclient*
