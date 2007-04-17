@@ -9,7 +9,7 @@ Summary(pt_BR.UTF-8):	Servidor DHCP (Protocolo de configuração dinâmica de ho
 Name:		dhcp
 %define	_pre	a3
 Version:	3.1.0
-Release:	0.%{_pre}.1
+Release:	0.%{_pre}.2
 Epoch:		4
 License:	distributable
 Group:		Networking/Daemons
@@ -71,17 +71,17 @@ funcionalidade similar, com certas restrições. Este servidor também
 atende aquelas requisições. Esta versão é ainda considerada um
 software BETA.
 
-%package ldap-schema
+%package -n openldap-schema-dhcp
 Summary:	LDAP Schema for DHCP Server
 Summary(pl.UTF-8):	Schemat LDAP dla serwera DHCP
 Group:		Networking/Daemons
 Requires(post,postun):	sed >= 4.0
 Requires:	openldap-servers
 
-%description ldap-schema
+%description -n openldap-schema-dhcp
 This package contains LDAPv3 schema for use with the DHCP Server.
 
-%description ldap-schema -l pl.UTF-8
+%description -n openldap-schema-dhcp -l pl.UTF-8
 Ten pakiet zawiera schemat LDAPv3 do używania z serwerem DHCP.
 
 %package client
@@ -225,11 +225,11 @@ if [ "$1" = "0" ];then
 	/sbin/chkconfig --del dhcpd
 fi
 
-%post ldap-schema
+%post -n openldap-schema-dhcp
 %openldap_schema_register %{schemadir}/dhcp.schema -d core
 %service -q ldap restart
 
-%postun ldap-schema
+%postun -n openldap-schema-dhcp
 if [ "$1" = "0" ]; then
 	%openldap_schema_unregister %{schemadir}/dhcp.schema
 	%service -q ldap restart
@@ -279,7 +279,7 @@ fi
 %ghost /var/lib/%{name}/dhcpd.leases
 
 %if %{with ldap}
-%files ldap-schema
+%files -n openldap-schema-dhcp
 %defattr(644,root,root,755)
 %doc contrib/dhcpd-conf-to-ldap.pl
 %{schemadir}/*.schema
