@@ -7,12 +7,13 @@ Summary(es.UTF-8):	Servidor DHCP
 Summary(pl.UTF-8):	Serwer DHCP
 Summary(pt_BR.UTF-8):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
-Version:	3.1.0a3
-Release:	1
+%define	_pre	a3
+Version:	3.1.0
+Release:	0.%{_pre}.1
 Epoch:		4
 License:	distributable
 Group:		Networking/Daemons
-Source0:	ftp://ftp.isc.org/isc/dhcp/%{name}-%{version}.tar.gz
+Source0:	ftp://ftp.isc.org/isc/dhcp/%{name}-%{version}%{_pre}.tar.gz
 # Source0-md5:	d09be1a80982b78482e8fbd416924468
 Source1:	%{name}.init
 Source2:	%{name}-relay.init
@@ -21,16 +22,17 @@ Source4:	%{name}d.conf.sample
 Source5:	%{name}.sysconfig
 Patch0:		%{name}-dhclient.script.patch
 Patch1:		%{name}-if_buffer_size.patch
+# http://home.ntelos.net/~masneyb/dhcp-3.0.5-ldap-patch
 Patch2:		%{name}-ldap.patch
-Patch3:		%{name}-ldap1.patch
-Patch4:		%{name}-client-script-redhat.patch
-Patch5:		%{name}-3.0.3-x-option.patch
-Patch6:		%{name}-typo.patch
-Patch7:		%{name}-arg-concat.patch
-Patch8:		%{name}-split-VARDB.patch
+Patch3:		%{name}-client-script-redhat.patch
+Patch4:		%{name}-3.0.3-x-option.patch
+Patch5:		%{name}-typo.patch
+Patch6:		%{name}-arg-concat.patch
+Patch7:		%{name}-split-VARDB.patch
 URL:		http://www.isc.org/sw/dhcp/
 BuildRequires:	groff
 %{?with_ldap:BuildRequires:	openldap-devel}
+%{?with_ldap:BuildRequires:	openssl-devel}
 BuildRequires:	rpmbuild(macros) >= 1.268
 Requires(post):	fileutils
 Requires(post,preun):	/sbin/chkconfig
@@ -131,19 +133,18 @@ dhcpctl to zbiór funkcji tworzących API, które może być używane do
 komunikacji z działającym serwerem ISC DHCP i jego kontroli.
 
 %prep
-%setup -q
+%setup -q -n %{name}-%{version}%{_pre}
 install %{SOURCE4} .
 %patch0 -p1
 %patch1 -p1
 %{?with_ldap:%patch2 -p1}
-%{?with_ldap:%patch3 -p1}
 # These two patches are required for dhcdbd to function
+%patch3 -p1
 %patch4 -p1
-%patch5 -p1
 #
+%patch5 -p1
 %patch6 -p1
 %patch7 -p1
-%patch8 -p1
 
 %build
 # NOTE: this is not autoconf configure - do not change it to %%configure
