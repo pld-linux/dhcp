@@ -197,7 +197,7 @@
  .B -w
  ]
  [
-+.B -x
++.B -y
 +]
 +[
  .I if0
@@ -208,7 +208,7 @@
  .B -nw
  flag.
 +.PP
-+The -x argument enables eXtended option information to be created in the
++The -y argument enables eXtended option information to be created in the
 +-s dhclient-script environment, which would allow applications running 
 +in that environment to handle options they do not know about in advance.
  .SH CONFIGURATION

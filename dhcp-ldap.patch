@@ -453,7 +453,7 @@ diff -Naur dhcp-3.0.5/common/conflex.c dhcp-3.0.5-ldap/common/conflex.c
 @@ -47,6 +47,7 @@
  static enum dhcp_token read_number PROTO ((int, struct parse *));
  static enum dhcp_token read_num_or_name PROTO ((int, struct parse *));
- static enum dhcp_token intern PROTO ((char *, enum dhcp_token));
+ static enum dhcp_token intern PROTO ((unsigned char *, enum dhcp_token));
 +static int read_function PROTO ((struct parse *));
  
  isc_result_t new_parse (cfile, file, inbuf, buflen, name, eolp)
@@ -5582,29 +5582,29 @@ diff -Naur dhcp-3.0.5/server/stables.c dhcp-3.0.5-ldap/server/stables.c
 --- dhcp-3.0.5/server/stables.c	2004-06-10 13:59:58.000000000 -0400
 +++ dhcp-3.0.5-ldap/server/stables.c	2007-02-23 13:13:36.000000000 -0500
 @@ -236,9 +236,86 @@
- 	{ "update-conflict-detection", "f",	&server_universe,  48, 1 },
- 	{ "leasequery", "f",			&server_universe,  49, 1 },
  	{ "adaptive-lease-time-threshold", "B",	&server_universe,  50, 1 },
+ 	{ "do-reverse-updates", "f",		&server_universe,  51, 1 },
+ 	{ "fqdn-reply", "f",			&server_universe,  52, 1 },
 +#if defined(LDAP_CONFIGURATION)
-+	{ "ldap-server", "t",				&server_universe, 51, 1 },
-+	{ "ldap-port", "d",				&server_universe, 52, 1 },
-+	{ "ldap-username", "t",				&server_universe, 53, 1 },
-+	{ "ldap-password", "t",				&server_universe, 54, 1 },
-+	{ "ldap-base-dn", "t",				&server_universe, 55, 1 },
-+	{ "ldap-method", "Nldap-methods.",		&server_universe, 56, 1 },
-+	{ "ldap-debug-file", "t",			&server_universe, 57, 1 },
-+	{ "ldap-dhcp-server-cn", "t",			&server_universe, 58, 1 },
-+	{ "ldap-referrals", "f",			&server_universe, 59, 1 },
++	{ "ldap-server", "t",				&server_universe, 53, 1 },
++	{ "ldap-port", "d",				&server_universe, 54, 1 },
++	{ "ldap-username", "t",				&server_universe, 55, 1 },
++	{ "ldap-password", "t",				&server_universe, 56, 1 },
++	{ "ldap-base-dn", "t",				&server_universe, 57, 1 },
++	{ "ldap-method", "Nldap-methods.",		&server_universe, 58, 1 },
++	{ "ldap-debug-file", "t",			&server_universe, 59, 1 },
++	{ "ldap-dhcp-server-cn", "t",			&server_universe, 60, 1 },
++	{ "ldap-referrals", "f",			&server_universe, 61, 1 },
 +#if defined(USE_SSL)
-+	{ "ldap-ssl", "Nldap-ssl-usage.",		&server_universe, 60, 1 },
-+	{ "ldap-tls-reqcert", "Nldap-tls-reqcert.",	&server_universe, 61, 1 },
-+	{ "ldap-tls-ca-file", "t",			&server_universe, 62, 1 },
-+	{ "ldap-tls-ca-dir", "t",			&server_universe, 63, 1 },
-+	{ "ldap-tls-cert", "t",				&server_universe, 64, 1 },
-+	{ "ldap-tls-key", "t",				&server_universe, 65, 1 },
-+	{ "ldap-tls-crlcheck", "Nldap-tls-crlcheck.",	&server_universe, 66, 1 },
-+	{ "ldap-tls-ciphers", "t",			&server_universe, 67, 1 },
-+	{ "ldap-tls-randfile", "t",			&server_universe, 68, 1 },
++	{ "ldap-ssl", "Nldap-ssl-usage.",		&server_universe, 62, 1 },
++	{ "ldap-tls-reqcert", "Nldap-tls-reqcert.",	&server_universe, 63, 1 },
++	{ "ldap-tls-ca-file", "t",			&server_universe, 64, 1 },
++	{ "ldap-tls-ca-dir", "t",			&server_universe, 65, 1 },
++	{ "ldap-tls-cert", "t",				&server_universe, 66, 1 },
++	{ "ldap-tls-key", "t",				&server_universe, 67, 1 },
++	{ "ldap-tls-crlcheck", "Nldap-tls-crlcheck.",	&server_universe, 68, 1 },
++	{ "ldap-tls-ciphers", "t",			&server_universe, 69, 1 },
++	{ "ldap-tls-randfile", "t",			&server_universe, 70, 1 },
 +#endif
 +#endif
  	{ NULL, NULL, NULL, 0, 0 }
