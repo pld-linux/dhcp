@@ -88,7 +88,7 @@
  			log_info ("isc-dhclient-%s", DHCP_VERSION);
  			exit (0);
 +#ifdef EXTENDED_NEW_OPTION_INFO
-+		} else if (!strcmp (argv [i], "-x")) {
++		} else if (!strcmp (argv [i], "-y")) {
 +		    extended_option_environment = 1;
 +		    new_option_info_tree = GENERATE_NEW_OPTION_INFO;
 +#endif
@@ -100,9 +100,9 @@
  	log_info (url);
  
 +#ifdef EXTENDED_NEW_OPTION_INFO
-+	log_error ("Usage: dhclient [-1dqr] [-nwx] [-p <port>] %s",
++	log_error ("Usage: dhclient [-1dqrx] [-nwy] [-p <port>] %s",
 +#else
- 	log_error ("Usage: dhclient [-1dqr] [-nw] [-p <port>] %s",
+ 	log_error ("Usage: dhclient [-1dqrx] [-nw] [-p <port>] %s",
 +#endif
  		   "[-s server]");
  	log_error ("                [-cf config-file] [-lf lease-file]%s",
