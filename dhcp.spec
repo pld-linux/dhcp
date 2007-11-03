@@ -8,7 +8,7 @@ Summary(pl.UTF-8):	Serwer DHCP
 Summary(pt_BR.UTF-8):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
 Version:	3.1.0
-Release:	1
+Release:	2
 Epoch:		4
 License:	distributable
 Group:		Networking/Daemons
