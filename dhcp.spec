@@ -29,7 +29,7 @@ Patch6:		%{name}-arg-concat.patch
 Patch7:		%{name}-split-VARDB.patch
 URL:		http://www.isc.org/sw/dhcp/
 BuildRequires:	groff
-%{?with_ldap:BuildRequires:	openldap-devel}
+%{?with_ldap:BuildRequires:	openldap-devel >= 2.4.6}
 %{?with_ldap:BuildRequires:	openssl-devel}
 BuildRequires:	rpmbuild(macros) >= 1.304
 Requires(post):	coreutils
