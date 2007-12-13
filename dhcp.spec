@@ -8,7 +8,7 @@ Summary(pl.UTF-8):	Serwer DHCP
 Summary(pt_BR.UTF-8):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
 Version:	3.1.0
-Release:	2
+Release:	3
 Epoch:		4
 License:	distributable
 Group:		Networking/Daemons
@@ -18,6 +18,10 @@ Source1:	%{name}.init
 Source2:	%{name}-relay.init
 Source3:	%{name}.sysconfig
 Source4:	%{name}-relay.sysconfig
+Source5:	%{name}-libdhcp4client.pc
+Source6:	%{name}-dhcp4client.h
+Source7:	%{name}-libdhcp4client.make
+Source8:	%{name}-libdhcp_control.h
 Patch0:		%{name}-dhclient.script.patch
 Patch1:		%{name}-if_buffer_size.patch
 # http://home.ntelos.net/~masneyb/dhcp-3.0.5-ldap-patch
@@ -27,6 +31,8 @@ Patch4:		%{name}-3.0.3-x-option.patch
 Patch5:		%{name}-typo.patch
 Patch6:		%{name}-arg-concat.patch
 Patch7:		%{name}-split-VARDB.patch
+Patch8:		%{name}-options.patch
+Patch9:		%{name}-libdhcp4client.patch
 URL:		http://www.isc.org/sw/dhcp/
 BuildRequires:	groff
 %{?with_ldap:BuildRequires:	openldap-devel >= 2.4.6}
@@ -143,6 +149,41 @@ odpytywania o ich stan. Aktualnie jest używana przez serwer ISC DHCP.
 dhcpctl to zbiór funkcji tworzących API, które może być używane do
 komunikacji z działającym serwerem ISC DHCP i jego kontroli.
 
+%package -n libdhcp4client
+Summary:	The DHCP client in a library for invocation by other programs
+Summary(pl.UTF-8):	Klient DHCP w postaci biblioteki do wykorzystania w innych programach
+Group:		Development/Libraries
+
+%description -n libdhcp4client
+Provides the client for the DHCP protocol.
+
+%description -n libdhcp4client -l pl.UTF-8
+Ten pakiet zawiera klienta protokołu DHCP.
+
+%package -n libdhcp4client-devel
+Summary:	Header files for development with the DHCP client library
+Summary(pl.UTF-8):	Pliki nagłówkowe do programowania z użyciem biblioteki klienckiej DHCP
+Group:		Development/Libraries
+Requires:	libdhcp4client = %{epoch}:%{version}-%{release}
+
+%description -n libdhcp4client-devel
+Header files for development with the DHCP client library.
+
+%description -n libdhcp4client-devel -l pl.UTF-8
+Pliki nagłówkowe do programowania z użyciem biblioteki klienckiej DHCP.
+
+%package -n libdhcp4client-static
+Summary:	Static DHCP client library
+Summary(pl.UTF-8):	Statyczna biblioteka kliencka DHCP
+Group:		Development/Libraries
+Requires:	libdhcp4client-devel = %{epoch}:%{version}-%{release}
+
+%description -n libdhcp4client-static
+Static DHCP client library.
+
+%description -n libdhcp4client-static -l pl.UTF-8
+Statyczna biblioteka kliencka DHCP.
+
 %prep
 %setup -q
 %patch0 -p1
@@ -155,6 +196,14 @@ komunikacji z działającym serwerem ISC DHCP i jego kontroli.
 %patch5 -p1
 %patch6 -p1
 %patch7 -p1
+%patch8 -p1
+%patch9 -p1
+
+sed 's/@DHCP_VERSION@/'%{version}'/' < %{SOURCE5} > libdhcp4client.pc
+mkdir -p libdhcp4client
+cp %{SOURCE6} libdhcp4client/dhcp4client.h
+cp %{SOURCE7} libdhcp4client/Makefile.dist
+cp %{SOURCE8} includes/isc-dhcp/libdhcp_control.h
 
 %build
 # NOTE: this is not autoconf configure - do not change it to %%configure
@@ -174,7 +223,7 @@ komunikacji z działającym serwerem ISC DHCP i jego kontroli.
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT{%{_sysconfdir}/{rc.d/init.d,sysconfig},%{schemadir}}
+install -d $RPM_BUILD_ROOT{%{_sysconfdir}/{rc.d/init.d,sysconfig},%{schemadir},%{_pkgconfigdir}}
 
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT \
@@ -209,6 +258,8 @@ touch $RPM_BUILD_ROOT%{_sysconfdir}/dhclient.conf
 
 touch $RPM_BUILD_ROOT/var/lib/%{name}/dhcpd.leases
 touch $RPM_BUILD_ROOT/var/lib/dhclient/dhclient.leases
+
+install libdhcp4client.pc $RPM_BUILD_ROOT%{_libdir}/pkgconfig/libdhcp4client.pc
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -306,3 +357,17 @@ fi
 %{_mandir}/man3/*
 %{_libdir}/*.a
 %{_includedir}/*
+
+%files -n libdhcp4client
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/libdhcp4client-%{version}.so.*
+
+%files -n libdhcp4client-devel
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/libdhcp4client.so
+%{_includedir}/*
+%{_pkgconfigdir}/libdhcp4client.pc
+
+%files -n libdhcp4client-static
+%defattr(644,root,root,755)
+%{_libdir}/libdhcp4client.a
