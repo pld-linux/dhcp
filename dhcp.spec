@@ -33,6 +33,7 @@ Patch6:		%{name}-arg-concat.patch
 Patch7:		%{name}-split-VARDB.patch
 Patch8:		%{name}-options.patch
 Patch9:		%{name}-libdhcp4client.patch
+Patch10:	%{name}-prototypes.patch
 URL:		http://www.isc.org/sw/dhcp/
 BuildRequires:	groff
 %{?with_ldap:BuildRequires:	openldap-devel >= 2.4.6}
@@ -198,6 +199,7 @@ Statyczna biblioteka kliencka DHCP.
 %patch7 -p1
 %patch8 -p1
 %patch9 -p1
+%patch10 -p1
 
 sed 's/@DHCP_VERSION@/'%{version}'/' < %{SOURCE5} > libdhcp4client.pc
 mkdir -p libdhcp4client
