@@ -1,0 +1,15 @@
+--- dhcp-3.0.5/common/dispatch.c.ecat	2006-02-22 17:43:27.000000000 -0500
++++ dhcp-3.0.5/common/dispatch.c	2007-03-30 15:54:15.000000000 -0400
+@@ -195,7 +195,6 @@
+ 	}
+ }
+ 
+-#if defined (DEBUG_MEMORY_LEAKAGE_ON_EXIT)
+ void cancel_all_timeouts ()
+ {
+ 	struct timeout *t, *n;
+@@ -216,4 +215,3 @@
+ 		dfree (t, MDL);
+ 	}
+ }
+-#endif
