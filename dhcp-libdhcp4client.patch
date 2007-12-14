@@ -596,14 +596,13 @@ diff -up dhcp-3.1.0/common/dispatch.c.libdhcp4client dhcp-3.1.0/common/dispatch.
  	t = (struct timeout *)0;
  	for (q = timeouts; q; q = q -> next) {
  		if (q -> func == where && q -> what == what) {
-@@ -193,11 +338,16 @@ void cancel_timeout (where, what)
+@@ -193,10 +338,15 @@ void cancel_timeout (where, what)
  		q -> next = free_timeouts;
  		free_timeouts = q;
  	}
 +#endif
  }
  
- #if defined (DEBUG_MEMORY_LEAKAGE_ON_EXIT)
  void cancel_all_timeouts ()
  {
 +#ifdef LIBDHCP
