@@ -31,13 +31,13 @@ Patch4:		%{name}-3.0.3-x-option.patch
 Patch5:		%{name}-typo.patch
 Patch6:		%{name}-arg-concat.patch
 Patch7:		%{name}-split-VARDB.patch
-Patch8:	%{name}-timeouts.patch
+Patch8:		%{name}-timeouts.patch
 Patch9:		%{name}-options.patch
-Patch10:		%{name}-libdhcp4client.patch
+Patch10:	%{name}-libdhcp4client.patch
 Patch11:	%{name}-prototypes.patch
 URL:		http://www.isc.org/sw/dhcp/
 BuildRequires:	groff
-%{?with_ldap:BuildRequires:	openldap-devel >= 2.4.6}
+%{?with_ldap:BuildRequires:	openldap-devel}
 %{?with_ldap:BuildRequires:	openssl-devel}
 BuildRequires:	rpmbuild(macros) >= 1.304
 Requires(post):	coreutils
