@@ -46,6 +46,8 @@ Requires:	rc-scripts >= 0.2.0
 Provides:	dhcpd
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
+%define		specflags_x86_64	-fPIC
+%define		specflags_amd64		%{specflags_x86_64}
 %define		schemadir	/usr/share/openldap/schema
 
 %description
