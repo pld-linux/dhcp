@@ -8,7 +8,7 @@ Summary(pl.UTF-8):	Serwer DHCP
 Summary(pt_BR.UTF-8):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
 Version:	3.1.0
-Release:	3
+Release:	4
 Epoch:		4
 License:	distributable
 Group:		Networking/Daemons
@@ -47,6 +47,7 @@ Provides:	dhcpd
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define		specflags_x86_64	-fPIC
+%define		specflags_alpha		-fPIC
 %define		specflags_amd64		%{specflags_x86_64}
 %define		schemadir	/usr/share/openldap/schema
 
