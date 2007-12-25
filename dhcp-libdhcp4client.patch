@@ -1089,3 +1089,14 @@ diff -up dhcp-3.1.0/Makefile.dist.libdhcp4client dhcp-3.1.0/Makefile.dist
  
  all:
  	@for dir in ${SUBDIRS}; do \
+--- dhcp-3.1.0/minires/Makefile.dist.orig	2007-12-25 12:41:11.744624000 +0100
++++ dhcp-3.1.0/minires/Makefile.dist	2007-12-25 12:54:35.448726491 +0100
+@@ -32,7 +32,7 @@
+ 	 ns_date.o ns_parse.o ns_sign.o ns_name.o ns_samedomain.o ns_verify.o
+ 
+ INCLUDES = $(BINDINC) -I$(TOP)/includes
+-CFLAGS = $(DEBUG) $(PREDEFINES) $(INCLUDES) $(COPTS) -DHMAC_MD5 -DMINIRES_LIB
++CFLAGS = $(DEBUG) $(PREDEFINES) $(INCLUDES) $(COPTS) -DHMAC_MD5 -DMINIRES_LIB -fPIC
+ 
+ all:	libres.a
+ 
