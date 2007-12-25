@@ -57,6 +57,16 @@ stop() {
 	fi
 }
 
+condrestart() {
+	if [ -f /var/lock/subsys/dhcpd ]; then
+		stop
+		start
+	else
+		msg_not_running dhcpd
+		RETVAL=$1
+	fi
+}
+
 RETVAL=0
 # See how we were called.
 case "$1" in
@@ -72,6 +82,14 @@ case "$1" in
 	stop
 	start
 	;;
+  try-restart)
+	checkconfig || exit 1
+	condrestart 0
+	;;
+  force-reload)
+	checkconfig || exit 1
+	condrestart 7
+	;;
   checkconfig)
 	checkconfig
 	;;
@@ -80,7 +98,7 @@ case "$1" in
 	exit $?
 	;;
   *)
-	msg_usage "$0 {start|stop|restart|checkconfig|status}"
+	msg_usage "$0 {start|stop|restart|try-restart|force-reload|checkconfig|status}"
 	exit 3
 esac
 
