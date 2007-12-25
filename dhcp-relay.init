@@ -30,11 +30,7 @@ if [ -n "DHCP_RELAY_INTERFACES" ]; then
 	done
 fi
 
-RETVAL=0
-# See how we were called.
-case "$1" in
-  start)
-	# Check if the service is already running?
+start() {
 	if [ ! -f /var/lock/subsys/dhcp-relay ]; then
 		msg_starting "DHCP relay"
 		daemon dhcrelay $OPTIONS $DHCP_SERVERS_IP
@@ -43,8 +39,9 @@ case "$1" in
 	else
 		msg_already_running "DHCP relay"
 	fi
-	;;
-  stop)
+}
+
+stop() {
 	if [ -f /var/lock/subsys/dhcp-relay ]; then
 		msg_stopping "DHCP relay"
 		killproc dhcrelay
@@ -52,18 +49,43 @@ case "$1" in
 	else
 		msg_not_running "DHCP relay"
 	fi
+}
+
+condrestart() {
+	if [ -f /var/lock/subsys/dhcp-relay ]; then
+		stop
+		start
+	else
+		msg_not_running "DHCP relay"
+		RETVAL=$1
+	fi
+}
+
+RETVAL=0
+# See how we were called.
+case "$1" in
+  start)
+	start
 	;;
-  restart|force-reload)
-	$0 stop
-	$0 start
-	exit $?
+  stop)
+	stop
+	;;
+  restart)
+	stop
+	start
+	;;
+  try-restart)
+	condrestart 0
+	;;
+  force-reload)
+	condrestart 7
 	;;
   status)
 	status dhcrelay
 	exit $?
 	;;
   *)
-	msg_usage "$0 {start|stop|restart|force-reload|status}"
+	msg_usage "$0 {start|stop|restart|try-restart|force-reload|status}"
 	exit 3
 esac
 
