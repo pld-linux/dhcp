@@ -72,6 +72,7 @@ DHCP_HEADERS = dhcpd.h cdefs.h osdep.h arpa/nameser.h minires/minires.h \
 HDRS = dhcp4client.h
 SRCS = $(COMMON_SRCS) $(CLIENT_SRCS)
 OBJS = $(SRCS:.c=.o)
+LOBJS = $(SRCS:.c=.lo)
 
 INCLUDES = -I$(TOP) -I$(TOP)/includes -I$(TOP)/dst -I.
 CFLAGS   = $(DEBUG) $(PREDEFINES) $(INCLUDES) $(COPTS) \
@@ -92,7 +93,7 @@ depend:
 	$(MKDEP) $(INCLUDES) $(PREDEFINES) $(SRCS)
 
 clean:
-	-rm -f $(OBJS)
+	-rm -f $(OBJS) $(LOBJS)
 
 realclean: clean
 	-rm -f $(PROG) *~ #*
@@ -137,6 +138,9 @@ libres.a:
 	ln ../minires/libres.a .; \
 	$(AR) x libres.a
 
+%.lo: %.c
+	$(CC) -o $@ $(CFLAGS) -fPIC -c $<
+
 # Create the libraries
 # minires/res_query.o contains an undefined symbol __h_errno_set, is not
 # used by any dhcp code, and is optimized out by the linker when producing
@@ -144,7 +148,7 @@ libres.a:
 libdhcp4client.a: $(OBJS) libres.a
 	$(AR) crus $@ $(OBJS) `$(AR) t libres.a | grep -v res_query.o`
 
-libdhcp4client-$(VER).so.0: $(OBJS) libres.a
-	$(CC) -shared -o $@ -Wl,-soname,$@ $(OBJS) `$(AR) t libres.a | grep -v res_query.o`
+libdhcp4client-$(VER).so.0: $(LOBJS) libres.a
+	$(CC) $(LDFLAGS) $(CFLAGS) -shared -o $@ -Wl,-soname,$@ $(LOBJS) `$(AR) t libres.a | grep -v res_query.o`
 
 # Dependencies (semi-automatically-generated)
