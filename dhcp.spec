@@ -10,7 +10,7 @@ Name:		dhcp
 Version:	3.1.0
 Release:	5
 Epoch:		4
-License:	distributable
+License:	MIT
 Group:		Networking/Daemons
 Source0:	ftp://ftp.isc.org/isc/dhcp/%{name}-%{version}.tar.gz
 # Source0-md5:	27d179a3c3fbef576566b456a1168246
@@ -46,9 +46,6 @@ Requires:	rc-scripts >= 0.2.0
 Provides:	dhcpd
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
-%define		specflags_x86_64	-fPIC
-%define		specflags_alpha		-fPIC
-%define		specflags_amd64		%{specflags_x86_64}
 %define		schemadir	/usr/share/openldap/schema
 
 %description
@@ -169,6 +166,7 @@ Ten pakiet zawiera klienta protokołu DHCP.
 Summary:	Header files for development with the DHCP client library
 Summary(pl.UTF-8):	Pliki nagłówkowe do programowania z użyciem biblioteki klienckiej DHCP
 Group:		Development/Libraries
+License:	GPL v2+
 Requires:	libdhcp4client = %{epoch}:%{version}-%{release}
 
 %description -n libdhcp4client-devel
@@ -222,7 +220,7 @@ cp %{SOURCE8} includes/isc-dhcp/libdhcp_control.h
 		-D_PATH_DHCPD_DB=\\\"/var/lib/%{name}/dhcpd.leases\\\" \
 		-DEXTENDED_NEW_OPTION_INFO \
 		-D_PATH_DHCLIENT_DB=\\\"/var/lib/dhclient/dhclient.leases\\\" \
-	"
+	" \
 	LFLAGS="%{rpmldflags}" \
 	DEBUG="" \
 	VARDBS="/var/lib/%{name}"
@@ -230,7 +228,7 @@ cp %{SOURCE8} includes/isc-dhcp/libdhcp_control.h
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT{%{_sysconfdir}/{rc.d/init.d,sysconfig},%{schemadir},%{_pkgconfigdir}}
+install -d $RPM_BUILD_ROOT{/etc/{rc.d/init.d,sysconfig},%{schemadir},%{_pkgconfigdir}}
 
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT \
@@ -282,6 +280,15 @@ if [ "$1" = "0" ];then
 	/sbin/chkconfig --del dhcpd
 fi
 
+%triggerpostun -- dhcp < 3.0
+if [ "`grep ddns-update-style /etc/dhcpd.conf`" = "" ]; then
+	umask 027
+	echo "ddns-update-style none;" > /etc/dhcpd.conf.tmp
+	echo "" >> /etc/dhcpd.conf.tmp
+	cat /etc/dhcpd.conf >>/etc/dhcpd.conf.tmp
+	mv -f /etc/dhcpd.conf.tmp /etc/dhcpd.conf
+fi
+
 %post -n openldap-schema-dhcp
 %openldap_schema_register %{schemadir}/dhcp.schema -d core
 %service -q ldap restart
@@ -310,23 +317,13 @@ if [ "$1" = "0" ];then
 	/sbin/chkconfig --del dhcp-relay
 fi
 
-%triggerpostun -- dhcp < 3.0
-if [ "`grep ddns-update-style /etc/dhcpd.conf`" = "" ]; then
-	umask 027
-	echo "ddns-update-style none;" > /etc/dhcpd.conf.tmp
-	echo "" >> /etc/dhcpd.conf.tmp
-	cat /etc/dhcpd.conf >>/etc/dhcpd.conf.tmp
-	mv -f /etc/dhcpd.conf.tmp /etc/dhcpd.conf
-fi
+%post	-n libdhcp4client -p /sbin/ldconfig
+%postun	-n libdhcp4client -p /sbin/ldconfig
 
 %files
 %defattr(644,root,root,755)
-%doc doc/* README RELNOTES server/dhcpd.conf LICENSE
-%doc contrib/ms2isc
+%doc doc/* README RELNOTES server/dhcpd.conf LICENSE contrib/ms2isc
 %{?with_ldap:%doc README.ldap Changelog-LDAP contrib/dhcpd-conf-to-ldap.pl}
-%{_mandir}/man1/*
-%{_mandir}/man5/dhcp*
-%{_mandir}/man8/dhcp*
 %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/dhcpd
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/dhcpd.conf
 %attr(755,root,root) %{_bindir}/omshell
@@ -334,12 +331,18 @@ fi
 %attr(754,root,root) /etc/rc.d/init.d/dhcpd
 %attr(750,root,root) %dir /var/lib/%{name}
 %ghost /var/lib/%{name}/dhcpd.leases
+%{_mandir}/man1/omshell.1*
+%{_mandir}/man5/dhcp-eval.5*
+%{_mandir}/man5/dhcp-options.5*
+%{_mandir}/man5/dhcpd.conf.5*
+%{_mandir}/man5/dhcpd.leases.5*
+%{_mandir}/man8/dhcpd.8*
 
 %if %{with ldap}
 %files -n openldap-schema-dhcp
 %defattr(644,root,root,755)
 %doc contrib/dhcpd-conf-to-ldap.pl
-%{schemadir}/*.schema
+%{schemadir}/dhcp.schema
 %endif
 
 %files client
@@ -348,31 +351,38 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/dhclient.conf
 %attr(755,root,root) /sbin/dhclient
 %attr(755,root,root) /sbin/dhclient-script
-%{_mandir}/man[58]/dhclient*
+%{_mandir}/man5/dhclient.conf.5*
+%{_mandir}/man5/dhclient.leases.5*
+%{_mandir}/man8/dhclient.8*
+%{_mandir}/man8/dhclient-script.8*
 %attr(750,root,root) %dir /var/lib/dhclient
 %ghost /var/lib/dhclient/dhclient.leases
 
 %files relay
 %defattr(644,root,root,755)
-%{_mandir}/man8/dhcrelay*
 %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/dhcp-relay
 %attr(755,root,root) %{_sbindir}/dhcrelay
 %attr(754,root,root) /etc/rc.d/init.d/dhcp-relay
+%{_mandir}/man8/dhcrelay.8*
 
 %files devel
 %defattr(644,root,root,755)
-%{_mandir}/man3/*
-%{_libdir}/*.a
-%{_includedir}/*
+%{_libdir}/libdhcpctl.a
+%{_libdir}/libomapi.a
+%{_includedir}/dhcpctl.h
+%{_includedir}/isc-dhcp
+%{_includedir}/omapip
+%{_mandir}/man3/dhcpctl.3*
+%{_mandir}/man3/omapi.3*
 
 %files -n libdhcp4client
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/libdhcp4client-%{version}.so.*
+%attr(755,root,root) %{_libdir}/libdhcp4client-%{version}.so.0
 
 %files -n libdhcp4client-devel
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libdhcp4client.so
-%{_includedir}/*
+%{_includedir}/dhcp4client
 %{_pkgconfigdir}/libdhcp4client.pc
 
 %files -n libdhcp4client-static
