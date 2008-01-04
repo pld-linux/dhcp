@@ -7,21 +7,23 @@ Summary(es.UTF-8):	Servidor DHCP
 Summary(pl.UTF-8):	Serwer DHCP
 Summary(pt_BR.UTF-8):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
-Version:	3.1.0
-Release:	6
+Version:	4.0.0
+# don't put int release until all patches are updated/ported(!)
+Release:	0.1
 Epoch:		4
 License:	MIT
 Group:		Networking/Daemons
 Source0:	ftp://ftp.isc.org/isc/dhcp/%{name}-%{version}.tar.gz
-# Source0-md5:	27d179a3c3fbef576566b456a1168246
+# Source0-md5:	31d79b27ce4a94089a0b9ce7f72307fa
 Source1:	%{name}.init
-Source2:	%{name}-relay.init
-Source3:	%{name}.sysconfig
-Source4:	%{name}-relay.sysconfig
-Source5:	%{name}-libdhcp4client.pc
-Source6:	%{name}-dhcp4client.h
-Source7:	%{name}-libdhcp4client.make
-Source8:	%{name}-libdhcp_control.h
+Source2:	%{name}6.init
+Source3:	%{name}-relay.init
+Source4:	%{name}.sysconfig
+Source5:	%{name}-relay.sysconfig
+Source6:	%{name}-libdhcp4client.pc
+Source7:	%{name}-dhcp4client.h
+Source8:	%{name}-libdhcp4client.make
+Source9:	%{name}-libdhcp_control.h
 Patch0:		%{name}-dhclient.script.patch
 Patch1:		%{name}-if_buffer_size.patch
 # http://home.ntelos.net/~masneyb/dhcp-3.0.5-ldap-patch
@@ -46,6 +48,7 @@ Requires:	rc-scripts >= 0.2.0
 Provides:	dhcpd
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
+%define		_sbindir	/sbin
 %define		schemadir	/usr/share/openldap/schema
 
 %description
@@ -189,70 +192,53 @@ Statyczna biblioteka kliencka DHCP.
 
 %prep
 %setup -q
-%patch0 -p1
-%patch1 -p1
+# CHECK ME
+#%patch0 -p1
+# CHECK ME
+#%patch1 -p1
+# FIXME
 %{?with_ldap:%patch2 -p1}
 # These two patches are required for dhcdbd to function
 %patch3 -p1
-%patch4 -p1
+# CHECK ME
+#%patch4 -p1
 #
-%patch5 -p1
+# CHECK ME
+#%patch5 -p1
 %patch6 -p1
-%patch7 -p1
+# CHECK ME
+#%patch7 -p1
 %patch8 -p1
-%patch9 -p1
-%patch10 -p1
+# CHECK ME
+#%patch9 -p1
+#%patch10 -p1
 %patch11 -p1
 
 sed 's/@DHCP_VERSION@/'%{version}'/' < %{SOURCE5} > libdhcp4client.pc
 mkdir -p libdhcp4client
-cp %{SOURCE6} libdhcp4client/dhcp4client.h
-cp %{SOURCE7} libdhcp4client/Makefile.dist
-cp %{SOURCE8} includes/isc-dhcp/libdhcp_control.h
+cp %{SOURCE7} libdhcp4client/dhcp4client.h
+cp %{SOURCE8} libdhcp4client/Makefile.dist
+cp %{SOURCE9} includes/isc-dhcp/libdhcp_control.h
 
 %build
-# NOTE: this is not autoconf configure - do not change it to %%configure
-./configure
-
-%{__make} \
-	CC="%{__cc}" \
-	CC_OPTIONS="%{rpmcflags} \
-		-D_PATH_DHCPD_DB=\\\"/var/lib/%{name}/dhcpd.leases\\\" \
-		-DEXTENDED_NEW_OPTION_INFO \
-		-D_PATH_DHCLIENT_DB=\\\"/var/lib/dhclient/dhclient.leases\\\" \
-	" \
-	LFLAGS="%{rpmldflags}" \
-	DEBUG="" \
-	VARDBS="/var/lib/%{name}"
-	VARDBC="/var/lib/dhclient"
+%configure \
+	--enable-dhcpv6 \
+	--with-srv-lease-file="/var/lib/%{name}/dhcpd.leases" \
+	--with-cli-lease-file="/var/lib/dhclient/dhclient.leases"
+%{__make}
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT{/etc/{rc.d/init.d,sysconfig},%{schemadir},%{_pkgconfigdir}}
+install -d $RPM_BUILD_ROOT{/etc/{rc.d/init.d,sysconfig},%{schemadir},%{_pkgconfigdir},/var/lib/{%{name},dhclient}}
 
 %{__make} install \
-	DESTDIR=$RPM_BUILD_ROOT \
-	CLIENTBINDIR=/sbin \
-	BINDIR=%{_sbindir} \
-	LIBDIR=%{_libdir} \
-	INCDIR=%{_includedir} \
-	ADMMANDIR=%{_mandir}/man8 \
-	ADMMANEXT=.8 \
-	FFMANDIR=%{_mandir}/man5 \
-	LIBMANDIR=%{_mandir}/man3 \
-	LIBMANEXT=.3 \
-	USRMANDIR=%{_mandir}/man1 \
-	USRMANEXT=.1 \
-	VARDBS=/var/lib/%{name} \
-	VARDBC=/var/lib/dhclient \
-	FFMANEXT=.5
-
-rm $RPM_BUILD_ROOT%{_mandir}/man3/omshell.3*
+	DESTDIR=$RPM_BUILD_ROOT
 
 install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/dhcpd
-install %{SOURCE2} $RPM_BUILD_ROOT/etc/rc.d/init.d/dhcp-relay
-install %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/dhcpd
-install %{SOURCE4} $RPM_BUILD_ROOT/etc/sysconfig/dhcp-relay
+install %{SOURCE2} $RPM_BUILD_ROOT/etc/rc.d/init.d/dhcpd6
+install %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/dhcp-relay
+install %{SOURCE4} $RPM_BUILD_ROOT/etc/sysconfig/dhcpd
+install %{SOURCE5} $RPM_BUILD_ROOT/etc/sysconfig/dhcp-relay
 
 install server/dhcpd.conf $RPM_BUILD_ROOT%{_sysconfdir}
 %if %{with ldap}
@@ -271,13 +257,17 @@ rm -rf $RPM_BUILD_ROOT
 
 %post
 /sbin/chkconfig --add dhcpd
+/sbin/chkconfig --add dhcpd6
 touch /var/lib/%{name}/dhcpd.leases
 %service dhcpd restart "dhcpd daemon"
+%service dhcpd6 restart "dhcpd IPv6 daemon"
 
 %preun
 if [ "$1" = "0" ];then
 	%service dhcpd stop
+	%service dhcpd6 stop
 	/sbin/chkconfig --del dhcpd
+	/sbin/chkconfig --del dhcpd6
 fi
 
 %triggerpostun -- dhcp < 3.0
@@ -329,6 +319,7 @@ fi
 %attr(755,root,root) %{_bindir}/omshell
 %attr(755,root,root) %{_sbindir}/dhcpd
 %attr(754,root,root) /etc/rc.d/init.d/dhcpd
+%attr(754,root,root) /etc/rc.d/init.d/dhcpd6
 %attr(750,root,root) %dir /var/lib/%{name}
 %ghost /var/lib/%{name}/dhcpd.leases
 %{_mandir}/man1/omshell.1*
@@ -350,7 +341,7 @@ fi
 %doc contrib/sethostname.sh
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/dhclient.conf
 %attr(755,root,root) /sbin/dhclient
-%attr(755,root,root) /sbin/dhclient-script
+#%attr(755,root,root) /sbin/dhclient-script
 %{_mandir}/man5/dhclient.conf.5*
 %{_mandir}/man5/dhclient.leases.5*
 %{_mandir}/man8/dhclient.8*
@@ -368,23 +359,24 @@ fi
 %files devel
 %defattr(644,root,root,755)
 %{_libdir}/libdhcpctl.a
+%{_libdir}/libdst.a
 %{_libdir}/libomapi.a
-%{_includedir}/dhcpctl.h
+%{_includedir}/dhcpctl
 %{_includedir}/isc-dhcp
 %{_includedir}/omapip
 %{_mandir}/man3/dhcpctl.3*
 %{_mandir}/man3/omapi.3*
 
-%files -n libdhcp4client
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/libdhcp4client-%{version}.so.0
+#%files -n libdhcp4client
+#%defattr(644,root,root,755)
+#%attr(755,root,root) %{_libdir}/libdhcp4client-%{version}.so.0
 
-%files -n libdhcp4client-devel
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/libdhcp4client.so
-%{_includedir}/dhcp4client
-%{_pkgconfigdir}/libdhcp4client.pc
+#%files -n libdhcp4client-devel
+#%defattr(644,root,root,755)
+#%attr(755,root,root) %{_libdir}/libdhcp4client.so
+#%{_includedir}/dhcp4client
+#%{_pkgconfigdir}/libdhcp4client.pc
 
-%files -n libdhcp4client-static
-%defattr(644,root,root,755)
-%{_libdir}/libdhcp4client.a
+#%files -n libdhcp4client-static
+#%defattr(644,root,root,755)
+#%{_libdir}/libdhcp4client.a
