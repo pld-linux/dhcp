@@ -24,13 +24,14 @@ Source6:	%{name}-libdhcp4client.pc
 Source7:	%{name}-dhcp4client.h
 Source8:	%{name}-libdhcp4client.make
 Source9:	%{name}-libdhcp_control.h
+Source10:	%{name}.schema
 Patch0:		%{name}-dhclient.script.patch
-Patch1:		%{name}-if_buffer_size.patch
-# http://home.ntelos.net/~masneyb/dhcp-3.0.5-ldap-patch
+Patch1:		%{name}-release-by-ifup.patch
+# from fedora 9-dev
 Patch2:		%{name}-ldap.patch
 Patch3:		%{name}-client-script-redhat.patch
 Patch4:		%{name}-3.0.3-x-option.patch
-Patch5:		%{name}-typo.patch
+
 Patch6:		%{name}-arg-concat.patch
 Patch7:		%{name}-split-VARDB.patch
 Patch8:		%{name}-timeouts.patch
@@ -38,6 +39,9 @@ Patch9:		%{name}-options.patch
 Patch10:	%{name}-libdhcp4client.patch
 Patch11:	%{name}-prototypes.patch
 URL:		http://www.isc.org/sw/dhcp/
+BuildRequires:	autoconf
+BuildRequires:	automake
+BuildRequires:	libtool
 BuildRequires:	groff
 %{?with_ldap:BuildRequires:	openldap-devel}
 %{?with_ldap:BuildRequires:	openssl-devel}
@@ -194,24 +198,19 @@ Statyczna biblioteka kliencka DHCP.
 %setup -q
 # CHECK ME
 #%patch0 -p1
-# CHECK ME
-#%patch1 -p1
-# FIXME
+%patch1 -p1
 %{?with_ldap:%patch2 -p1}
 # These two patches are required for dhcdbd to function
 %patch3 -p1
-# CHECK ME
+# CHECK ME, NO IDEA
 #%patch4 -p1
-#
-# CHECK ME
-#%patch5 -p1
 %patch6 -p1
-# CHECK ME
+# CHECK ME, NO IDEA
 #%patch7 -p1
 %patch8 -p1
 # CHECK ME
-#%patch9 -p1
-#%patch10 -p1
+%patch9 -p1
+%patch10 -p1
 %patch11 -p1
 
 sed 's/@DHCP_VERSION@/'%{version}'/' < %{SOURCE5} > libdhcp4client.pc
@@ -221,6 +220,12 @@ cp %{SOURCE8} libdhcp4client/Makefile.dist
 cp %{SOURCE9} includes/isc-dhcp/libdhcp_control.h
 
 %build
+%{__libtoolize}
+%{__aclocal}
+%{__autoconf}
+%{__autoheader}
+%{__automake}
+CFLAGS="%{rpmcflags} -fPIC"
 %configure \
 	--enable-dhcpv6 \
 	--with-srv-lease-file="/var/lib/%{name}/dhcpd.leases" \
@@ -242,7 +247,7 @@ install %{SOURCE5} $RPM_BUILD_ROOT/etc/sysconfig/dhcp-relay
 
 install server/dhcpd.conf $RPM_BUILD_ROOT%{_sysconfdir}
 %if %{with ldap}
-install contrib/dhcp.schema $RPM_BUILD_ROOT%{schemadir}
+install %{SOURCE10} $RPM_BUILD_ROOT%{schemadir}
 %endif
 
 touch $RPM_BUILD_ROOT%{_sysconfdir}/dhclient.conf
@@ -313,7 +318,6 @@ fi
 %files
 %defattr(644,root,root,755)
 %doc doc/* README RELNOTES server/dhcpd.conf LICENSE contrib/ms2isc
-%{?with_ldap:%doc README.ldap Changelog-LDAP contrib/dhcpd-conf-to-ldap.pl}
 %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/dhcpd
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/dhcpd.conf
 %attr(755,root,root) %{_bindir}/omshell
@@ -332,7 +336,6 @@ fi
 %if %{with ldap}
 %files -n openldap-schema-dhcp
 %defattr(644,root,root,755)
-%doc contrib/dhcpd-conf-to-ldap.pl
 %{schemadir}/dhcp.schema
 %endif
 
@@ -367,16 +370,16 @@ fi
 %{_mandir}/man3/dhcpctl.3*
 %{_mandir}/man3/omapi.3*
 
-#%files -n libdhcp4client
-#%defattr(644,root,root,755)
-#%attr(755,root,root) %{_libdir}/libdhcp4client-%{version}.so.0
+%files -n libdhcp4client
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/libdhcp4client-*.so.*
 
-#%files -n libdhcp4client-devel
-#%defattr(644,root,root,755)
-#%attr(755,root,root) %{_libdir}/libdhcp4client.so
-#%{_includedir}/dhcp4client
-#%{_pkgconfigdir}/libdhcp4client.pc
+%files -n libdhcp4client-devel
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/libdhcp4client.so
+%{_pkgconfigdir}/libdhcp4client.pc
+%{_libdir}/libdhcp4client.la
 
-#%files -n libdhcp4client-static
-#%defattr(644,root,root,755)
-#%{_libdir}/libdhcp4client.a
+%files -n libdhcp4client-static
+%defattr(644,root,root,755)
+%{_libdir}/libdhcp4client.a
