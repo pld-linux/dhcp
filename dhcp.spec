@@ -31,7 +31,7 @@ Patch1:		%{name}-release-by-ifup.patch
 Patch2:		%{name}-ldap.patch
 Patch3:		%{name}-client-script-redhat.patch
 Patch4:		%{name}-3.0.3-x-option.patch
-
+Patch5:		%{name}-paths.patch
 Patch6:		%{name}-arg-concat.patch
 Patch7:		%{name}-split-VARDB.patch
 Patch8:		%{name}-timeouts.patch
@@ -203,6 +203,7 @@ Statyczna biblioteka kliencka DHCP.
 %patch3 -p1
 # CHECK ME, NO IDEA
 #%patch4 -p1
+%patch5 -p1
 %patch6 -p1
 # CHECK ME, NO IDEA
 #%patch7 -p1
