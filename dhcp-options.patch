@@ -1,7 +1,7 @@
-diff -up dhcp-3.1.0/common/conflex.c.options dhcp-3.1.0/common/conflex.c
---- dhcp-3.1.0/common/conflex.c.options	2007-10-22 15:46:24.000000000 -0400
-+++ dhcp-3.1.0/common/conflex.c	2007-10-22 15:48:07.000000000 -0400
-@@ -599,6 +599,8 @@ static enum dhcp_token intern (atom, dfv
+diff -up dhcp-4.0.0/common/conflex.c.options dhcp-4.0.0/common/conflex.c
+--- dhcp-4.0.0/common/conflex.c.options	2007-12-29 11:13:51.000000000 -1000
++++ dhcp-4.0.0/common/conflex.c	2007-12-29 11:13:51.000000000 -1000
+@@ -769,6 +769,8 @@ intern(char *atom, enum dhcp_token dfv) 
  			return BALANCE;
  		if (!strcasecmp (atom + 1, "ound"))
  			return BOUND;
@@ -10,10 +10,10 @@ diff -up dhcp-3.1.0/common/conflex.c.options dhcp-3.1.0/common/conflex.c
  		break;
  	      case 'c':
  		if (!strcasecmp (atom + 1, "ase"))
-diff -up dhcp-3.1.0/includes/dhcpd.h.options dhcp-3.1.0/includes/dhcpd.h
---- dhcp-3.1.0/includes/dhcpd.h.options	2007-10-22 15:46:24.000000000 -0400
-+++ dhcp-3.1.0/includes/dhcpd.h	2007-10-22 15:48:21.000000000 -0400
-@@ -912,6 +912,9 @@ struct client_config {
+diff -up dhcp-4.0.0/includes/dhcpd.h.options dhcp-4.0.0/includes/dhcpd.h
+--- dhcp-4.0.0/includes/dhcpd.h.options	2007-12-29 11:13:51.000000000 -1000
++++ dhcp-4.0.0/includes/dhcpd.h	2007-12-29 11:13:51.000000000 -1000
+@@ -1055,6 +1055,9 @@ struct client_config {
  	int do_forward_update;		/* If nonzero, and if we have the
  					   information we need, update the
  					   A record for the address we get. */
@@ -23,25 +23,25 @@ diff -up dhcp-3.1.0/includes/dhcpd.h.options dhcp-3.1.0/includes/dhcpd.h
  };
  
  /* Per-interface state used in the dhcp client... */
-diff -up dhcp-3.1.0/includes/dhctoken.h.options dhcp-3.1.0/includes/dhctoken.h
---- dhcp-3.1.0/includes/dhctoken.h.options	2006-07-31 18:19:51.000000000 -0400
-+++ dhcp-3.1.0/includes/dhctoken.h	2007-10-22 15:49:24.000000000 -0400
-@@ -325,7 +325,8 @@ enum dhcp_token {
- 	MIN_BALANCE = 629,
- 	DOMAIN_LIST = 630,
- 	LEASEQUERY = 631,
--	EXECUTE = 632
-+	EXECUTE = 632,
-+	BOOTP_BROADCAST_ALWAYS = 633
+diff -up dhcp-4.0.0/includes/dhctoken.h.options dhcp-4.0.0/includes/dhctoken.h
+--- dhcp-4.0.0/includes/dhctoken.h.options	2007-10-31 09:13:33.000000000 -1000
++++ dhcp-4.0.0/includes/dhctoken.h	2007-12-29 11:13:51.000000000 -1000
+@@ -345,7 +345,8 @@ enum dhcp_token {
+ 	RANGE6 = 648,
+ 	WHITESPACE = 649,
+ 	TOKEN_ALSO = 650,
+-	AFTER = 651
++	AFTER = 651,
++	BOOTP_BROADCAST_ALWAYS = 652
  };
  
  #define is_identifier(x)	((x) >= FIRST_TOKEN &&	\
-diff -up dhcp-3.1.0/client/dhclient.c.options dhcp-3.1.0/client/dhclient.c
---- dhcp-3.1.0/client/dhclient.c.options	2007-05-22 16:37:04.000000000 -0400
-+++ dhcp-3.1.0/client/dhclient.c	2007-10-22 15:47:51.000000000 -0400
-@@ -38,6 +38,12 @@ static char ocopyright[] =
- #include "dhcpd.h"
- #include "version.h"
+diff -up dhcp-4.0.0/client/dhclient.c.options dhcp-4.0.0/client/dhclient.c
+--- dhcp-4.0.0/client/dhclient.c.options	2007-11-30 11:51:42.000000000 -1000
++++ dhcp-4.0.0/client/dhclient.c	2007-12-29 11:14:15.000000000 -1000
+@@ -37,6 +37,12 @@
+ #include <sys/wait.h>
+ #include <limits.h>
  
 +/*
 + * Defined in stdio.h when _GNU_SOURCE is set, but we don't want to define
@@ -52,19 +52,19 @@ diff -up dhcp-3.1.0/client/dhclient.c.options dhcp-3.1.0/client/dhclient.c
  TIME default_lease_time = 43200; /* 12 hours... */
  TIME max_lease_time = 86400; /* 24 hours... */
  
-@@ -74,6 +80,9 @@ int client_env_count=0;
- int onetry=0;
- int quiet=0;
+@@ -75,6 +81,9 @@ int onetry=0;
+ int quiet=1;
  int nowait=0;
+ char *mockup_relay = NULL;
 +int bootp_broadcast_always = 0;
 +
 +extern u_int32_t default_requested_options[];
- #ifdef EXTENDED_NEW_OPTION_INFO
- int extended_option_environment = 0;
- #endif
-@@ -101,6 +110,15 @@ int main (argc, argv, envp)
- 	int no_dhclient_pid = 0;
+ 
+ static void usage PROTO ((void));
+ 
+@@ -100,6 +109,15 @@ main(int argc, char **argv) {
  	int no_dhclient_script = 0;
+ 	int local_family_set = 0;
  	char *s;
 +	char *dhcp_client_identifier_arg = NULL;
 +	char *dhcp_host_name_arg = NULL;
@@ -76,11 +76,11 @@ diff -up dhcp-3.1.0/client/dhclient.c.options dhcp-3.1.0/client/dhclient.c
 +	char *arg_conf = NULL;
 +	int arg_conf_len = 0;
  
-         /* Make sure that file descriptors 0 (stdin), 1, (stdout), and
-            2 (stderr) are open. To do this, we assume that when we
-@@ -211,6 +229,88 @@ int main (argc, argv, envp)
+ 	/* Initialize client globals. */
+ 	memset(&default_duid, 0, sizeof(default_duid));
+@@ -224,6 +242,88 @@ main(int argc, char **argv) {
  		} else if (!strcmp (argv [i], "--version")) {
- 			log_info ("isc-dhclient-%s", DHCP_VERSION);
+ 			log_info ("isc-dhclient-%s", PACKAGE_VERSION);
  			exit (0);
 +		} else if (!strcmp (argv [i], "-I")) {
 +			if ((++i == argc) || (argv[i] == NULL) || (*(argv[i])=='\0')) {
@@ -88,8 +88,8 @@ diff -up dhcp-3.1.0/client/dhclient.c.options dhcp-3.1.0/client/dhclient.c
 +				return EXIT_FAILURE;
 +			}
 +
-+			if (strlen(argv[i]) >= DHCP_OPTION_LEN) {
-+				log_error("-I option dhcp-client-identifier string \"%s\" is too long - maximum length is: %d",  argv[i], DHCP_OPTION_LEN-1);
++			if (strlen(argv[i]) >= DHCP_MAX_OPTION_LEN) {
++				log_error("-I option dhcp-client-identifier string \"%s\" is too long - maximum length is: %d",  argv[i], DHCP_MAX_OPTION_LEN-1);
 +				exit(1);
 +			}
 +
@@ -102,8 +102,8 @@ diff -up dhcp-3.1.0/client/dhclient.c.options dhcp-3.1.0/client/dhclient.c
 +				return EXIT_FAILURE;
 +			}
 +
-+			if (strlen(argv[i]) >= DHCP_OPTION_LEN) {
-+				log_error("-H option host-name string \"%s\" is too long - maximum length is: %d",  argv[i], DHCP_OPTION_LEN-1);
++			if (strlen(argv[i]) >= DHCP_MAX_OPTION_LEN) {
++				log_error("-H option host-name string \"%s\" is too long - maximum length is: %d",  argv[i], DHCP_MAX_OPTION_LEN-1);
 +				exit(1);
 +			}
 +
@@ -119,8 +119,8 @@ diff -up dhcp-3.1.0/client/dhclient.c.options dhcp-3.1.0/client/dhclient.c
 +				return EXIT_FAILURE;
 +			}
 +
-+			if (strlen(argv[i]) >= DHCP_OPTION_LEN) {
-+				log_error("-F option fqdn.fqdn string \"%s\" is too long - maximum length is: %d",  argv[i], DHCP_OPTION_LEN-1);
++			if (strlen(argv[i]) >= DHCP_MAX_OPTION_LEN) {
++				log_error("-F option fqdn.fqdn string \"%s\" is too long - maximum length is: %d",  argv[i], DHCP_MAX_OPTION_LEN-1);
 +				exit(1);
 +			}
 +
@@ -151,8 +151,8 @@ diff -up dhcp-3.1.0/client/dhclient.c.options dhcp-3.1.0/client/dhclient.c
 +				return EXIT_FAILURE;
 +			}
 +
-+			if (strlen(argv[i]) >= DHCP_OPTION_LEN) {
-+				log_error("-V option vendor-class-identifier string \"%s\" is too long - maximum length is: %d",  argv[i], DHCP_OPTION_LEN-1);
++			if (strlen(argv[i]) >= DHCP_MAX_OPTION_LEN) {
++				log_error("-V option vendor-class-identifier string \"%s\" is too long - maximum length is: %d",  argv[i], DHCP_MAX_OPTION_LEN-1);
 +				exit(1);
 +			}
 +
@@ -164,10 +164,10 @@ diff -up dhcp-3.1.0/client/dhclient.c.options dhcp-3.1.0/client/dhclient.c
 +			}
 +
 +			dhclient_request_options=argv[i];
- #ifdef EXTENDED_NEW_OPTION_INFO
- 		} else if (!strcmp (argv [i], "-y")) {
- 		    extended_option_environment = 1;
-@@ -347,6 +447,167 @@ int main (argc, argv, envp)
+  		} else if (argv [i][0] == '-') {
+  		    usage ();
+ 		} else {
+@@ -370,6 +470,166 @@ main(int argc, char **argv) {
  	/* Parse the dhclient.conf file. */
  	read_client_conf ();
  
@@ -314,7 +314,6 @@ diff -up dhcp-3.1.0/client/dhclient.c.options dhcp-3.1.0/client/dhclient.c
 +
 +				if ((ip->client->config->reboot_timeout == 10) && (ip->client->config->reboot_timeout > ip->client->config->timeout))
 +					ip->client->config->reboot_timeout = ip->client->config->timeout;
-+
 +				if ((ip->client->config->backoff_cutoff == 15) && (ip->client->config->backoff_cutoff > top_level_config.backoff_cutoff))
 +					ip->client->config->backoff_cutoff = top_level_config.backoff_cutoff;
 +			}
@@ -335,7 +334,7 @@ diff -up dhcp-3.1.0/client/dhclient.c.options dhcp-3.1.0/client/dhclient.c
  	/* Parse the lease database. */
  	read_client_leases ();
  
-@@ -1978,7 +2239,8 @@ void make_discover (client, lease)
+@@ -2105,7 +2365,8 @@ void make_discover (client, lease)
  	client -> packet.xid = random ();
  	client -> packet.secs = 0; /* filled in by send_discover. */
  
@@ -345,7 +344,7 @@ diff -up dhcp-3.1.0/client/dhclient.c.options dhcp-3.1.0/client/dhclient.c
  		client -> packet.flags = 0;
  	else
  		client -> packet.flags = htons (BOOTP_BROADCAST);
-@@ -2065,7 +2327,9 @@ void make_request (client, lease)
+@@ -2189,7 +2450,9 @@ void make_request (client, lease)
  	} else {
  		memset (&client -> packet.ciaddr, 0,
  			sizeof client -> packet.ciaddr);
@@ -356,7 +355,7 @@ diff -up dhcp-3.1.0/client/dhclient.c.options dhcp-3.1.0/client/dhclient.c
  			client -> packet.flags = 0;
  		else
  			client -> packet.flags = htons (BOOTP_BROADCAST);
-@@ -2125,7 +2389,8 @@ void make_decline (client, lease)
+@@ -2248,7 +2511,8 @@ void make_decline (client, lease)
  	client -> packet.hops = 0;
  	client -> packet.xid = client -> xid;
  	client -> packet.secs = 0; /* Filled in by send_request. */
@@ -366,18 +365,18 @@ diff -up dhcp-3.1.0/client/dhclient.c.options dhcp-3.1.0/client/dhclient.c
  		client -> packet.flags = 0;
  	else
  		client -> packet.flags = htons (BOOTP_BROADCAST);
-diff -up dhcp-3.1.0/client/clparse.c.options dhcp-3.1.0/client/clparse.c
---- dhcp-3.1.0/client/clparse.c.options	2007-02-14 17:41:22.000000000 -0500
-+++ dhcp-3.1.0/client/clparse.c	2007-10-22 15:47:12.000000000 -0400
-@@ -84,6 +84,7 @@ isc_result_t read_client_conf ()
- 	top_level_config.requested_options = default_requested_options;
- 	top_level_config.omapi_port = -1;
- 	top_level_config.do_forward_update = 1;
+diff -up dhcp-4.0.0/client/clparse.c.options dhcp-4.0.0/client/clparse.c
+--- dhcp-4.0.0/client/clparse.c.options	2007-12-08 09:36:00.000000000 -1000
++++ dhcp-4.0.0/client/clparse.c	2007-12-29 11:13:51.000000000 -1000
+@@ -132,6 +132,7 @@ isc_result_t read_client_conf ()
+ 	/* Requested lease time, used by DHCPv6 (DHCPv4 uses the option cache)
+ 	 */
+ 	top_level_config.requested_lease = 7200;
 +	top_level_config.bootp_broadcast_always = 0;
  
  	group_allocate (&top_level_config.on_receipt, MDL);
  	if (!top_level_config.on_receipt)
-@@ -230,7 +231,8 @@ void read_client_leases ()
+@@ -295,7 +296,8 @@ void read_client_leases ()
  	interface-declaration |
  	LEASE client-lease-statement |
  	ALIAS client-lease-statement |
@@ -387,7 +386,7 @@ diff -up dhcp-3.1.0/client/clparse.c.options dhcp-3.1.0/client/clparse.c
  
  void parse_client_statement (cfile, ip, config)
  	struct parse *cfile;
-@@ -554,6 +556,12 @@ void parse_client_statement (cfile, ip, 
+@@ -685,6 +687,12 @@ void parse_client_statement (cfile, ip, 
  		parse_reject_statement (cfile, config);
  		return;
  
