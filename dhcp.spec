@@ -263,6 +263,9 @@ touch $RPM_BUILD_ROOT%{_sysconfdir}/dhclient.conf
 touch $RPM_BUILD_ROOT/var/lib/%{name}/dhcpd.leases
 touch $RPM_BUILD_ROOT/var/lib/dhclient/dhclient.leases
 
+touch $RPM_BUILD_ROOT/var/lib/%{name}/dhcpd6.leases
+touch $RPM_BUILD_ROOT/var/lib/dhclient/dhclient6.leases
+
 install libdhcp4client.pc $RPM_BUILD_ROOT%{_libdir}/pkgconfig/libdhcp4client.pc
 
 %clean
@@ -334,6 +337,7 @@ fi
 %attr(754,root,root) /etc/rc.d/init.d/dhcpd6
 %attr(750,root,root) %dir /var/lib/%{name}
 %ghost /var/lib/%{name}/dhcpd.leases
+%ghost /var/lib/%{name}/dhcpd6.leases
 %{_mandir}/man1/omshell.1*
 %{_mandir}/man5/dhcp-eval.5*
 %{_mandir}/man5/dhcp-options.5*
@@ -359,6 +363,7 @@ fi
 %{_mandir}/man8/dhclient-script.8*
 %attr(750,root,root) %dir /var/lib/dhclient
 %ghost /var/lib/dhclient/dhclient.leases
+%ghost /var/lib/dhclient/dhclient6.leases
 
 %files relay
 %defattr(644,root,root,755)
