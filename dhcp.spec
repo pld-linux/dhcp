@@ -196,8 +196,7 @@ Statyczna biblioteka kliencka DHCP.
 
 %prep
 %setup -q
-# CHECK ME
-#%patch0 -p1
+%patch0 -p1
 %patch1 -p1
 %{?with_ldap:%patch2 -p1}
 # These two patches are required for dhcdbd to function
@@ -208,7 +207,6 @@ Statyczna biblioteka kliencka DHCP.
 # CHECK ME, NO IDEA
 #%patch7 -p1
 %patch8 -p1
-# CHECK ME
 %patch9 -p1
 %patch10 -p1
 %patch11 -p1
