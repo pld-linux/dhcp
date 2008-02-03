@@ -1,21 +1,89 @@
-diff -up dhcp-3.1.0/omapip/dispatch.c.libdhcp4client dhcp-3.1.0/omapip/dispatch.c
---- dhcp-3.1.0/omapip/dispatch.c.libdhcp4client	2005-03-17 15:15:21.000000000 -0500
-+++ dhcp-3.1.0/omapip/dispatch.c	2007-10-24 14:55:56.000000000 -0400
-@@ -34,7 +34,7 @@
+diff -up dhcp-4.0.0/configure.ac.libdhcp4client dhcp-4.0.0/configure.ac
+--- dhcp-4.0.0/configure.ac.libdhcp4client	2007-12-14 08:24:56.000000000 -1000
++++ dhcp-4.0.0/configure.ac	2008-01-22 17:04:28.000000000 -1000
+@@ -1,5 +1,32 @@
+ AC_INIT([DHCP], [4.0.0], [dhcp-users@isc.org])
  
++dnl Versioning
++dnl (from glib's configure.in ...)
++dnl Making releases:
++dnl     DHCP_MICRO_VERSION += 1;
++dnl     DHCP_INTERFACE_AGE += 1;
++dnl     DHCP_BINARY_AGE += 1;
++dnl if any functions have been added, set DHCP_INTERFACE_AGE to 0.
++dnl if backwards compatibility has been broken (e.g., functions removed,
++dnl function signatures changed),
++dnl set DHCP_BINARY_AGE and DHCP_INTERFACE_AGE to 0.
++DHCP_MAJOR_VERSION=4
++DHCP_MINOR_VERSION=0
++DHCP_MICRO_VERSION=0
++DHCP_INTERFACE_AGE=0
++DHCP_BINARY_AGE=0
++DHCP_VERSION_SUFFIX=
++DHCP_VERSION=$DHCP_MAJOR_VERSION.$DHCP_MINOR_VERSION.$DHCP_MICRO_VERSION$DHCP_VERSION_SUFFIX
++
++LT_RELEASE=$DHCP_MAJOR_VERSION.$DHCP_MINOR_VERSION
++LT_CURRENT=`expr $DHCP_MICRO_VERSION - $DHCP_INTERFACE_AGE`
++LT_REVISION=$DHCP_INTERFACE_AGE
++AC_SUBST(DHCP_VERSION)
++AC_SUBST(LT_RELEASE)
++AC_SUBST(LT_CURRENT)
++AC_SUBST(LT_REVISION)
++AC_SUBST(LT_AGE)
++
+ # we specify "foreign" to avoid having to have the GNU mandated files,
+ # like AUTHORS, COPYING, and such
+ AM_INIT_AUTOMAKE([foreign])
+@@ -20,7 +47,8 @@ if test "$GCC" = "yes"; then
+ 	fi
+ fi
+ 
+-AC_PROG_RANLIB
++AC_PROG_LIBTOOL
++
+ AC_CONFIG_HEADERS([includes/config.h])
+ 
+ # we sometimes need to know byte order for building packets
+diff -up dhcp-4.0.0/omapip/Makefile.am.libdhcp4client dhcp-4.0.0/omapip/Makefile.am
+--- dhcp-4.0.0/omapip/Makefile.am.libdhcp4client	2007-05-29 06:32:11.000000000 -1000
++++ dhcp-4.0.0/omapip/Makefile.am	2008-01-22 17:04:28.000000000 -1000
+@@ -1,10 +1,18 @@
+ lib_LIBRARIES = libomapi.a
++noinst_LIBRARIES = libomapiLIBDHCP.a
+ noinst_PROGRAMS = svtest
+ 
+ libomapi_a_SOURCES = protocol.c buffer.c alloc.c result.c connection.c \
+ 		     errwarn.c listener.c dispatch.c generic.c support.c \
+ 		     handle.c message.c convert.c hash.c auth.c inet_addr.c \
+ 		     array.c trace.c mrtrace.c toisc.c iscprint.c
++
++libomapiLIBDHCP_a_CFLAGS = -DLIBDHCP
++libomapiLIBDHCP_a_SOURCES = alloc.c array.c auth.c buffer.c connection.c \
++		     convert.c dispatch.c errwarn.c handle.c hash.c listener.c \
++		     mrtrace.c result.c support.c toisc.c trace.c generic.c message.c \
++		     protocol.c
++
+ man_MANS = omapi.3
+ EXTRA_DIST = $(man_MANS)
+ 
+diff -up dhcp-4.0.0/omapip/dispatch.c.libdhcp4client dhcp-4.0.0/omapip/dispatch.c
+--- dhcp-4.0.0/omapip/dispatch.c.libdhcp4client	2007-11-30 11:51:43.000000000 -1000
++++ dhcp-4.0.0/omapip/dispatch.c	2008-01-22 17:04:28.000000000 -1000
+@@ -37,7 +37,7 @@
  #include <omapip/omapip_p.h>
+ #include <sys/time.h>
  
 -static omapi_io_object_t omapi_io_states;
 +omapi_io_object_t omapi_io_states;
- TIME cur_time;
+ time_t cur_time;
  
  OMAPI_OBJECT_ALLOC (omapi_io,
-diff -up dhcp-3.1.0/omapip/errwarn.c.libdhcp4client dhcp-3.1.0/omapip/errwarn.c
---- dhcp-3.1.0/omapip/errwarn.c.libdhcp4client	2007-10-24 14:55:56.000000000 -0400
-+++ dhcp-3.1.0/omapip/errwarn.c	2007-10-24 14:57:16.000000000 -0400
-@@ -39,6 +39,11 @@ static char copyright[] =
- #include <omapip/omapip_p.h>
+diff -up dhcp-4.0.0/omapip/errwarn.c.libdhcp4client dhcp-4.0.0/omapip/errwarn.c
+--- dhcp-4.0.0/omapip/errwarn.c.libdhcp4client	2008-01-22 17:04:28.000000000 -1000
++++ dhcp-4.0.0/omapip/errwarn.c	2008-01-22 17:04:28.000000000 -1000
+@@ -37,6 +37,11 @@
  #include <errno.h>
+ #include <syslog.h>
  
 +#ifdef LIBDHCP
 +#include <isc-dhcp/libdhcp_control.h>
@@ -25,7 +93,7 @@ diff -up dhcp-3.1.0/omapip/errwarn.c.libdhcp4client dhcp-3.1.0/omapip/errwarn.c
  #ifdef DEBUG
  int log_perror = -1;
  #else
-@@ -48,7 +53,9 @@ int log_priority;
+@@ -46,7 +51,9 @@ int log_priority;
  void (*log_cleanup) (void);
  
  #define CVT_BUF_MAX 1023
@@ -35,7 +103,7 @@ diff -up dhcp-3.1.0/omapip/errwarn.c.libdhcp4client dhcp-3.1.0/omapip/errwarn.c
  static char fbuf [CVT_BUF_MAX + 1];
  
  /* Log an error message, then exit... */
-@@ -58,6 +65,16 @@ void log_fatal (const char * fmt, ... )
+@@ -56,6 +63,16 @@ void log_fatal (const char * fmt, ... )
    va_list list;
  
    do_percentm (fbuf, fmt);
@@ -52,7 +120,7 @@ diff -up dhcp-3.1.0/omapip/errwarn.c.libdhcp4client dhcp-3.1.0/omapip/errwarn.c
  
    /* %Audit% This is log output. %2004.06.17,Safe%
     * If we truncate we hope the user can get a hint from the log.
-@@ -91,6 +108,7 @@ void log_fatal (const char * fmt, ... )
+@@ -89,6 +106,7 @@ void log_fatal (const char * fmt, ... )
    if (log_cleanup)
  	  (*log_cleanup) ();
    exit (1);
@@ -60,7 +128,7 @@ diff -up dhcp-3.1.0/omapip/errwarn.c.libdhcp4client dhcp-3.1.0/omapip/errwarn.c
  }
  
  /* Log an error message... */
-@@ -101,6 +119,13 @@ int log_error (const char * fmt, ...)
+@@ -99,6 +117,13 @@ int log_error (const char * fmt, ...)
  
    do_percentm (fbuf, fmt);
  
@@ -74,7 +142,7 @@ diff -up dhcp-3.1.0/omapip/errwarn.c.libdhcp4client dhcp-3.1.0/omapip/errwarn.c
    /* %Audit% This is log output. %2004.06.17,Safe%
     * If we truncate we hope the user can get a hint from the log.
     */
-@@ -116,7 +141,7 @@ int log_error (const char * fmt, ...)
+@@ -114,7 +139,7 @@ int log_error (const char * fmt, ...)
  	  write (STDERR_FILENO, mbuf, strlen (mbuf));
  	  write (STDERR_FILENO, "\n", 1);
    }
@@ -83,7 +151,7 @@ diff -up dhcp-3.1.0/omapip/errwarn.c.libdhcp4client dhcp-3.1.0/omapip/errwarn.c
    return 0;
  }
  
-@@ -128,6 +153,13 @@ int log_info (const char *fmt, ...)
+@@ -126,6 +151,13 @@ int log_info (const char *fmt, ...)
  
    do_percentm (fbuf, fmt);
  
@@ -97,7 +165,7 @@ diff -up dhcp-3.1.0/omapip/errwarn.c.libdhcp4client dhcp-3.1.0/omapip/errwarn.c
    /* %Audit% This is log output. %2004.06.17,Safe%
     * If we truncate we hope the user can get a hint from the log.
     */
-@@ -143,7 +175,7 @@ int log_info (const char *fmt, ...)
+@@ -141,7 +173,7 @@ int log_info (const char *fmt, ...)
  	  write (STDERR_FILENO, mbuf, strlen (mbuf));
  	  write (STDERR_FILENO, "\n", 1);
    }
@@ -106,7 +174,7 @@ diff -up dhcp-3.1.0/omapip/errwarn.c.libdhcp4client dhcp-3.1.0/omapip/errwarn.c
    return 0;
  }
  
-@@ -154,7 +186,13 @@ int log_debug (const char *fmt, ...)
+@@ -152,7 +184,13 @@ int log_debug (const char *fmt, ...)
    va_list list;
  
    do_percentm (fbuf, fmt);
@@ -121,7 +189,7 @@ diff -up dhcp-3.1.0/omapip/errwarn.c.libdhcp4client dhcp-3.1.0/omapip/errwarn.c
    /* %Audit% This is log output. %2004.06.17,Safe%
     * If we truncate we hope the user can get a hint from the log.
     */
-@@ -170,7 +208,7 @@ int log_debug (const char *fmt, ...)
+@@ -168,7 +206,7 @@ int log_debug (const char *fmt, ...)
  	  write (STDERR_FILENO, mbuf, strlen (mbuf));
  	  write (STDERR_FILENO, "\n", 1);
    }
@@ -130,10 +198,10 @@ diff -up dhcp-3.1.0/omapip/errwarn.c.libdhcp4client dhcp-3.1.0/omapip/errwarn.c
    return 0;
  }
  
-diff -up dhcp-3.1.0/omapip/alloc.c.libdhcp4client dhcp-3.1.0/omapip/alloc.c
---- dhcp-3.1.0/omapip/alloc.c.libdhcp4client	2006-02-24 18:16:30.000000000 -0500
-+++ dhcp-3.1.0/omapip/alloc.c	2007-10-24 14:55:56.000000000 -0400
-@@ -40,6 +40,33 @@ static char copyright[] =
+diff -up dhcp-4.0.0/omapip/alloc.c.libdhcp4client dhcp-4.0.0/omapip/alloc.c
+--- dhcp-4.0.0/omapip/alloc.c.libdhcp4client	2007-07-12 20:43:42.000000000 -1000
++++ dhcp-4.0.0/omapip/alloc.c	2008-01-22 17:04:28.000000000 -1000
+@@ -37,6 +37,33 @@
  
  #include <omapip/omapip_p.h>
  
@@ -167,8 +235,8 @@ diff -up dhcp-3.1.0/omapip/alloc.c.libdhcp4client dhcp-3.1.0/omapip/alloc.c
  #if defined (DEBUG_MEMORY_LEAKAGE) || defined (DEBUG_MALLOC_POOL) || \
  		defined (DEBUG_MEMORY_LEAKAGE_ON_EXIT)
  struct dmalloc_preamble *dmalloc_list;
-@@ -78,7 +105,9 @@ VOIDPTR dmalloc (size, file, line)
- 		return (VOIDPTR)0;
+@@ -72,7 +99,9 @@ dmalloc(unsigned size, const char *file,
+ 		return NULL;
  
  	foo = malloc(len);
 -
@@ -176,9 +244,9 @@ diff -up dhcp-3.1.0/omapip/alloc.c.libdhcp4client dhcp-3.1.0/omapip/alloc.c
 +	record_pointer(foo);
 +#endif
  	if (!foo)
- 		return (VOIDPTR)0;
- 	bar = (VOIDPTR)(foo + DMDOFFSET);
-@@ -200,6 +229,9 @@ void dfree (ptr, file, line)
+ 		return NULL;
+ 	bar = (void *)(foo + DMDOFFSET);
+@@ -191,6 +220,9 @@ dfree(void *ptr, const char *file, int l
  		     0, (unsigned char *)ptr + DMDOFFSET, 0, 1, RC_MALLOC);
  #endif
  	free (ptr);
@@ -188,22 +256,31 @@ diff -up dhcp-3.1.0/omapip/alloc.c.libdhcp4client dhcp-3.1.0/omapip/alloc.c
  }
  
  #if defined (DEBUG_MEMORY_LEAKAGE) || defined (DEBUG_MALLOC_POOL) || \
-diff -up dhcp-3.1.0/configure.libdhcp4client dhcp-3.1.0/configure
---- dhcp-3.1.0/configure.libdhcp4client	2005-03-17 15:14:55.000000000 -0500
-+++ dhcp-3.1.0/configure	2007-10-24 14:55:56.000000000 -0400
-@@ -246,7 +246,7 @@ if [ ! -d $workname ]; then
- fi
+diff -up dhcp-4.0.0/dst/Makefile.am.libdhcp4client dhcp-4.0.0/dst/Makefile.am
+--- dhcp-4.0.0/dst/Makefile.am.libdhcp4client	2008-01-22 17:04:28.000000000 -1000
++++ dhcp-4.0.0/dst/Makefile.am	2008-01-22 17:04:28.000000000 -1000
+@@ -2,7 +2,7 @@ AM_CPPFLAGS = -DMINIRES_LIB -DHMAC_MD5
  
- if [ x"$dirs" = x ]; then
--  dirs=". client server relay common omapip dhcpctl minires dst"
-+  dirs=". client server relay common omapip dhcpctl minires dst libdhcp4client"
- fi
+ lib_LIBRARIES = libdst.a
  
- for foo in $dirs; do
-diff -up dhcp-3.1.0/dst/hmac_link.c.libdhcp4client dhcp-3.1.0/dst/hmac_link.c
---- dhcp-3.1.0/dst/hmac_link.c.libdhcp4client	2001-02-22 02:22:08.000000000 -0500
-+++ dhcp-3.1.0/dst/hmac_link.c	2007-10-24 14:55:56.000000000 -0400
-@@ -38,6 +38,10 @@ static const char rcsid[] = "$Header: /p
+-noinst_LIBRARIES = libdstnomd5.a
++noinst_LIBRARIES = libdstnomd5.a libdstLIBDHCP.a
+ 
+ libdst_a_SOURCES = dst_support.c dst_api.c hmac_link.c md5_dgst.c \
+ 		   base64.c prandom.c
+@@ -10,4 +10,8 @@ libdst_a_SOURCES = dst_support.c dst_api
+ libdstnomd5_a_SOURCES = dst_support.c dst_api.c hmac_link.c \
+ 		   base64.c prandom.c
+ 
++libdstLIBDHCP_a_CFLAGS = -DLIBDHCP
++libdstLIBDHCP_a_SOURCES = dst_support.c dst_api.c hmac_link.c md5_dgst.c \
++		   base64.c prandom.c
++
+ EXTRA_DIST = dst_internal.h md5.h md5_locl.h
+diff -up dhcp-4.0.0/dst/hmac_link.c.libdhcp4client dhcp-4.0.0/dst/hmac_link.c
+--- dhcp-4.0.0/dst/hmac_link.c.libdhcp4client	2007-12-05 14:50:22.000000000 -1000
++++ dhcp-4.0.0/dst/hmac_link.c	2008-01-22 17:04:28.000000000 -1000
+@@ -39,6 +39,10 @@ static const char rcsid[] = "$Header: /p
  
  #include "dst_internal.h"
  
@@ -214,7 +291,7 @@ diff -up dhcp-3.1.0/dst/hmac_link.c.libdhcp4client dhcp-3.1.0/dst/hmac_link.c
  #ifdef USE_MD5
  # include "md5.h"
  # ifndef _MD5_H_
-@@ -86,7 +90,11 @@ dst_hmac_md5_sign(const int mode, DST_KE
+@@ -87,7 +91,11 @@ dst_hmac_md5_sign(const int mode, DST_KE
  	MD5_CTX *ctx = NULL;
  
  	if (mode & SIG_MODE_INIT) 
@@ -226,7 +303,7 @@ diff -up dhcp-3.1.0/dst/hmac_link.c.libdhcp4client dhcp-3.1.0/dst/hmac_link.c
  	else if (context)
  		ctx = (MD5_CTX *) *context;
  	if (ctx == NULL) 
-@@ -153,7 +161,11 @@ dst_hmac_md5_verify(const int mode, DST_
+@@ -154,7 +162,11 @@ dst_hmac_md5_verify(const int mode, DST_
  	MD5_CTX *ctx = NULL;
  
  	if (mode & SIG_MODE_INIT) 
@@ -238,7 +315,7 @@ diff -up dhcp-3.1.0/dst/hmac_link.c.libdhcp4client dhcp-3.1.0/dst/hmac_link.c
  	else if (context)
  		ctx = (MD5_CTX *) *context;
  	if (ctx == NULL) 
-@@ -217,8 +229,11 @@ dst_buffer_to_hmac_md5(DST_KEY *dkey, co
+@@ -218,8 +230,11 @@ dst_buffer_to_hmac_md5(DST_KEY *dkey, co
  
  	if (dkey == NULL || key == NULL || keylen < 0)
  		return (-1);
@@ -251,7 +328,7 @@ diff -up dhcp-3.1.0/dst/hmac_link.c.libdhcp4client dhcp-3.1.0/dst/hmac_link.c
  		  return (-2);
  
  	memset(hkey->hk_ipad, 0, sizeof(hkey->hk_ipad));
-@@ -347,7 +362,11 @@ dst_hmac_md5_key_from_file_format(DST_KE
+@@ -348,7 +363,11 @@ dst_hmac_md5_key_from_file_format(DST_KE
  	if (eol == NULL)
  		return (-4);
  	len = eol - p;
@@ -263,7 +340,7 @@ diff -up dhcp-3.1.0/dst/hmac_link.c.libdhcp4client dhcp-3.1.0/dst/hmac_link.c
  	memcpy(tmp, p, len);
  	*(tmp + len) = 0x0;
  	key_len = b64_pton((char *)tmp, key, HMAC_LEN+1);	/* see above */
-@@ -439,8 +458,11 @@ dst_hmac_md5_generate_key(DST_KEY *key, 
+@@ -440,8 +459,11 @@ dst_hmac_md5_generate_key(DST_KEY *key, 
  		return(0);
  	
  	len = size > 64 ? 64 : size;
@@ -276,7 +353,7 @@ diff -up dhcp-3.1.0/dst/hmac_link.c.libdhcp4client dhcp-3.1.0/dst/hmac_link.c
  	n = dst_random(DST_RAND_SEMI, len, buff);
  	n += dst_random(DST_RAND_KEY, len, buff);
  	if (n <= len) {	/* failed getting anything */
-@@ -463,7 +485,11 @@ dst_hmac_md5_init()
+@@ -464,7 +486,11 @@ dst_hmac_md5_init()
  {
  	if (dst_t_func[KEY_HMAC_MD5] != NULL)
  		return (1);
@@ -288,10 +365,32 @@ diff -up dhcp-3.1.0/dst/hmac_link.c.libdhcp4client dhcp-3.1.0/dst/hmac_link.c
  	if (dst_t_func[KEY_HMAC_MD5] == NULL)
  		return (0);
  	memset(dst_t_func[KEY_HMAC_MD5], 0, sizeof(struct dst_func));
-diff -up dhcp-3.1.0/common/discover.c.libdhcp4client dhcp-3.1.0/common/discover.c
---- dhcp-3.1.0/common/discover.c.libdhcp4client	2006-11-07 18:41:39.000000000 -0500
-+++ dhcp-3.1.0/common/discover.c	2007-10-24 14:55:56.000000000 -0400
-@@ -121,6 +121,10 @@ isc_result_t interface_initialize (omapi
+diff -up dhcp-4.0.0/common/Makefile.am.libdhcp4client dhcp-4.0.0/common/Makefile.am
+--- dhcp-4.0.0/common/Makefile.am.libdhcp4client	2007-11-16 01:04:11.000000000 -1000
++++ dhcp-4.0.0/common/Makefile.am	2008-01-22 17:04:28.000000000 -1000
+@@ -1,11 +1,17 @@
+ AM_CPPFLAGS = -I.. -DLOCALSTATEDIR='"@localstatedir@"'
+ 
+-noinst_LIBRARIES = libdhcp.a
++noinst_LIBRARIES = libdhcp.a libdhcpLIBDHCP.a
+ libdhcp_a_SOURCES = alloc.c bpf.c comapi.c conflex.c ctrace.c discover.c \
+ 		    dispatch.c dlpi.c dns.c ethernet.c execute.c fddi.c \
+ 		    icmp.c inet.c lpf.c memory.c nit.c options.c packet.c \
+ 		    parse.c print.c raw.c resolv.c socket.c tables.c tr.c \
+ 		    tree.c upf.c heap.c
++libdhcpLIBDHCP_a_CFLAGS = -DLIBDHCP
++libdhcpLIBDHCP_a_SOURCES = alloc.c bpf.c comapi.c conflex.c ctrace.c \
++		    discover.c dispatch.c dlpi.c dns.c ethernet.c \
++		    execute.c inet.c lpf.c memory.c nit.c options.c \
++		    packet.c parse.c print.c resolv.c socket.c \
++		    tables.c tr.c tree.c upf.c
+ man_MANS = dhcp-eval.5 dhcp-options.5
+ EXTRA_DIST = $(man_MANS)
+ 
+diff -up dhcp-4.0.0/common/discover.c.libdhcp4client dhcp-4.0.0/common/discover.c
+--- dhcp-4.0.0/common/discover.c.libdhcp4client	2007-10-05 12:29:51.000000000 -1000
++++ dhcp-4.0.0/common/discover.c	2008-01-22 17:04:28.000000000 -1000
+@@ -883,6 +883,10 @@ add_ipv6_addr_to_interface(struct interf
     register that interface with the network I/O software, figure out what
     subnet it's on, and add it to the list of interfaces. */
  
@@ -299,50 +398,50 @@ diff -up dhcp-3.1.0/common/discover.c.libdhcp4client dhcp-3.1.0/common/discover.
 +int have_setup_fallback = 0;
 +#endif
 +
- void discover_interfaces (state)
- 	int state;
- {
-@@ -141,7 +145,9 @@ void discover_interfaces (state)
- 	char *s;
- #endif
+ void 
+ discover_interfaces(int state) {
+ 	struct iface_conf_list ifaces;
+@@ -902,7 +906,9 @@ discover_interfaces(int state) {
  	isc_result_t status;
+ 	int wifcount = 0;
+ 
 +#ifndef LIBDHCP
  	static int setup_fallback = 0;
 +#endif
- 	int wifcount = 0;
  
- 	/* Create an unbound datagram socket to do the SIOCGIFADDR ioctl on. */
-@@ -695,10 +701,17 @@ void discover_interfaces (state)
+ 	if (!begin_iface_scan(&ifaces)) {
+ 		log_fatal("Can't get list of interfaces.");
+@@ -1242,10 +1248,17 @@ discover_interfaces(int state) {
  		log_fatal ("Not configured to listen on any interfaces!");
  	}
  
 +#ifdef LIBDHCP
-+	if (!have_setup_fallback) {
++	if ((local_family == AF_INET) && !have_setup_fallback) {
 +		have_setup_fallback = 1;
 +		maybe_setup_fallback ();
 +	}
 +#else
- 	if (!setup_fallback) {
+ 	if ((local_family == AF_INET) && !setup_fallback) {
  		setup_fallback = 1;
- 		maybe_setup_fallback ();
+ 		maybe_setup_fallback();
  	}
 +#endif
  
- #if defined (HAVE_SETFD)
+ #if defined (F_SETFD)
  	if (fallback_interface) {
-diff -up dhcp-3.1.0/common/tree.c.libdhcp4client dhcp-3.1.0/common/tree.c
---- dhcp-3.1.0/common/tree.c.libdhcp4client	2007-02-14 17:41:22.000000000 -0500
-+++ dhcp-3.1.0/common/tree.c	2007-10-24 14:55:56.000000000 -0400
-@@ -41,7 +41,7 @@ static char copyright[] =
- #include <omapip/omapip_p.h>
- #include <ctype.h>
+diff -up dhcp-4.0.0/common/tree.c.libdhcp4client dhcp-4.0.0/common/tree.c
+--- dhcp-4.0.0/common/tree.c.libdhcp4client	2007-08-22 03:41:37.000000000 -1000
++++ dhcp-4.0.0/common/tree.c	2008-01-22 17:04:28.000000000 -1000
+@@ -41,7 +41,7 @@
+ # include <regex.h>
+ #endif
  
 -struct binding_scope *global_scope;
 +struct binding_scope __attribute__ ((visibility ("default"))) *global_scope;
  
  static int do_host_lookup PROTO ((struct data_string *,
  				  struct dns_host_entry *));
-@@ -2761,6 +2761,7 @@ int evaluate_numeric_expression (result,
+@@ -2859,6 +2859,7 @@ int evaluate_numeric_expression (result,
     result of that evaluation.   There should never be both an expression
     and a valid data_string. */
  
@@ -350,21 +449,21 @@ diff -up dhcp-3.1.0/common/tree.c.libdhcp4client dhcp-3.1.0/common/tree.c
  int evaluate_option_cache (result, packet, lease, client_state,
  			   in_options, cfg_options, scope, oc, file, line)
  	struct data_string *result;
-diff -up dhcp-3.1.0/common/options.c.libdhcp4client dhcp-3.1.0/common/options.c
---- dhcp-3.1.0/common/options.c.libdhcp4client	2007-05-23 15:26:22.000000000 -0400
-+++ dhcp-3.1.0/common/options.c	2007-10-24 14:55:56.000000000 -0400
-@@ -2501,6 +2501,7 @@ int fqdn_option_space_encapsulate (resul
- 	return 1;
+diff -up dhcp-4.0.0/common/options.c.libdhcp4client dhcp-4.0.0/common/options.c
+--- dhcp-4.0.0/common/options.c.libdhcp4client	2007-11-30 11:51:43.000000000 -1000
++++ dhcp-4.0.0/common/options.c	2008-01-22 17:04:28.000000000 -1000
+@@ -3392,6 +3392,7 @@ fqdn6_universe_decode(struct option_stat
+ 	return 0;
  }
  
 +__attribute__ ((visibility ("default")))
  void option_space_foreach (struct packet *packet, struct lease *lease,
  			   struct client_state *client_state,
  			   struct option_state *in_options,
-diff -up dhcp-3.1.0/common/dispatch.c.libdhcp4client dhcp-3.1.0/common/dispatch.c
---- dhcp-3.1.0/common/dispatch.c.libdhcp4client	2007-10-24 14:55:56.000000000 -0400
-+++ dhcp-3.1.0/common/dispatch.c	2007-10-24 14:55:56.000000000 -0400
-@@ -39,8 +39,24 @@ static char copyright[] =
+diff -up dhcp-4.0.0/common/dispatch.c.libdhcp4client dhcp-4.0.0/common/dispatch.c
+--- dhcp-4.0.0/common/dispatch.c.libdhcp4client	2008-01-22 17:04:28.000000000 -1000
++++ dhcp-4.0.0/common/dispatch.c	2008-01-22 17:04:28.000000000 -1000
+@@ -34,8 +34,24 @@
  
  #include "dhcpd.h"
  
@@ -391,7 +490,7 @@ diff -up dhcp-3.1.0/common/dispatch.c.libdhcp4client dhcp-3.1.0/common/dispatch.
  
  void set_time(TIME t)
  {
-@@ -53,9 +69,41 @@ void set_time(TIME t)
+@@ -48,9 +64,41 @@ void set_time(TIME t)
  
  struct timeval *process_outstanding_timeouts (struct timeval *tvp)
  {
@@ -433,7 +532,7 @@ diff -up dhcp-3.1.0/common/dispatch.c.libdhcp4client dhcp-3.1.0/common/dispatch.
        another:
  	if (timeouts) {
  		struct timeout *t;
-@@ -73,9 +121,15 @@ struct timeval *process_outstanding_time
+@@ -68,9 +116,15 @@ struct timeval *process_outstanding_time
  			tvp -> tv_sec = timeouts -> when;
  			tvp -> tv_usec = 0;
  		}
@@ -449,7 +548,7 @@ diff -up dhcp-3.1.0/common/dispatch.c.libdhcp4client dhcp-3.1.0/common/dispatch.
  }
  
  /* Wait for packets to come in using select().   When one does, call
-@@ -104,13 +158,28 @@ void add_timeout (when, where, what, ref
+@@ -99,13 +153,28 @@ void add_timeout (when, where, what, ref
  	tvref_t ref;
  	tvunref_t unref;
  {
@@ -480,7 +579,7 @@ diff -up dhcp-3.1.0/common/dispatch.c.libdhcp4client dhcp-3.1.0/common/dispatch.
  			if (t)
  				t -> next = q -> next;
  			else
-@@ -119,7 +188,29 @@ void add_timeout (when, where, what, ref
+@@ -114,7 +183,29 @@ void add_timeout (when, where, what, ref
  		}
  		t = q;
  	}
@@ -510,7 +609,7 @@ diff -up dhcp-3.1.0/common/dispatch.c.libdhcp4client dhcp-3.1.0/common/dispatch.
  	/* If we didn't supersede a timeout, allocate a timeout
  	   structure now. */
  	if (!q) {
-@@ -128,7 +219,7 @@ void add_timeout (when, where, what, ref
+@@ -123,7 +214,7 @@ void add_timeout (when, where, what, ref
  			free_timeouts = q -> next;
  		} else {
  			q = ((struct timeout *)
@@ -519,7 +618,7 @@ diff -up dhcp-3.1.0/common/dispatch.c.libdhcp4client dhcp-3.1.0/common/dispatch.
  			if (!q)
  				log_fatal ("add_timeout: no memory!");
  		}
-@@ -158,22 +249,76 @@ void add_timeout (when, where, what, ref
+@@ -153,22 +244,76 @@ void add_timeout (when, where, what, ref
  		if (t -> next -> when > q -> when) {
  			q -> next = t -> next;
  			t -> next = q;
@@ -596,7 +695,7 @@ diff -up dhcp-3.1.0/common/dispatch.c.libdhcp4client dhcp-3.1.0/common/dispatch.
  	t = (struct timeout *)0;
  	for (q = timeouts; q; q = q -> next) {
  		if (q -> func == where && q -> what == what) {
-@@ -193,10 +338,15 @@ void cancel_timeout (where, what)
+@@ -188,10 +333,15 @@ void cancel_timeout (where, what)
  		q -> next = free_timeouts;
  		free_timeouts = q;
  	}
@@ -612,7 +711,7 @@ diff -up dhcp-3.1.0/common/dispatch.c.libdhcp4client dhcp-3.1.0/common/dispatch.
  	struct timeout *t, *n;
  	for (t = timeouts; t; t = n) {
  		n = t -> next;
-@@ -205,13 +355,20 @@ void cancel_all_timeouts ()
+@@ -200,13 +350,20 @@ void cancel_all_timeouts ()
  		t -> next = free_timeouts;
  		free_timeouts = t;
  	}
@@ -633,10 +732,10 @@ diff -up dhcp-3.1.0/common/dispatch.c.libdhcp4client dhcp-3.1.0/common/dispatch.
  	}
 +#endif
  }
-diff -up dhcp-3.1.0/common/alloc.c.libdhcp4client dhcp-3.1.0/common/alloc.c
---- dhcp-3.1.0/common/alloc.c.libdhcp4client	2006-06-01 16:23:17.000000000 -0400
-+++ dhcp-3.1.0/common/alloc.c	2007-10-24 14:55:56.000000000 -0400
-@@ -1013,7 +1013,11 @@ int executable_statement_reference (ptr,
+diff -up dhcp-4.0.0/common/alloc.c.libdhcp4client dhcp-4.0.0/common/alloc.c
+--- dhcp-4.0.0/common/alloc.c.libdhcp4client	2007-10-23 14:54:11.000000000 -1000
++++ dhcp-4.0.0/common/alloc.c	2008-01-22 17:04:28.000000000 -1000
+@@ -1004,7 +1004,11 @@ int executable_statement_reference (ptr,
  	return 1;
  }
  
@@ -648,10 +747,10 @@ diff -up dhcp-3.1.0/common/alloc.c.libdhcp4client dhcp-3.1.0/common/alloc.c
  
  #if defined (DEBUG_MEMORY_LEAKAGE) || \
  		defined (DEBUG_MEMORY_LEAKAGE_ON_EXIT)
-diff -up dhcp-3.1.0/includes/dhcpd.h.libdhcp4client dhcp-3.1.0/includes/dhcpd.h
---- dhcp-3.1.0/includes/dhcpd.h.libdhcp4client	2007-10-24 14:55:56.000000000 -0400
-+++ dhcp-3.1.0/includes/dhcpd.h	2007-10-24 14:55:56.000000000 -0400
-@@ -1000,14 +1000,6 @@ struct hardware_link {
+diff -up dhcp-4.0.0/includes/dhcpd.h.libdhcp4client dhcp-4.0.0/includes/dhcpd.h
+--- dhcp-4.0.0/includes/dhcpd.h.libdhcp4client	2008-01-22 17:04:28.000000000 -1000
++++ dhcp-4.0.0/includes/dhcpd.h	2008-01-22 17:05:02.000000000 -1000
+@@ -1199,14 +1199,6 @@ struct hardware_link {
  
  typedef void (*tvref_t)(void *, void *, const char *, int);
  typedef void (*tvunref_t)(void *, const char *, int);
@@ -666,19 +765,60 @@ diff -up dhcp-3.1.0/includes/dhcpd.h.libdhcp4client dhcp-3.1.0/includes/dhcpd.h
  
  struct protocol {
  	struct protocol *next;
-@@ -1960,7 +1952,6 @@ extern void (*bootp_packet_handler) PROT
- 					    struct dhcp_packet *, unsigned,
- 					    unsigned int,
- 					    struct iaddr, struct hardware *));
+@@ -1664,7 +1656,6 @@ extern const char *path_dhcpd_pid;
+ 
+ extern int dhcp_max_agent_option_packet_length;
+ 
+-int main(int, char **);
+ void postconf_initialization(int);
+ void postdb_startup(void);
+ void cleanup PROTO ((void));
+@@ -2337,7 +2328,6 @@ extern void (*bootp_packet_handler) PROT
+ extern void (*dhcpv6_packet_handler)(struct interface_info *,
+ 				     const char *, int,
+ 				     int, const struct iaddr *, isc_boolean_t);
 -extern struct timeout *timeouts;
  extern omapi_object_type_t *dhcp_type_interface;
  #if defined (TRACING)
- trace_type_t *interface_trace;
-diff -up dhcp-3.1.0/client/dhclient.c.libdhcp4client dhcp-3.1.0/client/dhclient.c
---- dhcp-3.1.0/client/dhclient.c.libdhcp4client	2007-10-24 14:55:56.000000000 -0400
-+++ dhcp-3.1.0/client/dhclient.c	2007-10-24 14:56:20.000000000 -0400
-@@ -82,16 +82,52 @@ int quiet=0;
- int nowait=0;
+ extern trace_type_t *interface_trace;
+@@ -2392,6 +2382,10 @@ extern struct universe dhcpv6_universe;
+ extern struct universe nwip_universe;
+ extern struct universe fqdn_universe;
+ extern struct universe vsio_universe;
++extern struct universe vendor_class_universe;
++extern struct universe vendor_universe;
++extern struct universe isc_universe;
++extern struct universe isc6_universe;
+ extern int dhcp_option_default_priority_list [];
+ extern int dhcp_option_default_priority_list_count;
+ extern const char *hardware_types [256];
+diff -up dhcp-4.0.0/client/Makefile.am.libdhcp4client dhcp-4.0.0/client/Makefile.am
+--- dhcp-4.0.0/client/Makefile.am.libdhcp4client	2007-12-12 09:23:42.000000000 -1000
++++ dhcp-4.0.0/client/Makefile.am	2008-01-22 17:04:28.000000000 -1000
+@@ -1,10 +1,18 @@
+ dist_sysconf_DATA = dhclient.conf
+ sbin_PROGRAMS = dhclient
++lib_LTLIBRARIES = libdhcp4client.la
+ dhclient_SOURCES = clparse.c dhclient.c dhc6.c \
+ 		   scripts/bsdos scripts/freebsd scripts/linux scripts/netbsd \
+ 		   scripts/nextstep scripts/openbsd scripts/solaris
+ dhclient_LDADD = ../common/libdhcp.a ../minires/libres.a \
+ 		 ../omapip/libomapi.a ../dst/libdst.a
++libdhcp4client_la_CFLAGS = -DLIBDHCP -DLOCALSTATEDIR='"@localstatedir@"'
++libdhcp4client_la_LDFLAGS = -version-info \
++		 $(LT_CURRENT):$(LT_REVISION):$(LT_AGE) \
++		 -release $(LT_RELEASE)
++libdhcp4client_la_SOURCES = clparse.c dhclient.c dhc6.c
++libdhcp4client_la_LIBADD = ../common/libdhcpLIBDHCP.a ../minires/libres.a \
++		 ../omapip/libomapiLIBDHCP.a ../dst/libdstLIBDHCP.a
+ man_MANS = dhclient.8 dhclient-script.8 dhclient.conf.5 dhclient.leases.5
+ EXTRA_DIST = $(man_MANS)
+ 
+diff -up dhcp-4.0.0/client/dhclient.c.libdhcp4client dhcp-4.0.0/client/dhclient.c
+--- dhcp-4.0.0/client/dhclient.c.libdhcp4client	2008-01-22 17:04:28.000000000 -1000
++++ dhcp-4.0.0/client/dhclient.c	2008-01-22 17:05:47.000000000 -1000
+@@ -83,14 +83,50 @@ int nowait=0;
+ char *mockup_relay = NULL;
  int bootp_broadcast_always = 0;
  
 +#ifdef LIBDHCP
@@ -686,11 +826,13 @@ diff -up dhcp-3.1.0/client/dhclient.c.libdhcp4client dhcp-3.1.0/client/dhclient.
 +#endif
 +
  extern u_int32_t default_requested_options[];
- #ifdef EXTENDED_NEW_OPTION_INFO
- int extended_option_environment = 0;
- #endif
+ 
  static void usage PROTO ((void));
  
+ static isc_result_t write_duid(struct data_string *duid);
+ 
+-int 
+-main(int argc, char **argv) {
 +#ifdef LIBDHCP
 +#include "isc-dhcp/libdhcp_control.h"
 +LIBDHCP_Control *libdhcp_control;
@@ -716,56 +858,56 @@ diff -up dhcp-3.1.0/client/dhclient.c.libdhcp4client dhcp-3.1.0/client/dhclient.
 +extern void omapi_free_all_pointers(void);
 +
 +__attribute__ ((visibility ("default")))
-+int dhcpv4_client (libdhcp_ctl, argc, argv, envp)
-+	LIBDHCP_Control *libdhcp_ctl;
++int dhcpv4_client (LIBDHCP_Control *libdhcp_ctl, int argc, char **argv,
++                   char **envp)
 +#else
- int main (argc, argv, envp)
++int main(int argc, char **argv, char **envp)
 +#endif
- 	int argc;
- 	char **argv, **envp;
- {
++{
 +#ifdef LIBDHCP
 +	libdhcp_control = libdhcp_ctl;
 +#endif
  	int fd;
  	int i;
- 	struct servent *ent;
-@@ -120,6 +156,7 @@ int main (argc, argv, envp)
- 	char *arg_conf = NULL;
- 	int arg_conf_len = 0;
+ 	struct interface_info *ip;
+@@ -122,6 +158,7 @@ main(int argc, char **argv) {
+ 	/* Initialize client globals. */
+ 	memset(&default_duid, 0, sizeof(default_duid));
  
 +#ifndef LIBDHCP
          /* Make sure that file descriptors 0 (stdin), 1, (stdout), and
             2 (stderr) are open. To do this, we assume that when we
-            open a file the lowest available file decriptor is used. */
-@@ -143,6 +180,7 @@ int main (argc, argv, envp)
- #if !(defined (DEBUG) || defined (SYSLOG_4_2) || defined (__CYGWIN32__))
+            open a file the lowest available file descriptor is used. */
+@@ -140,6 +177,7 @@ main(int argc, char **argv) {
+ #if !(defined (DEBUG) || defined (__CYGWIN32__))
  	setlogmask (LOG_UPTO (LOG_INFO));
  #endif	
 +#endif
  
  	/* Set up the OMAPI. */
  	status = omapi_init ();
-@@ -439,6 +477,10 @@ int main (argc, argv, envp)
+@@ -485,8 +523,12 @@ main(int argc, char **argv) {
  		}
  	}
  
 +#ifdef LIBDHCP
 +	if (libdhcp_control && (libdhcp_control->capability & DHCP_USE_PID_FILE))
 +#endif
+ 	write_client_pid_file();
+ 
 +#ifndef LIBDHCP
  	if (!quiet) {
- 		log_info ("%s %s", message, DHCP_VERSION);
+ 		log_info ("%s %s", message, PACKAGE_VERSION);
  		log_info (copyright);
-@@ -449,6 +491,7 @@ int main (argc, argv, envp)
- 		log_info ("%s", "");
- 	} else
+@@ -497,6 +539,7 @@ main(int argc, char **argv) {
  		log_perror = 0;
+ 		quiet_interface_discovery = 1;
+ 	}
 +#endif
  
  	/* If we're given a relay agent address to insert, for testing
  	   purposes, figure out what it is. */
-@@ -680,11 +723,17 @@ int main (argc, argv, envp)
+@@ -702,11 +745,17 @@ main(int argc, char **argv) {
  		arg_conf_len = 0;
  	}
  
@@ -783,7 +925,7 @@ diff -up dhcp-3.1.0/client/dhclient.c.libdhcp4client dhcp-3.1.0/client/dhclient.
  
  	/* XXX */
  /* 	config_counter(&snd_counter, &rcv_counter); */
-@@ -703,7 +752,7 @@ int main (argc, argv, envp)
+@@ -725,7 +774,7 @@ main(int argc, char **argv) {
  		if (!persist) {
  			/* Nothing more to do. */
  			log_info ("No broadcast interfaces found - exiting.");
@@ -792,7 +934,7 @@ diff -up dhcp-3.1.0/client/dhclient.c.libdhcp4client dhcp-3.1.0/client/dhclient.
  		}
  	} else if (!release_mode && !exit_mode) {
  		/* Call the script with the list of interfaces. */
-@@ -799,6 +848,7 @@ int main (argc, argv, envp)
+@@ -863,6 +912,7 @@ main(int argc, char **argv) {
  	dmalloc_outstanding = 0;
  #endif
  
@@ -800,7 +942,7 @@ diff -up dhcp-3.1.0/client/dhclient.c.libdhcp4client dhcp-3.1.0/client/dhclient.
  	/* If we're not supposed to wait before getting the address,
  	   don't. */
  	if (nowait)
-@@ -811,6 +861,126 @@ int main (argc, argv, envp)
+@@ -875,6 +925,132 @@ main(int argc, char **argv) {
  
  	/* Start dispatching packets and timeouts... */
  	dispatch ();
@@ -896,13 +1038,19 @@ diff -up dhcp-3.1.0/client/dhclient.c.libdhcp4client dhcp-3.1.0/client/dhclient.
 +	dhcp_type_shared_network = NULL;
 +	dhcp_type_control = NULL;
 +	memset(&dhcp_universe, '\0', sizeof(struct universe));
++	memset(&dhcpv6_universe, '\0', sizeof(struct universe));
 +	memset(&nwip_universe, '\0', sizeof(struct universe));
 +	memset(&fqdn_universe, '\0', sizeof(struct universe));
++	memset(&vendor_class_universe, '\0', sizeof(struct universe));
++	memset(&vendor_universe, '\0', sizeof(struct universe));
++	memset(&vsio_universe, '\0', sizeof(struct universe));
++	memset(&isc_universe, '\0', sizeof(struct universe));
++	memset(&isc6_universe, '\0', sizeof(struct universe));
 +	universe_hash = 0;
 +	universes = 0;
 +	universe_count = 0;
 +	universe_max = 0;
-+	config_universe = 0; 
++	config_universe = 0;
 +	extern struct hash_bucket *free_hash_buckets;
 +	free_hash_buckets = NULL;
 +	extern struct dhcp_packet *dhcp_free_list;
@@ -927,7 +1075,7 @@ diff -up dhcp-3.1.0/client/dhclient.c.libdhcp4client dhcp-3.1.0/client/dhclient.
  
  	/*NOTREACHED*/
  	return 0;
-@@ -1203,7 +1373,20 @@ void dhcpack (packet)
+@@ -1270,7 +1446,20 @@ void dhcpack (packet)
  	if (client -> new -> rebind < cur_time)
  		client -> new -> rebind = TIME_MAX;
  
@@ -948,7 +1096,7 @@ diff -up dhcp-3.1.0/client/dhclient.c.libdhcp4client dhcp-3.1.0/client/dhclient.
  }
  
  void bind_lease (client)
-@@ -1241,6 +1424,9 @@ void bind_lease (client)
+@@ -1306,6 +1495,9 @@ void bind_lease (client)
  		return;
  	}
  
@@ -958,21 +1106,20 @@ diff -up dhcp-3.1.0/client/dhclient.c.libdhcp4client dhcp-3.1.0/client/dhclient.
  	/* Write out the new lease. */
  	write_client_lease (client, client -> new, 0, 0);
  
-@@ -1343,11 +1529,13 @@ int commit_leases ()
- 	return 0;
- }
+@@ -1398,10 +1590,12 @@ void state_stop (cpp)
+ 	}
+ }  
  
 +#ifndef LIBDHCP
- int write_lease (lease)
- 	struct lease *lease;
+ int commit_leases ()
  {
  	return 0;
  }
 +#endif
  
- int write_host (host)
- 	struct host_decl *host;
-@@ -1957,6 +2145,10 @@ void state_panic (cpp)
+ int write_lease (lease)
+ 	struct lease *lease;
+@@ -2074,6 +2268,10 @@ void state_panic (cpp)
  	   tell the shell script that we failed to allocate an address,
  	   and try again later. */
  	if (onetry) {
@@ -983,17 +1130,17 @@ diff -up dhcp-3.1.0/client/dhclient.c.libdhcp4client dhcp-3.1.0/client/dhclient.
  		if (!quiet)
  			log_info ("Unable to obtain a lease on first try.%s",
  				  "  Exiting.");
-@@ -2579,7 +2771,9 @@ void destroy_client_lease (lease)
+@@ -2691,7 +2889,9 @@ void destroy_client_lease (lease)
  	free_client_lease (lease, MDL);
  }
  
 +#ifndef LIBDHCP
- FILE *leaseFile;
+ FILE *leaseFile = NULL;
 +#endif
+ int leases_written = 0;
  
  void rewrite_client_leases ()
- {
-@@ -2960,6 +3154,54 @@ void script_write_params (client, prefix
+@@ -3218,6 +3418,54 @@ void script_write_params (client, prefix
  int script_go (client)
  	struct client_state *client;
  {
@@ -1045,28 +1192,28 @@ diff -up dhcp-3.1.0/client/dhclient.c.libdhcp4client dhcp-3.1.0/client/dhclient.
 +
 +	return 0;
 +#else
- 	int rval;
  	char *scriptName;
  	char *argv [2];
-@@ -3038,6 +3280,7 @@ int script_go (client)
- 	GET_TIME (&cur_time);
+ 	char **envp;
+@@ -3294,6 +3542,7 @@ int script_go (client)
+ 	time(&cur_time);
  	return (WIFEXITED (wstatus) ?
  		WEXITSTATUS (wstatus) : -WTERMSIG (wstatus));
 +#endif
  }
  
  void client_envadd (struct client_state *client,
-@@ -3120,6 +3363,9 @@ void go_daemon ()
+@@ -3376,6 +3625,9 @@ void go_daemon ()
  
  	/* Don't become a daemon if the user requested otherwise. */
  	if (no_daemon) {
 +#ifdef LIBDHCP
-+		if (libdhcp_control && (libdhcp_control->capability & DHCP_USE_PID_FILE ))
++		if (libdhcp_control && (libdhcp_control->capability & DHCP_USE_PID_FILE))
 +#endif
  		write_client_pid_file ();
  		return;
  	}
-@@ -3129,6 +3375,10 @@ void go_daemon ()
+@@ -3385,6 +3637,10 @@ void go_daemon ()
  		return;
  	state = 1;
  
@@ -1076,27 +1223,4 @@ diff -up dhcp-3.1.0/client/dhclient.c.libdhcp4client dhcp-3.1.0/client/dhclient.
 +
  	/* Stop logging to stderr... */
  	log_perror = 0;
- 
-diff -up dhcp-3.1.0/Makefile.dist.libdhcp4client dhcp-3.1.0/Makefile.dist
---- dhcp-3.1.0/Makefile.dist.libdhcp4client	2005-03-17 15:14:54.000000000 -0500
-+++ dhcp-3.1.0/Makefile.dist	2007-10-24 14:55:56.000000000 -0400
-@@ -22,7 +22,7 @@
- #   http://www.isc.org/
- 
- 
--SUBDIRS=	common $(MINIRES) dst omapip server client relay dhcpctl
-+SUBDIRS=	common $(MINIRES) dst omapip server client relay dhcpctl libdhcp4client
- 
- all:
- 	@for dir in ${SUBDIRS}; do \
---- dhcp-3.1.0/minires/Makefile.dist.orig	2007-12-25 12:41:11.744624000 +0100
-+++ dhcp-3.1.0/minires/Makefile.dist	2007-12-25 12:54:35.448726491 +0100
-@@ -32,7 +32,7 @@
- 	 ns_date.o ns_parse.o ns_sign.o ns_name.o ns_samedomain.o ns_verify.o
- 
- INCLUDES = $(BINDINC) -I$(TOP)/includes
--CFLAGS = $(DEBUG) $(PREDEFINES) $(INCLUDES) $(COPTS) -DHMAC_MD5 -DMINIRES_LIB
-+CFLAGS = $(DEBUG) $(PREDEFINES) $(INCLUDES) $(COPTS) -DHMAC_MD5 -DMINIRES_LIB -fPIC
- 
- all:	libres.a
  
