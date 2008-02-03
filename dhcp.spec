@@ -248,6 +248,15 @@ install server/dhcpd.conf $RPM_BUILD_ROOT%{_sysconfdir}
 install %{SOURCE10} $RPM_BUILD_ROOT%{schemadir}
 %endif
 
+# Install headers for libdhcp4client-devel
+install -d $RPM_BUILD_ROOT%{_includedir}/dhcp4client/minires
+install -p -m 0644 %{SOURCE9} $RPM_BUILD_ROOT%{_includedir}/dhcp4client
+for hdr in cdefs.h ctrace.h dhcp.h dhcp6.h dhcpd.h dhctoken.h failover.h \
+           heap.h inet.h minires/minires.h minires/res_update.h \
+           minires/resolv.h osdep.h site.h statement.h tree.h ; do
+    install -p -m 0644 includes/${hdr} $RPM_BUILD_ROOT%{_includedir}/dhcp4client/${hdr}
+done
+
 touch $RPM_BUILD_ROOT%{_sysconfdir}/dhclient.conf
 
 touch $RPM_BUILD_ROOT/var/lib/%{name}/dhcpd.leases
@@ -375,6 +384,7 @@ fi
 %files -n libdhcp4client-devel
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libdhcp4client.so
+%{_includedir}/dhcp4client
 %{_pkgconfigdir}/libdhcp4client.pc
 %{_libdir}/libdhcp4client.la
 
