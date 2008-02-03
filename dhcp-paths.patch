@@ -1,0 +1,31 @@
+diff -up dhcp-4.0.0/includes/dhcpd.h.paths dhcp-4.0.0/includes/dhcpd.h
+--- dhcp-4.0.0/includes/dhcpd.h.paths	2008-01-01 15:09:21.000000000 -1000
++++ dhcp-4.0.0/includes/dhcpd.h	2008-01-01 15:10:55.000000000 -1000
+@@ -1306,11 +1306,11 @@ typedef unsigned char option_mask [16];
+ #endif /* DEBUG */
+ 
+ #ifndef _PATH_DHCPD_DB
+-#define _PATH_DHCPD_DB		LOCALSTATEDIR"/db/dhcpd.leases"
++#define _PATH_DHCPD_DB		LOCALSTATEDIR"/lib/dhcp/dhcpd.leases"
+ #endif
+ 
+ #ifndef _PATH_DHCPD6_DB
+-#define _PATH_DHCPD6_DB		LOCALSTATEDIR"/db/dhcpd6.leases"
++#define _PATH_DHCPD6_DB		LOCALSTATEDIR"/lib/dhcp/dhcpd6.leases"
+ #endif
+ 
+ #ifndef _PATH_DHCPD_PID
+@@ -1340,11 +1340,11 @@ typedef unsigned char option_mask [16];
+ #endif
+ 
+ #ifndef _PATH_DHCLIENT_DB
+-#define _PATH_DHCLIENT_DB	LOCALSTATEDIR"/db/dhclient.leases"
++#define _PATH_DHCLIENT_DB	LOCALSTATEDIR"/lib/dhclient/dhclient.leases"
+ #endif
+ 
+ #ifndef _PATH_DHCLIENT6_DB
+-#define _PATH_DHCLIENT6_DB	LOCALSTATEDIR"/db/dhclient6.leases"
++#define _PATH_DHCLIENT6_DB	LOCALSTATEDIR"/lib/dhclient/dhclient6.leases"
+ #endif
+ 
+ #ifndef _PATH_RESOLV_CONF
