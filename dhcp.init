@@ -25,7 +25,7 @@ fi
 
 checkconfig() {
 	show "Checking %s configuration" "DHCP Server"
-	out=`/usr/sbin/dhcpd -t 2>&1`; rc=$?
+	out=`/sbin/dhcpd -t 2>&1`; rc=$?
 	if [ $rc -gt 0 ]; then
 		fail
 		echo >&2 "$out"
