@@ -7,14 +7,14 @@ Summary(es.UTF-8):	Servidor DHCP
 Summary(pl.UTF-8):	Serwer DHCP
 Summary(pt_BR.UTF-8):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
-Version:	4.0.0
+Version:	4.1.0a1
 # don't put int release until all patches are updated/ported(!)
 Release:	0.1
 Epoch:		4
 License:	MIT
 Group:		Networking/Daemons
 Source0:	ftp://ftp.isc.org/isc/dhcp/%{name}-%{version}.tar.gz
-# Source0-md5:	31d79b27ce4a94089a0b9ce7f72307fa
+# Source0-md5:	b0c3e5125156c126333e6f028e1bf5d8
 Source1:	%{name}.init
 Source2:	%{name}6.init
 Source3:	%{name}-relay.init
