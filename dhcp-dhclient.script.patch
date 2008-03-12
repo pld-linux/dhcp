@@ -1,6 +1,7 @@
---- dhcp-3.1.0a3/client/scripts/linux.orig	2006-07-22 04:24:16.000000000 +0200
-+++ dhcp-3.1.0a3/client/scripts/linux	2007-04-16 17:25:06.000000000 +0200
-@@ -1,290 +1,302 @@
+diff -urN dhcp-4.1.0a1.org/client/scripts/linux dhcp-4.1.0a1/client/scripts/linux
+--- dhcp-4.1.0a1.org/client/scripts/linux	2008-01-17 00:02:10.000000000 +0100
++++ dhcp-4.1.0a1/client/scripts/linux	2008-03-12 22:39:33.024221732 +0100
+@@ -1,296 +1,308 @@
 -#!/bin/bash
 +#!/bin/sh
  # dhclient-script for Linux. Dan Halbert, March, 1997.
@@ -238,6 +239,9 @@
 -      route add -net $new_network_number $new_subnet_arg dev $interface
 -    fi
 -    for router in $new_routers; do
+-      if [ "x$new_subnet_mask" = "x255.255.255.255" ] ; then
+-	route add -host $router dev $interface
+-      fi
 -      route add default gw $router
 -    done
 -  fi
@@ -288,6 +292,9 @@
 -      route add -net $new_network_number
 -    fi
 -    for router in $new_routers; do
+-      if [ "x$new_subnet_mask" = "x255.255.255.255" ] ; then
+-	route add -host $router dev $interface
+-      fi
 -      route add default gw $router
 -    done
 -    make_resolv_conf
@@ -372,6 +379,9 @@
 +		/sbin/ip addr add $new_ip_address/$new_subnet_arg $new_broadcast_arg dev $interface
 +		# Add a network route to the computed network address.
 +		for router in $new_routers; do
++			if [ "x$new_subnet_mask" = "x255.255.255.255" ] ; then
++				/sbin/ip route add $router dev $interface
++			fi
 +			/sbin/ip route add default via $router
 +		done
 +		if [ -n "$new_static_routes" ]; then
@@ -424,6 +434,9 @@
 +			/sbin/ip addr add $alias_ip_address/$alias_subnet_arg dev $interface
 +		fi
 +		for router in $new_routers; do
++			if [ "x$new_subnet_mask" = "x255.255.255.255" ] ; then
++				/sbin/ip route add $router dev $interface
++			fi
 +			/sbin/ip route add default via $router
 +		done
 +		if [ -n "$new_static_routes" ]; then
