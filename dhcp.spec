@@ -227,6 +227,7 @@ Statyczna biblioteka kliencka DHCP.
 #-s dhclient-script environment, which would allow applications running
 #in that environment to handle options they do not know about in advance -
 #this is a Red Hat extension to support dhcdbd and NetworkManager.
+# however, fedora doesn't have this patch anymore, so can drop?
 #%%patch4 -p1
 %patch5 -p1
 %patch6 -p1
