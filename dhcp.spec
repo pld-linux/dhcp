@@ -288,7 +288,7 @@ sed 's/@DHCP_VERSION@/'%{version}'/' < %{SOURCE5} > libdhcp4client.pc
 %{__autoconf}
 %{__autoheader}
 %{__automake}
-CFLAGS="%{rpmcflags} -fPIC"
+CFLAGS="%{rpmcflags} -fPIC -D_GNU_SOURCE=1"
 %configure \
 	%{!?with_static_libs:--disable-static} \
 	--enable-dhcpv6 \
