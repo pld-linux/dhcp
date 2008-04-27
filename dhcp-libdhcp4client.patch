@@ -1,3 +1,4 @@
+diff -up dhcp-4.0.0/configure.ac.libdhcp4client dhcp-4.0.0/configure.ac
 --- dhcp-4.0.0/configure.ac.libdhcp4client	2007-12-14 08:24:56.000000000 -1000
 +++ dhcp-4.0.0/configure.ac	2008-01-22 17:04:28.000000000 -1000
 @@ -1,5 +1,32 @@
@@ -43,6 +44,7 @@
  AC_CONFIG_HEADERS([includes/config.h])
  
  # we sometimes need to know byte order for building packets
+diff -up dhcp-4.0.0/omapip/Makefile.am.libdhcp4client dhcp-4.0.0/omapip/Makefile.am
 --- dhcp-4.0.0/omapip/Makefile.am.libdhcp4client	2007-05-29 06:32:11.000000000 -1000
 +++ dhcp-4.0.0/omapip/Makefile.am	2008-01-22 17:04:28.000000000 -1000
 @@ -1,10 +1,18 @@
@@ -64,17 +66,18 @@
  man_MANS = omapi.3
  EXTRA_DIST = $(man_MANS)
  
---- dhcp-4.1.0a1/omapip/dispatch.c~	2008-04-27 16:03:42.000000000 +0300
-+++ dhcp-4.1.0a1/omapip/dispatch.c	2008-04-27 16:04:03.347565427 +0300
+diff -up dhcp-4.0.0/omapip/dispatch.c.libdhcp4client dhcp-4.0.0/omapip/dispatch.c
+--- dhcp-4.0.0/omapip/dispatch.c.libdhcp4client	2007-11-30 11:51:43.000000000 -1000
++++ dhcp-4.0.0/omapip/dispatch.c	2008-01-22 17:04:28.000000000 -1000
 @@ -37,7 +37,7 @@
  #include <omapip/omapip_p.h>
  #include <sys/time.h>
  
 -static omapi_io_object_t omapi_io_states;
 +omapi_io_object_t omapi_io_states;
- struct timeval cur_tv;
+ time_t cur_time;
  
- struct eventqueue *rw_queue_empty;
+ OMAPI_OBJECT_ALLOC (omapi_io,
 diff -up dhcp-4.0.0/omapip/errwarn.c.libdhcp4client dhcp-4.0.0/omapip/errwarn.c
 --- dhcp-4.0.0/omapip/errwarn.c.libdhcp4client	2008-01-22 17:04:28.000000000 -1000
 +++ dhcp-4.0.0/omapip/errwarn.c	2008-01-22 17:04:28.000000000 -1000
@@ -195,6 +198,7 @@ diff -up dhcp-4.0.0/omapip/errwarn.c.libdhcp4client dhcp-4.0.0/omapip/errwarn.c
    return 0;
  }
  
+diff -up dhcp-4.0.0/omapip/alloc.c.libdhcp4client dhcp-4.0.0/omapip/alloc.c
 --- dhcp-4.0.0/omapip/alloc.c.libdhcp4client	2007-07-12 20:43:42.000000000 -1000
 +++ dhcp-4.0.0/omapip/alloc.c	2008-01-22 17:04:28.000000000 -1000
 @@ -37,6 +37,33 @@
@@ -252,6 +256,7 @@ diff -up dhcp-4.0.0/omapip/errwarn.c.libdhcp4client dhcp-4.0.0/omapip/errwarn.c
  }
  
  #if defined (DEBUG_MEMORY_LEAKAGE) || defined (DEBUG_MALLOC_POOL) || \
+diff -up dhcp-4.0.0/dst/Makefile.am.libdhcp4client dhcp-4.0.0/dst/Makefile.am
 --- dhcp-4.0.0/dst/Makefile.am.libdhcp4client	2008-01-22 17:04:28.000000000 -1000
 +++ dhcp-4.0.0/dst/Makefile.am	2008-01-22 17:04:28.000000000 -1000
 @@ -2,7 +2,7 @@ AM_CPPFLAGS = -DMINIRES_LIB -DHMAC_MD5
@@ -272,6 +277,7 @@ diff -up dhcp-4.0.0/omapip/errwarn.c.libdhcp4client dhcp-4.0.0/omapip/errwarn.c
 +		   base64.c prandom.c
 +
  EXTRA_DIST = dst_internal.h md5.h md5_locl.h
+diff -up dhcp-4.0.0/dst/hmac_link.c.libdhcp4client dhcp-4.0.0/dst/hmac_link.c
 --- dhcp-4.0.0/dst/hmac_link.c.libdhcp4client	2007-12-05 14:50:22.000000000 -1000
 +++ dhcp-4.0.0/dst/hmac_link.c	2008-01-22 17:04:28.000000000 -1000
 @@ -39,6 +39,10 @@ static const char rcsid[] = "$Header: /p
@@ -359,6 +365,7 @@ diff -up dhcp-4.0.0/omapip/errwarn.c.libdhcp4client dhcp-4.0.0/omapip/errwarn.c
  	if (dst_t_func[KEY_HMAC_MD5] == NULL)
  		return (0);
  	memset(dst_t_func[KEY_HMAC_MD5], 0, sizeof(struct dst_func));
+diff -up dhcp-4.0.0/common/Makefile.am.libdhcp4client dhcp-4.0.0/common/Makefile.am
 --- dhcp-4.0.0/common/Makefile.am.libdhcp4client	2007-11-16 01:04:11.000000000 -1000
 +++ dhcp-4.0.0/common/Makefile.am	2008-01-22 17:04:28.000000000 -1000
 @@ -1,11 +1,17 @@
@@ -380,6 +387,7 @@ diff -up dhcp-4.0.0/omapip/errwarn.c.libdhcp4client dhcp-4.0.0/omapip/errwarn.c
  man_MANS = dhcp-eval.5 dhcp-options.5
  EXTRA_DIST = $(man_MANS)
  
+diff -up dhcp-4.0.0/common/discover.c.libdhcp4client dhcp-4.0.0/common/discover.c
 --- dhcp-4.0.0/common/discover.c.libdhcp4client	2007-10-05 12:29:51.000000000 -1000
 +++ dhcp-4.0.0/common/discover.c	2008-01-22 17:04:28.000000000 -1000
 @@ -883,6 +883,10 @@ add_ipv6_addr_to_interface(struct interf
@@ -421,6 +429,7 @@ diff -up dhcp-4.0.0/omapip/errwarn.c.libdhcp4client dhcp-4.0.0/omapip/errwarn.c
  
  #if defined (F_SETFD)
  	if (fallback_interface) {
+diff -up dhcp-4.0.0/common/tree.c.libdhcp4client dhcp-4.0.0/common/tree.c
 --- dhcp-4.0.0/common/tree.c.libdhcp4client	2007-08-22 03:41:37.000000000 -1000
 +++ dhcp-4.0.0/common/tree.c	2008-01-22 17:04:28.000000000 -1000
 @@ -41,7 +41,7 @@
@@ -440,6 +449,7 @@ diff -up dhcp-4.0.0/omapip/errwarn.c.libdhcp4client dhcp-4.0.0/omapip/errwarn.c
  int evaluate_option_cache (result, packet, lease, client_state,
  			   in_options, cfg_options, scope, oc, file, line)
  	struct data_string *result;
+diff -up dhcp-4.0.0/common/options.c.libdhcp4client dhcp-4.0.0/common/options.c
 --- dhcp-4.0.0/common/options.c.libdhcp4client	2007-11-30 11:51:43.000000000 -1000
 +++ dhcp-4.0.0/common/options.c	2008-01-22 17:04:28.000000000 -1000
 @@ -3392,6 +3392,7 @@ fqdn6_universe_decode(struct option_stat
@@ -450,6 +460,7 @@ diff -up dhcp-4.0.0/omapip/errwarn.c.libdhcp4client dhcp-4.0.0/omapip/errwarn.c
  void option_space_foreach (struct packet *packet, struct lease *lease,
  			   struct client_state *client_state,
  			   struct option_state *in_options,
+diff -up dhcp-4.0.0/common/dispatch.c.libdhcp4client dhcp-4.0.0/common/dispatch.c
 --- dhcp-4.0.0/common/dispatch.c.libdhcp4client	2008-01-22 17:04:28.000000000 -1000
 +++ dhcp-4.0.0/common/dispatch.c	2008-01-22 17:04:28.000000000 -1000
 @@ -34,8 +34,24 @@
@@ -721,6 +732,7 @@ diff -up dhcp-4.0.0/omapip/errwarn.c.libdhcp4client dhcp-4.0.0/omapip/errwarn.c
  	}
 +#endif
  }
+diff -up dhcp-4.0.0/common/alloc.c.libdhcp4client dhcp-4.0.0/common/alloc.c
 --- dhcp-4.0.0/common/alloc.c.libdhcp4client	2007-10-23 14:54:11.000000000 -1000
 +++ dhcp-4.0.0/common/alloc.c	2008-01-22 17:04:28.000000000 -1000
 @@ -1004,7 +1004,11 @@ int executable_statement_reference (ptr,
@@ -735,23 +747,24 @@ diff -up dhcp-4.0.0/omapip/errwarn.c.libdhcp4client dhcp-4.0.0/omapip/errwarn.c
  
  #if defined (DEBUG_MEMORY_LEAKAGE) || \
  		defined (DEBUG_MEMORY_LEAKAGE_ON_EXIT)
---- dhcp-4.1.0a1/includes/dhcpd.h~	2008-04-27 15:59:29.000000000 +0300
-+++ dhcp-4.1.0a1/includes/dhcpd.h	2008-04-27 16:00:57.528854928 +0300
-@@ -1211,14 +1211,6 @@
+diff -up dhcp-4.0.0/includes/dhcpd.h.libdhcp4client dhcp-4.0.0/includes/dhcpd.h
+--- dhcp-4.0.0/includes/dhcpd.h.libdhcp4client	2008-01-22 17:04:28.000000000 -1000
++++ dhcp-4.0.0/includes/dhcpd.h	2008-01-22 17:05:02.000000000 -1000
+@@ -1199,14 +1199,6 @@ struct hardware_link {
  
  typedef void (*tvref_t)(void *, void *, const char *, int);
  typedef void (*tvunref_t)(void *, const char *, int);
 -struct timeout {
 -	struct timeout *next;
--	struct timeval when;
+-	TIME when;
 -	void (*func) PROTO ((void *));
 -	void *what;
 -	tvref_t ref;
 -	tvunref_t unref;
 -};
  
- struct eventqueue {
- 	struct eventqueue *next;
+ struct protocol {
+ 	struct protocol *next;
 @@ -1664,7 +1656,6 @@ extern const char *path_dhcpd_pid;
  
  extern int dhcp_max_agent_option_packet_length;
@@ -779,6 +792,7 @@ diff -up dhcp-4.0.0/omapip/errwarn.c.libdhcp4client dhcp-4.0.0/omapip/errwarn.c
  extern int dhcp_option_default_priority_list [];
  extern int dhcp_option_default_priority_list_count;
  extern const char *hardware_types [256];
+diff -up dhcp-4.0.0/client/Makefile.am.libdhcp4client dhcp-4.0.0/client/Makefile.am
 --- dhcp-4.0.0/client/Makefile.am.libdhcp4client	2007-12-12 09:23:42.000000000 -1000
 +++ dhcp-4.0.0/client/Makefile.am	2008-01-22 17:04:28.000000000 -1000
 @@ -1,10 +1,18 @@
@@ -800,6 +814,7 @@ diff -up dhcp-4.0.0/omapip/errwarn.c.libdhcp4client dhcp-4.0.0/omapip/errwarn.c
  man_MANS = dhclient.8 dhclient-script.8 dhclient.conf.5 dhclient.leases.5
  EXTRA_DIST = $(man_MANS)
  
+diff -up dhcp-4.0.0/client/dhclient.c.libdhcp4client dhcp-4.0.0/client/dhclient.c
 --- dhcp-4.0.0/client/dhclient.c.libdhcp4client	2008-01-22 17:04:28.000000000 -1000
 +++ dhcp-4.0.0/client/dhclient.c	2008-01-22 17:05:47.000000000 -1000
 @@ -83,14 +83,50 @@ int nowait=0;
