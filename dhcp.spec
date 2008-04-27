@@ -13,8 +13,7 @@ Summary(pt_BR.UTF-8):	Servidor DHCP (Protocolo de configuração dinâmica de ho
 Name:		dhcp
 # 4.1.0a1 is on DEVEL
 Version:	4.0.0
-# don't put int release until all patches are updated/ported(!)
-Release:	0.1
+Release:	1
 Epoch:		4
 License:	MIT
 Group:		Networking/Daemons
