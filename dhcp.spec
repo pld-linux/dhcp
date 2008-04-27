@@ -1,20 +1,22 @@
 #
 # Conditional build:
 %bcond_without	ldap	# without support for ldap storage
+%bcond_without	static_libs	# don't build static library
 #
 Summary:	DHCP Server
 Summary(es.UTF-8):	Servidor DHCP
 Summary(pl.UTF-8):	Serwer DHCP
 Summary(pt_BR.UTF-8):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
-Version:	4.1.0a1
+# 4.1.0a1 is on DEVEL
+Version:	4.0.0
 # don't put int release until all patches are updated/ported(!)
 Release:	0.1
 Epoch:		4
 License:	MIT
 Group:		Networking/Daemons
 Source0:	ftp://ftp.isc.org/isc/dhcp/%{name}-%{version}.tar.gz
-# Source0-md5:	b0c3e5125156c126333e6f028e1bf5d8
+# Source0-md5:	31d79b27ce4a94089a0b9ce7f72307fa
 Source1:	%{name}.init
 Source2:	%{name}6.init
 Source3:	%{name}-relay.init
@@ -226,6 +228,7 @@ cp %{SOURCE9} includes/isc-dhcp/libdhcp_control.h
 %{__automake}
 CFLAGS="%{rpmcflags} -fPIC"
 %configure \
+	%{!?with_static_libs:--disable-static} \
 	--enable-dhcpv6 \
 	--with-srv-lease-file="/var/lib/%{name}/dhcpd.leases" \
 	--with-cli-lease-file="/var/lib/dhclient/dhclient.leases"
@@ -267,6 +270,26 @@ touch $RPM_BUILD_ROOT/var/lib/%{name}/dhcpd6.leases
 touch $RPM_BUILD_ROOT/var/lib/dhclient/dhclient6.leases
 
 install libdhcp4client.pc $RPM_BUILD_ROOT%{_libdir}/pkgconfig/libdhcp4client.pc
+
+%if %{with static_libs}
+# HACK: strip doesn't like .a inside .a
+mkdir -p stripworkdir
+cd stripworkdir
+for a in $RPM_BUILD_ROOT%{_libdir}/*.a; do
+	archives=$(ar t $a | grep '\.a$' || :)
+	[ "$archives" ] || continue
+
+	# hope we don't have to recurse here
+	for ar in $archives; do
+		rm -f *.o *.a
+		ar x $a $ar
+		ar x $ar
+		ar d $a $ar
+		ar cr $a *.o
+	done
+done
+cd -
+%endif
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -394,6 +417,8 @@ fi
 %{_pkgconfigdir}/libdhcp4client.pc
 %{_libdir}/libdhcp4client.la
 
+%if %{with static_libs}
 %files -n libdhcp4client-static
 %defattr(644,root,root,755)
 %{_libdir}/libdhcp4client.a
+%endif
