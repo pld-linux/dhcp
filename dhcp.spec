@@ -2,6 +2,9 @@
 # Conditional build:
 %bcond_without	ldap	# without support for ldap storage
 %bcond_without	static_libs	# don't build static library
+
+# vendor string
+%define vvendor PLD/Linux
 #
 Summary:	DHCP Server
 Summary(es.UTF-8):	Servidor DHCP
@@ -27,6 +30,10 @@ Source7:	%{name}-dhcp4client.h
 Source8:	%{name}-libdhcp4client.make
 Source9:	%{name}-libdhcp_control.h
 Source10:	%{name}.schema
+Source11:	%{name}-README.ldap
+Source12:	draft-ietf-dhc-ldap-schema-01.txt
+Source13:	dhcpd-conf-to-ldap
+Source14:	dhcp-dhclient-script
 Patch0:		%{name}-dhclient.script.patch
 Patch1:		%{name}-release-by-ifup.patch
 # from fedora 9-dev
@@ -35,16 +42,27 @@ Patch3:		%{name}-client-script-redhat.patch
 Patch4:		%{name}-3.0.3-x-option.patch
 Patch5:		%{name}-paths.patch
 Patch6:		%{name}-arg-concat.patch
-Patch7:		%{name}-split-VARDB.patch
 Patch8:		%{name}-timeouts.patch
 Patch9:		%{name}-options.patch
 Patch10:	%{name}-libdhcp4client.patch
 Patch11:	%{name}-prototypes.patch
+Patch12:	%{name}-errwarn-message.patch
+Patch13:	%{name}-memory.patch
+Patch14:	%{name}-dhclient-decline-backoff.patch
+Patch15:	%{name}-unicast-bootp.patch
+Patch16:	%{name}-fast-timeout.patch
+Patch17:	%{name}-failover-ports.patch
+Patch18:	%{name}-dhclient-usage.patch
+Patch19:	%{name}-default-requested-options.patch
+Patch20:	%{name}-xen-checksum.patch
+Patch21:	%{name}-dhclient-anycast.patch
+Patch22:	%{name}-manpages.patch
+Patch23:	%{name}-NetworkManager-crash.patch
 URL:		http://www.isc.org/sw/dhcp/
 BuildRequires:	autoconf
 BuildRequires:	automake
-BuildRequires:	libtool
 BuildRequires:	groff
+BuildRequires:	libtool
 %{?with_ldap:BuildRequires:	openldap-devel}
 %{?with_ldap:BuildRequires:	openssl-devel}
 BuildRequires:	rpmbuild(macros) >= 1.304
@@ -174,15 +192,16 @@ Ten pakiet zawiera klienta protokołu DHCP.
 %package -n libdhcp4client-devel
 Summary:	Header files for development with the DHCP client library
 Summary(pl.UTF-8):	Pliki nagłówkowe do programowania z użyciem biblioteki klienckiej DHCP
-Group:		Development/Libraries
 License:	GPL v2+
+Group:		Development/Libraries
 Requires:	libdhcp4client = %{epoch}:%{version}-%{release}
 
 %description -n libdhcp4client-devel
 Header files for development with the DHCP client library.
 
 %description -n libdhcp4client-devel -l pl.UTF-8
-Pliki nagłówkowe do programowania z użyciem biblioteki klienckiej DHCP.
+Pliki nagłówkowe do programowania z użyciem biblioteki klienckiej
+DHCP.
 
 %package -n libdhcp4client-static
 Summary:	Static DHCP client library
@@ -203,22 +222,64 @@ Statyczna biblioteka kliencka DHCP.
 %{?with_ldap:%patch2 -p1}
 # These two patches are required for dhcdbd to function
 %patch3 -p1
-# CHECK ME, NO IDEA
-#%patch4 -p1
+# CHECK ME: adds -x (formerly -y):
+#The -x argument enables extended option information to be created in the
+#-s dhclient-script environment, which would allow applications running
+#in that environment to handle options they do not know about in advance -
+#this is a Red Hat extension to support dhcdbd and NetworkManager.
+#%%patch4 -p1
 %patch5 -p1
 %patch6 -p1
-# CHECK ME, NO IDEA
-#%patch7 -p1
 %patch8 -p1
 %patch9 -p1
 %patch10 -p1
 %patch11 -p1
+%patch12 -p1
+%patch13 -p1
+%patch14 -p1
+%patch15 -p1
+%patch16 -p1
+%patch17 -p1
+%patch18 -p1
+%patch19 -p1
+%patch20 -p1
+%patch21 -p1
+%patch22 -p1
+%patch23 -p1
 
-sed 's/@DHCP_VERSION@/'%{version}'/' < %{SOURCE5} > libdhcp4client.pc
-mkdir -p libdhcp4client
+# Copy in documentation and example scripts for LDAP patch to dhcpd
+cp -a %{SOURCE11} README.ldap
+cp -a %{SOURCE12} doc
+cp -a %{SOURCE13} contrib
+
+# Copy in the libdhcp4client headers and Makefile.dist
+install -d libdhcp4client
 cp %{SOURCE7} libdhcp4client/dhcp4client.h
 cp %{SOURCE8} libdhcp4client/Makefile.dist
+
+# Copy in libdhcp_control.h to the isc-dhcp includes directory
 cp %{SOURCE9} includes/isc-dhcp/libdhcp_control.h
+
+# Replace @PRODUCTNAME@
+%{__sed} -i -e 's|@PRODUCTNAME@|%{vvendor}|g' common/dhcp-options.5
+%{__sed} -i -e 's|@PRODUCTNAME@|%{vvendor}|g' configure.ac
+
+# Update paths in all man pages
+for page in client/dhclient.conf.5 client/dhclient.leases.5 client/dhclient-script.8 client/dhclient.8; do
+	%{__sed} -i -e 's|CLIENTBINDIR|/sbin|g' \
+			-e 's|RUNDIR|%{_localstatedir}/run|g' \
+			-e 's|DBDIR|%{_localstatedir}/db/dhclient|g' \
+			-e 's|ETCDIR|%{_sysconfdir}|g' $page
+done
+
+for page in server/dhcpd.conf.5 server/dhcpd.leases.5 server/dhcpd.8; do
+	%{__sed} -i -e 's|CLIENTBINDIR|/sbin|g' \
+				-e 's|RUNDIR|%{_localstatedir}/run|g' \
+				-e 's|DBDIR|%{_localstatedir}/db/dhcpd|g' \
+				-e 's|ETCDIR|%{_sysconfdir}|g' $page
+done
+
+sed 's/@DHCP_VERSION@/'%{version}'/' < %{SOURCE5} > libdhcp4client.pc
 
 %build
 %{__libtoolize}
@@ -230,13 +291,16 @@ CFLAGS="%{rpmcflags} -fPIC"
 %configure \
 	%{!?with_static_libs:--disable-static} \
 	--enable-dhcpv6 \
-	--with-srv-lease-file="/var/lib/%{name}/dhcpd.leases" \
-	--with-cli-lease-file="/var/lib/dhclient/dhclient.leases"
+    --with-srv-lease-file=/var/lib/dhcpd/dhcpd.leases \
+    --with-cli-lease-file=/var/lib/dhclient/dhclient.leases \
+    --with-srv-pid-file=/var/run/dhcpd.pid \
+    --with-cli-pid-file=/var/run/dhclient.pid \
+    --with-relay-pid-file=/var/run/dhcrelay.pid
 %{__make}
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT{/etc/{rc.d/init.d,sysconfig},%{schemadir},%{_pkgconfigdir},/var/lib/{%{name},dhclient}}
+install -d $RPM_BUILD_ROOT{/etc/{rc.d/init.d,sysconfig},%{_pkgconfigdir},/var/lib/{dhcpd,dhclient}}
 
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
@@ -246,34 +310,38 @@ install %{SOURCE2} $RPM_BUILD_ROOT/etc/rc.d/init.d/dhcpd6
 install %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/dhcp-relay
 install %{SOURCE4} $RPM_BUILD_ROOT/etc/sysconfig/dhcpd
 install %{SOURCE5} $RPM_BUILD_ROOT/etc/sysconfig/dhcp-relay
+install %{SOURCE14} $RPM_BUILD_ROOT/sbin/dhclient-script
 
 install server/dhcpd.conf $RPM_BUILD_ROOT%{_sysconfdir}
+
 %if %{with ldap}
+install -d $RPM_BUILD_ROOT%{schemadir}
 install %{SOURCE10} $RPM_BUILD_ROOT%{schemadir}
 %endif
 
 # Install headers for libdhcp4client-devel
 install -d $RPM_BUILD_ROOT%{_includedir}/dhcp4client/minires
-install -p -m 0644 %{SOURCE9} $RPM_BUILD_ROOT%{_includedir}/dhcp4client
 for hdr in cdefs.h ctrace.h dhcp.h dhcp6.h dhcpd.h dhctoken.h failover.h \
            heap.h inet.h minires/minires.h minires/res_update.h \
-           minires/resolv.h osdep.h site.h statement.h tree.h ; do
-    install -p -m 0644 includes/${hdr} $RPM_BUILD_ROOT%{_includedir}/dhcp4client/${hdr}
+           minires/resolv.h osdep.h site.h statement.h tree.h; do
+	install -p -m 0644 includes/${hdr} $RPM_BUILD_ROOT%{_includedir}/dhcp4client/${hdr}
 done
 
 touch $RPM_BUILD_ROOT%{_sysconfdir}/dhclient.conf
 
-touch $RPM_BUILD_ROOT/var/lib/%{name}/dhcpd.leases
+touch $RPM_BUILD_ROOT/var/lib/dhcpd/dhcpd.leases
 touch $RPM_BUILD_ROOT/var/lib/dhclient/dhclient.leases
 
-touch $RPM_BUILD_ROOT/var/lib/%{name}/dhcpd6.leases
+touch $RPM_BUILD_ROOT/var/lib/dhcpd/dhcpd6.leases
 touch $RPM_BUILD_ROOT/var/lib/dhclient/dhclient6.leases
 
+# Install pkg-config file
 install libdhcp4client.pc $RPM_BUILD_ROOT%{_libdir}/pkgconfig/libdhcp4client.pc
+cp -a includes/isc-dhcp/libdhcp_control.h $RPM_BUILD_ROOT%{_includedir}/isc-dhcp
 
 %if %{with static_libs}
 # HACK: strip doesn't like .a inside .a
-mkdir -p stripworkdir
+install -d stripworkdir
 cd stripworkdir
 for a in $RPM_BUILD_ROOT%{_libdir}/*.a; do
 	archives=$(ar t $a | grep '\.a$' || :)
@@ -295,27 +363,23 @@ cd -
 rm -rf $RPM_BUILD_ROOT
 
 %post
+touch /var/lib/dhcpd/dhcpd.leases
 /sbin/chkconfig --add dhcpd
-/sbin/chkconfig --add dhcpd6
-touch /var/lib/%{name}/dhcpd.leases
 %service dhcpd restart "dhcpd daemon"
+/sbin/chkconfig --add dhcpd6
 %service dhcpd6 restart "dhcpd IPv6 daemon"
 
 %preun
 if [ "$1" = "0" ];then
 	%service dhcpd stop
-	%service dhcpd6 stop
 	/sbin/chkconfig --del dhcpd
+	%service dhcpd6 stop
 	/sbin/chkconfig --del dhcpd6
 fi
 
 %triggerpostun -- dhcp < 3.0
-if [ "`grep ddns-update-style /etc/dhcpd.conf`" = "" ]; then
-	umask 027
-	echo "ddns-update-style none;" > /etc/dhcpd.conf.tmp
-	echo "" >> /etc/dhcpd.conf.tmp
-	cat /etc/dhcpd.conf >>/etc/dhcpd.conf.tmp
-	mv -f /etc/dhcpd.conf.tmp /etc/dhcpd.conf
+if ! grep -q ddns-update-style /etc/dhcpd.conf; then
+	%{__sed} -i -e '1iddns-update-style none;' /etc/dhcpd.conf
 fi
 
 %post -n openldap-schema-dhcp
@@ -326,11 +390,6 @@ fi
 if [ "$1" = "0" ]; then
 	%openldap_schema_unregister %{schemadir}/dhcp.schema
 	%service -q ldap restart
-fi
-
-%post client
-if [ -f /var/lib/dhcp/dhclient.leases.rpmsave ]; then
-	mv /var/lib/dhcp/dhclient.leases.rpmsave /var/lib/dhclient/dhclient.leases
 fi
 
 %post relay
@@ -358,9 +417,9 @@ fi
 %attr(755,root,root) %{_sbindir}/dhcpd
 %attr(754,root,root) /etc/rc.d/init.d/dhcpd
 %attr(754,root,root) /etc/rc.d/init.d/dhcpd6
-%attr(750,root,root) %dir /var/lib/%{name}
-%ghost /var/lib/%{name}/dhcpd.leases
-%ghost /var/lib/%{name}/dhcpd6.leases
+%attr(750,root,root) %dir /var/lib/dhcpd
+%ghost /var/lib/dhcpd/dhcpd.leases
+%ghost /var/lib/dhcpd/dhcpd6.leases
 %{_mandir}/man1/omshell.1*
 %{_mandir}/man5/dhcp-eval.5*
 %{_mandir}/man5/dhcp-options.5*
@@ -368,23 +427,17 @@ fi
 %{_mandir}/man5/dhcpd.leases.5*
 %{_mandir}/man8/dhcpd.8*
 
-%if %{with ldap}
-%files -n openldap-schema-dhcp
-%defattr(644,root,root,755)
-%{schemadir}/dhcp.schema
-%endif
-
 %files client
 %defattr(644,root,root,755)
-%doc contrib/sethostname.sh
+%doc contrib/sethostname.sh client/dhclient.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/dhclient.conf
 %attr(755,root,root) /sbin/dhclient
-#%attr(755,root,root) /sbin/dhclient-script
+%attr(755,root,root) /sbin/dhclient-script
 %{_mandir}/man5/dhclient.conf.5*
 %{_mandir}/man5/dhclient.leases.5*
 %{_mandir}/man8/dhclient.8*
 %{_mandir}/man8/dhclient-script.8*
-%attr(750,root,root) %dir /var/lib/dhclient
+%dir %attr(750,root,root) /var/lib/dhclient
 %ghost /var/lib/dhclient/dhclient.leases
 %ghost /var/lib/dhclient/dhclient6.leases
 
@@ -421,4 +474,10 @@ fi
 %files -n libdhcp4client-static
 %defattr(644,root,root,755)
 %{_libdir}/libdhcp4client.a
+%endif
+
+%if %{with ldap}
+%files -n openldap-schema-dhcp
+%defattr(644,root,root,755)
+%{schemadir}/dhcp.schema
 %endif
