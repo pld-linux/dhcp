@@ -1,0 +1,58 @@
+--- dhcp-3.0.5/client/dhclient.c.decline	2007-03-30 15:29:58.000000000 -0400
++++ dhcp-3.0.5/client/dhclient.c	2007-03-30 15:50:25.000000000 -0400
+@@ -934,6 +934,7 @@
+ 	void *cpp;
+ {
+ 	struct client_state *client = cpp;
++	enum dhcp_state init_state = client->state;
+ 
+ 	ASSERT_STATE(state, S_INIT);
+ 
+@@ -946,9 +947,16 @@
+ 	client -> first_sending = cur_time;
+ 	client -> interval = client -> config -> initial_interval;
+ 
+-	/* Add an immediate timeout to cause the first DHCPDISCOVER packet
+-	   to go out. */
+-	send_discover (client);
++	if (init_state != S_DECLINED) {
++		/* Add an immediate timeout to cause the first DHCPDISCOVER packet
++		   to go out. */
++		send_discover(client);
++	} else {
++		/* We've received an OFFER and it has been DECLINEd by dhclient-script.
++		 * wait for a random time between 1 and backoff_cutoff seconds before
++		 * trying again. */
++		add_timeout(cur_time + ((1 + (random() >> 2)) %  client->config->backoff_cutoff), send_discover, client, 0, 0);
++	}
+ }
+ 
+ /* state_selecting is called when one or more DHCPOFFER packets have been
+@@ -1215,6 +1223,7 @@
+ 		send_decline (client);
+ 		destroy_client_lease (client -> new);
+ 		client -> new = (struct client_lease *)0;
++		client -> state = S_DECLINED;
+ 		state_init (client);
+ 		return;
+ 	}
+@@ -3183,6 +3192,7 @@
+ 			      case S_INIT:
+ 			      case S_REBINDING:
+ 			      case S_STOPPED:
++			      case S_DECLINED:
+ 				break;
+ 			}
+ 			client -> state = S_INIT;
+--- dhcp-3.0.5/includes/dhcpd.h.decline	2007-03-30 15:30:14.000000000 -0400
++++ dhcp-3.0.5/includes/dhcpd.h	2007-03-30 15:50:53.000000000 -0400
+@@ -704,7 +704,8 @@
+ 	S_BOUND = 5,
+ 	S_RENEWING = 6,
+ 	S_REBINDING = 7,
+-	S_STOPPED = 8
++	S_STOPPED = 8,
++	S_DECLINED = 9
+ };
+ 
+ /* Authentication and BOOTP policy possibilities (not all values work

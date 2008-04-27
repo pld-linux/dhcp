@@ -1,0 +1,37 @@
+diff -up dhcp-3.0.6/minires/ns_name.c.memory dhcp-3.0.6/minires/ns_name.c
+--- dhcp-3.0.6/minires/ns_name.c.memory	2004-06-10 13:59:40.000000000 -0400
++++ dhcp-3.0.6/minires/ns_name.c	2007-07-10 11:43:29.000000000 -0400
+@@ -71,6 +71,11 @@ ns_name_ntop(const u_char *src, char *ds
+ 	dn = dst;
+ 	eom = dst + dstsiz;
+ 
++	if (dn >= eom) {
++		errno = EMSGSIZE;
++		return (-1);
++	}
++
+ 	while ((n = *cp++) != 0) {
+ 		if ((n & NS_CMPRSFLGS) != 0) {
+ 			/* Some kind of compression pointer. */
+diff -up dhcp-3.0.6/common/packet.c.memory dhcp-3.0.6/common/packet.c
+--- dhcp-3.0.6/common/packet.c.memory	2007-05-01 16:42:55.000000000 -0400
++++ dhcp-3.0.6/common/packet.c	2007-07-10 11:43:29.000000000 -0400
+@@ -140,6 +140,7 @@ void assemble_udp_ip_header (interface, 
+ 	struct ip ip;
+ 	struct udphdr udp;
+ 
++	memset( &ip, '\0', sizeof ip);
+ 	/* Fill out the IP header */
+ 	IP_V_SET (&ip, 4);
+ 	IP_HL_SET (&ip, 20);
+diff -up dhcp-3.0.6/common/lpf.c.memory dhcp-3.0.6/common/lpf.c
+--- dhcp-3.0.6/common/lpf.c.memory	2007-07-10 11:43:29.000000000 -0400
++++ dhcp-3.0.6/common/lpf.c	2007-07-10 11:43:29.000000000 -0400
+@@ -246,6 +246,7 @@ static void lpf_tr_filter_setup (info)
+ 	struct interface_info *info;
+ {
+ 	struct sock_fprog p;
++	memset(&p,'\0', sizeof(struct sock_fprog));
+ 
+ 	/* Set up the bpf filter program structure.    This is defined in
+ 	   bpf.c */

@@ -1,0 +1,29 @@
+--- dhcp-3.0.5/omapip/errwarn.c.message	2007-03-29 15:03:12.000000000 -0400
++++ dhcp-3.0.5/omapip/errwarn.c	2007-03-29 15:08:50.000000000 -0400
+@@ -80,20 +80,13 @@
+ 
+ #if !defined (NOMINUM)
+   log_error ("%s", "");
+-  log_error ("If you did not get this software from ftp.isc.org, please");
+-  log_error ("get the latest from ftp.isc.org and install that before");
+-  log_error ("requesting help.");
++  log_error ("This version of ISC DHCP is based on the release available");
++  log_error ("on ftp.isc.org.  Features have been added and other changes");
++  log_error ("have been made to the base software release in order to make");
++  log_error ("it work better with this distribution.");
+   log_error ("%s", "");
+-  log_error ("If you did get this software from ftp.isc.org and have not");
+-  log_error ("yet read the README, please read it before requesting help.");
+-  log_error ("If you intend to request help from the dhcp-server@isc.org");
+-  log_error ("mailing list, please read the section on the README about");
+-  log_error ("submitting bug reports and requests for help.");
+-  log_error ("%s", "");
+-  log_error ("Please do not under any circumstances send requests for");
+-  log_error ("help directly to the authors of this software - please");
+-  log_error ("send them to the appropriate mailing list as described in");
+-  log_error ("the README file.");
++  log_error ("Please report for this software via the Red Hat Bugzilla site:");
++  log_error ("    http://bugzilla.redhat.com");
+   log_error ("%s", "");
+   log_error ("exiting.");
+ #endif

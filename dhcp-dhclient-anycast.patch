@@ -1,0 +1,70 @@
+diff -up dhcp-4.0.0/common/lpf.c.anycast dhcp-4.0.0/common/lpf.c
+--- dhcp-4.0.0/common/lpf.c.anycast	2007-12-29 06:44:46.000000000 -1000
++++ dhcp-4.0.0/common/lpf.c	2007-12-29 10:40:11.000000000 -1000
+@@ -331,6 +331,9 @@ ssize_t send_packet (interface, packet, 
+ 		return send_fallback (interface, packet, raw,
+ 				      len, from, to, hto);
+ 
++	if (hto == NULL && interface->anycast_mac_addr.hlen)
++		hto = &interface->anycast_mac_addr;
++
+ 	/* Assemble the headers... */
+ 	assemble_hw_header (interface, (unsigned char *)hh, &hbufp, hto);
+ 	fudge = hbufp % 4;	/* IP header must be word-aligned. */
+diff -up dhcp-4.0.0/common/conflex.c.anycast dhcp-4.0.0/common/conflex.c
+--- dhcp-4.0.0/common/conflex.c.anycast	2007-12-29 06:44:46.000000000 -1000
++++ dhcp-4.0.0/common/conflex.c	2007-12-29 10:39:30.000000000 -1000
+@@ -715,6 +715,8 @@ intern(char *atom, enum dhcp_token dfv) 
+ 		}
+ 		if (!strcasecmp (atom + 1, "nd"))
+ 			return AND;
++		if (!strcasecmp (atom + 1, "nycast-mac"))
++			return ANYCAST_MAC;
+ 		if (!strcasecmp (atom + 1, "ppend"))
+ 			return APPEND;
+ 		if (!strcasecmp (atom + 1, "llow"))
+diff -up dhcp-4.0.0/includes/dhcpd.h.anycast dhcp-4.0.0/includes/dhcpd.h
+--- dhcp-4.0.0/includes/dhcpd.h.anycast	2007-12-29 06:44:46.000000000 -1000
++++ dhcp-4.0.0/includes/dhcpd.h	2007-12-29 10:42:56.000000000 -1000
+@@ -1188,6 +1188,7 @@ struct interface_info {
+ 	int dlpi_sap_length;
+ 	struct hardware dlpi_broadcast_addr;
+ # endif /* DLPI_SEND || DLPI_RECEIVE */
++	struct hardware anycast_mac_addr;
+ };
+ 
+ struct hardware_link {
+diff -up dhcp-4.0.0/includes/dhctoken.h.anycast dhcp-4.0.0/includes/dhctoken.h
+--- dhcp-4.0.0/includes/dhctoken.h.anycast	2007-12-29 06:44:46.000000000 -1000
++++ dhcp-4.0.0/includes/dhctoken.h	2007-12-29 10:44:00.000000000 -1000
+@@ -346,7 +346,8 @@ enum dhcp_token {
+ 	WHITESPACE = 649,
+ 	TOKEN_ALSO = 650,
+ 	AFTER = 651,
+-	BOOTP_BROADCAST_ALWAYS = 652
++	BOOTP_BROADCAST_ALWAYS = 652,
++	ANYCAST_MAC = 653
+ };
+ 
+ #define is_identifier(x)	((x) >= FIRST_TOKEN &&	\
+diff -up dhcp-4.0.0/client/clparse.c.anycast dhcp-4.0.0/client/clparse.c
+--- dhcp-4.0.0/client/clparse.c.anycast	2007-12-29 06:44:46.000000000 -1000
++++ dhcp-4.0.0/client/clparse.c	2007-12-29 10:38:55.000000000 -1000
+@@ -550,6 +550,17 @@ void parse_client_statement (cfile, ip, 
+ 		}
+ 		return;
+ 
++	      case ANYCAST_MAC:
++		token = next_token (&val, (unsigned *)0, cfile);
++		if (ip) {
++			parse_hardware_param (cfile, &ip -> anycast_mac_addr);
++		} else {
++			parse_warn (cfile, "anycast mac address parameter %s",
++			            "not allowed here.");
++			skip_to_semi (cfile);
++		}
++		return;
++
+ 	      case REQUEST:
+ 		token = next_token (&val, (unsigned *)0, cfile);
+ 		if (config -> requested_options == default_requested_options)
