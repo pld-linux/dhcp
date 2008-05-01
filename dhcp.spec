@@ -13,7 +13,7 @@ Summary(pt_BR.UTF-8):	Servidor DHCP (Protocolo de configuração dinâmica de ho
 Name:		dhcp
 # 4.1.0a1 is on DEVEL
 Version:	4.0.0
-Release:	1
+Release:	2
 Epoch:		4
 License:	MIT
 Group:		Networking/Daemons
@@ -33,30 +33,28 @@ Source11:	%{name}-README.ldap
 Source12:	draft-ietf-dhc-ldap-schema-01.txt
 Source13:	dhcpd-conf-to-ldap
 Source14:	dhcp-dhclient-script
-Patch0:		%{name}-dhclient.script.patch
-Patch1:		%{name}-release-by-ifup.patch
+Patch0:		%{name}-release-by-ifup.patch
 # from fedora 9-dev
-Patch2:		%{name}-ldap.patch
-Patch3:		%{name}-client-script-redhat.patch
-Patch4:		%{name}-3.0.3-x-option.patch
-Patch5:		%{name}-paths.patch
-Patch6:		%{name}-arg-concat.patch
-Patch8:		%{name}-timeouts.patch
-Patch9:		%{name}-options.patch
-Patch10:	%{name}-libdhcp4client.patch
-Patch11:	%{name}-prototypes.patch
-Patch12:	%{name}-errwarn-message.patch
-Patch13:	%{name}-memory.patch
-Patch14:	%{name}-dhclient-decline-backoff.patch
-Patch15:	%{name}-unicast-bootp.patch
-Patch16:	%{name}-fast-timeout.patch
-Patch17:	%{name}-failover-ports.patch
-Patch18:	%{name}-dhclient-usage.patch
-Patch19:	%{name}-default-requested-options.patch
-Patch20:	%{name}-xen-checksum.patch
-Patch21:	%{name}-dhclient-anycast.patch
-Patch22:	%{name}-manpages.patch
-Patch23:	%{name}-NetworkManager-crash.patch
+Patch1:		%{name}-ldap.patch
+Patch2:		%{name}-3.0.3-x-option.patch
+Patch3:		%{name}-paths.patch
+Patch4:		%{name}-arg-concat.patch
+Patch5:		%{name}-timeouts.patch
+Patch6:		%{name}-options.patch
+Patch7:		%{name}-libdhcp4client.patch
+Patch8:		%{name}-prototypes.patch
+Patch9:		%{name}-errwarn-message.patch
+Patch10:	%{name}-memory.patch
+Patch11:	%{name}-dhclient-decline-backoff.patch
+Patch12:	%{name}-unicast-bootp.patch
+Patch13:	%{name}-fast-timeout.patch
+Patch14:	%{name}-failover-ports.patch
+Patch15:	%{name}-dhclient-usage.patch
+Patch16:	%{name}-default-requested-options.patch
+Patch17:	%{name}-xen-checksum.patch
+Patch18:	%{name}-dhclient-anycast.patch
+Patch19:	%{name}-manpages.patch
+Patch20:	%{name}-NetworkManager-crash.patch
 URL:		http://www.isc.org/sw/dhcp/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -217,19 +215,20 @@ Statyczna biblioteka kliencka DHCP.
 %prep
 %setup -q
 %patch0 -p1
-%patch1 -p1
-%{?with_ldap:%patch2 -p1}
-# These two patches are required for dhcdbd to function
-%patch3 -p1
+%{?with_ldap:%patch1 -p1}
+# This patch is required for dhcdbd to function
 # CHECK ME: adds -x (formerly -y):
 #The -x argument enables extended option information to be created in the
 #-s dhclient-script environment, which would allow applications running
 #in that environment to handle options they do not know about in advance -
 #this is a Red Hat extension to support dhcdbd and NetworkManager.
 # however, fedora doesn't have this patch anymore, so can drop?
-#%%patch4 -p1
+#%%patch2 -p1
+%patch3 -p1
+%patch4 -p1
 %patch5 -p1
 %patch6 -p1
+%patch7 -p1
 %patch8 -p1
 %patch9 -p1
 %patch10 -p1
@@ -243,9 +242,6 @@ Statyczna biblioteka kliencka DHCP.
 %patch18 -p1
 %patch19 -p1
 %patch20 -p1
-%patch21 -p1
-%patch22 -p1
-%patch23 -p1
 
 # Copy in documentation and example scripts for LDAP patch to dhcpd
 cp -a %{SOURCE11} README.ldap
@@ -327,7 +323,7 @@ for hdr in cdefs.h ctrace.h dhcp.h dhcp6.h dhcpd.h dhctoken.h failover.h \
 	install -p -m 0644 includes/${hdr} $RPM_BUILD_ROOT%{_includedir}/dhcp4client/${hdr}
 done
 
-touch $RPM_BUILD_ROOT%{_sysconfdir}/dhclient.conf
+:> $RPM_BUILD_ROOT%{_sysconfdir}/dhclient.conf
 
 touch $RPM_BUILD_ROOT/var/lib/dhcpd/dhcpd.leases
 touch $RPM_BUILD_ROOT/var/lib/dhclient/dhclient.leases
