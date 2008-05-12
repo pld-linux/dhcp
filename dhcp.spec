@@ -13,7 +13,7 @@ Summary(pt_BR.UTF-8):	Servidor DHCP (Protocolo de configuração dinâmica de ho
 Name:		dhcp
 # 4.1.0a1 is on DEVEL
 Version:	4.0.0
-Release:	3
+Release:	4
 Epoch:		4
 License:	MIT
 Group:		Networking/Daemons
@@ -316,6 +316,8 @@ install %{SOURCE10} $RPM_BUILD_ROOT%{schemadir}
 %endif
 
 # Install headers for libdhcp4client-devel
+install -d $RPM_BUILD_ROOT%{_includedir}/dhcp4client
+install libdhcp4client/dhcp4client.h $RPM_BUILD_ROOT%{_includedir}/dhcp4client/dhcp4client.h
 install -d $RPM_BUILD_ROOT%{_includedir}/dhcp4client/minires
 for hdr in cdefs.h ctrace.h dhcp.h dhcp6.h dhcpd.h dhctoken.h failover.h \
            heap.h inet.h minires/minires.h minires/res_update.h \
