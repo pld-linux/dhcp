@@ -13,7 +13,7 @@ Summary(pt_BR.UTF-8):	Servidor DHCP (Protocolo de configuração dinâmica de ho
 Name:		dhcp
 # 4.1.0a1 is on DEVEL
 Version:	4.0.0
-Release:	2
+Release:	3
 Epoch:		4
 License:	MIT
 Group:		Networking/Daemons
@@ -275,7 +275,7 @@ for page in server/dhcpd.conf.5 server/dhcpd.leases.5 server/dhcpd.8; do
 				-e 's|ETCDIR|%{_sysconfdir}|g' $page
 done
 
-sed 's/@DHCP_VERSION@/'%{version}'/' < %{SOURCE5} > libdhcp4client.pc
+sed 's/@DHCP_VERSION@/'%{version}'/' < %{SOURCE6} > libdhcp4client.pc
 
 %build
 %{__libtoolize}
