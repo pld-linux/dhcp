@@ -6,12 +6,12 @@ diff -up dhcp-4.0.0/includes/dhcpd.h.paths dhcp-4.0.0/includes/dhcpd.h
  
  #ifndef _PATH_DHCPD_DB
 -#define _PATH_DHCPD_DB		LOCALSTATEDIR"/db/dhcpd.leases"
-+#define _PATH_DHCPD_DB		LOCALSTATEDIR"/lib/dhcp/dhcpd.leases"
++#define _PATH_DHCPD_DB		LOCALSTATEDIR"/lib/dhcpd/dhcpd.leases"
  #endif
  
  #ifndef _PATH_DHCPD6_DB
 -#define _PATH_DHCPD6_DB		LOCALSTATEDIR"/db/dhcpd6.leases"
-+#define _PATH_DHCPD6_DB		LOCALSTATEDIR"/lib/dhcp/dhcpd6.leases"
++#define _PATH_DHCPD6_DB		LOCALSTATEDIR"/lib/dhcpd/dhcpd6.leases"
  #endif
  
  #ifndef _PATH_DHCPD_PID
