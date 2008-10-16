@@ -13,7 +13,7 @@ Summary(pt_BR.UTF-8):	Servidor DHCP (Protocolo de configuração dinâmica de ho
 Name:		dhcp
 # 4.1.0a1 is on DEVEL
 Version:	4.0.0
-Release:	4
+Release:	5
 Epoch:		4
 License:	MIT
 Group:		Networking/Daemons
@@ -362,6 +362,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %post
 touch /var/lib/dhcpd/dhcpd.leases
+touch /var/lib/dhcpd/dhcpd6.leases
 /sbin/chkconfig --add dhcpd
 %service dhcpd restart "dhcpd daemon"
 /sbin/chkconfig --add dhcpd6
