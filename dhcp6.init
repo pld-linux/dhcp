@@ -39,7 +39,7 @@ start() {
 	# Check if the service is already running?
 	if [ ! -f /var/lock/subsys/dhcpd6 ]; then
 		msg_starting "DHCP IPv6 Server"
-		daemon dhcpd -6 $DHCPD_INTERFACES
+		daemon /sbin/dhcpd -6 $DHCPD_INTERFACES
 		RETVAL=$?
 		[ $RETVAL -eq 0 ] && touch /var/lock/subsys/dhcpd6
 	else

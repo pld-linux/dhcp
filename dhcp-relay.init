@@ -33,7 +33,7 @@ fi
 start() {
 	if [ ! -f /var/lock/subsys/dhcp-relay ]; then
 		msg_starting "DHCP relay"
-		daemon dhcrelay $OPTIONS $DHCP_SERVERS_IP
+		daemon /sbin/dhcrelay $OPTIONS $DHCP_SERVERS_IP
 		RETVAL=$?
 		[ $RETVAL -eq 0 ] && touch /var/lock/subsys/dhcp-relay
 	else
