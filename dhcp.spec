@@ -55,6 +55,7 @@ Patch17:	%{name}-xen-checksum.patch
 Patch18:	%{name}-dhclient-anycast.patch
 Patch19:	%{name}-manpages.patch
 Patch20:	%{name}-NetworkManager-crash.patch
+Patch21:	%{name}-no-ipv6.patch
 URL:		http://www.isc.org/sw/dhcp/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -242,6 +243,7 @@ Statyczna biblioteka kliencka DHCP.
 %patch18 -p1
 %patch19 -p1
 %patch20 -p1
+%patch21 -p1
 
 # Copy in documentation and example scripts for LDAP patch to dhcpd
 cp -a %{SOURCE11} README.ldap
