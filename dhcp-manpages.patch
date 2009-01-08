@@ -240,7 +240,7 @@ diff -up dhcp-4.0.0/client/dhclient.8.manpages dhcp-4.0.0/client/dhclient.8
 -dhclient should use.  This is mostly useful for debugging purposes.
 -If a different port is specified for the client to listen on and
 -transmit on, the client will also use a different destination port -
--one greater than the specified destination port.
+-one less than the specified port.
 -.PP
 -The DHCP client normally transmits any protocol messages it sends
 -before acquiring an IP address to, 255.255.255.255, the IP limited
@@ -309,7 +309,7 @@ diff -up dhcp-4.0.0/client/dhclient.8.manpages dhcp-4.0.0/client/dhclient.8
 +uses the default port 68.  This option is mostly useful for debugging
 +purposes.  If a different port is specified for the client to listen and
 +transmit on, the client will also use a different destination port - one
-+greater than the specified destination port.
++less than the specified port.
 +
 +.TP
 +.BI \-d
