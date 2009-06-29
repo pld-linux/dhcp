@@ -23,42 +23,85 @@ else
 	exit 0
 fi
 
-checkconfig() {
-	show "Checking %s configuration" "DHCP Server"
+check_device_up()
+{
+	local DEVICE=$1
+	if LC_ALL=C ip addr show dev $DEVICE | grep -q inet; then
+		return 0
+	else
+		return 1
+	fi
+}
+
+# configtest itself
+configtest() {
+	local rc out
 	out=`/sbin/dhcpd -t 2>&1`; rc=$?
 	if [ $rc -gt 0 ]; then
-		fail
 		echo >&2 "$out"
-	else
-		ok
 	fi
+
+	# check if interfaces specified exist and have addresses
+	for i in $DHCPD_INTERFACES; do
+		if ! check_device_up $i; then
+			echo >&2 "Device '$i' does not exist or has no address configured"
+			rc=1
+		fi
+	done
+
 	return $rc
+}
+
+# wrapper for configtest:
+checkconfig() {
+	local details=${1:-0}
+
+	if [ $details = 1 ]; then
+		# run config test and display report (status action)
+		show "Checking %s configuration" "DHCP Server"; busy; echo
+		configtest
+		RETVAL=$?
+	else
+		# run config test and abort with nice message if failed
+		# (for actions checking status before action).
+		configtest >/dev/null 2>&1
+		RETVAL=$?
+		if [ $RETVAL != 0 ]; then
+			show "Checking %s configuration" "DHCP Server"; fail
+			echo >&2 "Configuration test failed. Run \"$0 checkconfig\" to see errors."
+			exit $RETVAL
+		fi
+	fi
 }
 
 start() {
 	# Check if the service is already running?
-	if [ ! -f /var/lock/subsys/dhcpd ]; then
-		msg_starting "DHCP Server"
-		daemon /sbin/dhcpd $DHCPD_INTERFACES
-		RETVAL=$?
-		[ $RETVAL -eq 0 ] && touch /var/lock/subsys/dhcpd
-	else
+	if [ -f /var/lock/subsys/dhcpd ]; then
 		msg_already_running "DHCP Server"
+		return
 	fi
+
+	checkconfig
+	msg_starting "DHCP Server"
+	daemon /sbin/dhcpd $DHCPD_INTERFACES
+	RETVAL=$?
+	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/dhcpd
 }
 
 stop() {
-	if [ -f /var/lock/subsys/dhcpd ]; then
-		msg_stopping "DHCP Server"
-		killproc dhcpd
-		rm -f /var/run/dhcpd.pid /var/lock/subsys/dhcpd >/dev/null 2>&1
-	else
+	if [ ! -f /var/lock/subsys/dhcpd ]; then
 		msg_not_running "DHCP Server"
+		return
 	fi
+
+	msg_stopping "DHCP Server"
+	killproc dhcpd
+	rm -f /var/run/dhcpd.pid /var/lock/subsys/dhcpd >/dev/null 2>&1
 }
 
 condrestart() {
 	if [ -f /var/lock/subsys/dhcpd ]; then
+		checkconfig
 		stop
 		start
 	else
@@ -71,27 +114,24 @@ RETVAL=0
 # See how we were called.
 case "$1" in
   start)
-	checkconfig || exit 1
 	start
 	;;
   stop)
 	stop
 	;;
   restart)
-	checkconfig || exit 1
+	checkconfig
 	stop
 	start
 	;;
   try-restart)
-	checkconfig || exit 1
 	condrestart 0
 	;;
   force-reload)
-	checkconfig || exit 1
 	condrestart 7
 	;;
   checkconfig)
-	checkconfig
+	checkconfig 1
 	;;
   status)
 	status dhcpd
