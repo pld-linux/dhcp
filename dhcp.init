@@ -36,7 +36,7 @@ check_device_up()
 # configtest itself
 configtest() {
 	local rc=0
-	/sbin/dhcpd -q -t -T || rc=$?
+	/sbin/dhcpd -4 -q -t -T || rc=$?
 
 	# check if interfaces specified exist and have addresses
 	for i in $DHCPD_INTERFACES; do
@@ -87,7 +87,7 @@ start() {
 
 	checkconfig
 	msg_starting "DHCP Server"
-	daemon /sbin/dhcpd -q $DHCPD_INTERFACES
+	daemon /sbin/dhcpd -4 -q $DHCPD_INTERFACES
 	RETVAL=$?
 	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/dhcpd
 }
@@ -99,19 +99,20 @@ stop() {
 	fi
 
 	msg_stopping "DHCP Server"
-	killproc dhcpd
+	killproc --pidfile /var/run/dhcpd.pid dhcpd
 	rm -f /var/run/dhcpd.pid /var/lock/subsys/dhcpd >/dev/null 2>&1
 }
 
 condrestart() {
-	if [ -f /var/lock/subsys/dhcpd ]; then
-		checkconfig
-		stop
-		start
-	else
-		msg_not_running dhcpd
+	if [ ! -f /var/lock/subsys/dhcpd ]; then
+		msg_not_running "DHCP Server"
 		RETVAL=$1
+		return
 	fi
+
+	checkconfig
+	stop
+	start
 }
 
 RETVAL=0
@@ -138,7 +139,7 @@ case "$1" in
 	checkconfig 1
 	;;
   status)
-	status dhcpd
+	status --pidfile /var/run/dhcpd.pid dhcpd
 	exit $?
 	;;
   *)
