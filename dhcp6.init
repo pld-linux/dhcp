@@ -50,16 +50,22 @@ configtest() {
 }
 
 # wrapper for configtest
+checkconfig=-1
 checkconfig() {
 	local details=${1:-0}
+
+	# run checkconfig only once
+	if [ "$checkconfig" != -1 ]; then
+		return $checkconfig
+	fi
 
 	if [ $details = 1 ]; then
 		# run config test and display report (status action)
 		show "Checking %s configuration" "DHCP IPv6 Server"; busy
 		local out
 		out=$(configtest 2>&1)
-		RETVAL=$?
-		if [ $RETVAL = 0 ]; then
+		checkconfig=$?
+		if [ $checkconfig = 0 ]; then
 			ok
 		else
 			fail
@@ -69,11 +75,11 @@ checkconfig() {
 		# run config test and abort with nice message if failed
 		# (for actions checking status before action).
 		configtest >/dev/null 2>&1
-		RETVAL=$?
-		if [ $RETVAL != 0 ]; then
+		checkconfig=$?
+		if [ $checkconfig != 0 ]; then
 			show "Checking %s configuration" "DHCP IPv6 Server"; fail
 			nls 'Configuration test failed. See details with %s "checkconfig"' $0
-			exit $RETVAL
+			exit $checkconfig
 		fi
 	fi
 }
