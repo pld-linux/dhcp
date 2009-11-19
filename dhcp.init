@@ -35,11 +35,8 @@ check_device_up()
 
 # configtest itself
 configtest() {
-	local rc out
-	out=`/sbin/dhcpd -t 2>&1`; rc=$?
-	if [ $rc -gt 0 ]; then
-		echo >&2 "$out"
-	fi
+	local rc=0
+	/sbin/dhcpd -q -t -T || rc=$?
 
 	# check if interfaces specified exist and have addresses
 	for i in $DHCPD_INTERFACES; do
@@ -52,15 +49,22 @@ configtest() {
 	return $rc
 }
 
-# wrapper for configtest:
+# wrapper for configtest
 checkconfig() {
 	local details=${1:-0}
 
 	if [ $details = 1 ]; then
 		# run config test and display report (status action)
-		show "Checking %s configuration" "DHCP Server"; busy; echo
-		configtest
+		show "Checking %s configuration" "DHCP Server"; busy
+		local out
+		out=$(configtest 2>&1)
 		RETVAL=$?
+		if [ $RETVAL = 0 ]; then
+			ok
+		else
+			fail
+		fi
+		[ "$out" ] && echo >&2 "$out"
 	else
 		# run config test and abort with nice message if failed
 		# (for actions checking status before action).
@@ -68,7 +72,7 @@ checkconfig() {
 		RETVAL=$?
 		if [ $RETVAL != 0 ]; then
 			show "Checking %s configuration" "DHCP Server"; fail
-			echo >&2 "Configuration test failed. Run \"$0 checkconfig\" to see errors."
+			nls 'Configuration test failed. See details with %s "checkconfig"' $0
 			exit $RETVAL
 		fi
 	fi
@@ -83,7 +87,7 @@ start() {
 
 	checkconfig
 	msg_starting "DHCP Server"
-	daemon /sbin/dhcpd $DHCPD_INTERFACES
+	daemon /sbin/dhcpd -q $DHCPD_INTERFACES
 	RETVAL=$?
 	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/dhcpd
 }
@@ -130,7 +134,7 @@ case "$1" in
   force-reload)
 	condrestart 7
 	;;
-  checkconfig)
+  checkconfig|configtest)
 	checkconfig 1
 	;;
   status)
