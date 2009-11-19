@@ -71,6 +71,7 @@ checkconfig() {
 			fail
 		fi
 		[ "$out" ] && echo >&2 "$out"
+		RETVAL=$checkconfig
 	else
 		# run config test and abort with nice message if failed
 		# (for actions checking status before action).
