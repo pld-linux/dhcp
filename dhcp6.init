@@ -87,7 +87,7 @@ checkconfig() {
 
 start() {
 	# Check if the service is already running?
-	if [ -f /var/lock/subsys/dhcpd ]; then
+	if [ -f /var/lock/subsys/dhcpd6 ]; then
 		msg_already_running "DHCP IPv6 Server"
 		return
 	fi
@@ -96,22 +96,22 @@ start() {
 	msg_starting "DHCP IPv6 Server"
 	daemon /sbin/dhcpd -6 -pf /var/run/dhpcd6.pid -q $DHCPD_INTERFACES
 	RETVAL=$?
-	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/dhcpd
+	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/dhcpd6
 }
 
 stop() {
-	if [ ! -f /var/lock/subsys/dhcpd ]; then
+	if [ ! -f /var/lock/subsys/dhcpd6 ]; then
 		msg_not_running "DHCP IPv6 Server"
 		return
 	fi
 
 	msg_stopping "DHCP IPv6 Server"
 	killproc --pidfile /var/run/dhcpd6.pid dhcpd
-	rm -f /var/run/dhcpd6.pid /var/lock/subsys/dhcpd >/dev/null 2>&1
+	rm -f /var/run/dhcpd6.pid /var/lock/subsys/dhcpd6 >/dev/null 2>&1
 }
 
 condrestart() {
-	if [ ! -f /var/lock/subsys/dhcpd ]; then
+	if [ ! -f /var/lock/subsys/dhcpd6 ]; then
 		msg_not_running "DHCP IPv6 Server"
 		RETVAL=$1
 		return
