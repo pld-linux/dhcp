@@ -146,7 +146,7 @@ case "$1" in
 	checkconfig 1
 	;;
   status)
-	status --pidfile /var/run/dhcpd6.pid dhcpd
+	status --pidfile /var/run/dhcpd6.pid dhcpd6 dhcpd
 	exit $?
 	;;
   *)
