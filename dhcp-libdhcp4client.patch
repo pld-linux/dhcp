@@ -259,15 +259,15 @@ diff -up dhcp-4.0.0/omapip/alloc.c.libdhcp4client dhcp-4.0.0/omapip/alloc.c
 diff -up dhcp-4.0.0/dst/Makefile.am.libdhcp4client dhcp-4.0.0/dst/Makefile.am
 --- dhcp-4.0.0/dst/Makefile.am.libdhcp4client	2008-01-22 17:04:28.000000000 -1000
 +++ dhcp-4.0.0/dst/Makefile.am	2008-01-22 17:04:28.000000000 -1000
-@@ -2,7 +2,7 @@ AM_CPPFLAGS = -DMINIRES_LIB -DHMAC_MD5
+@@ -2,6 +2,8 @@ AM_CPPFLAGS = -DMINIRES_LIB -DHMAC_MD5
  
  lib_LIBRARIES = libdst.a
  
--noinst_LIBRARIES = libdstnomd5.a
-+noinst_LIBRARIES = libdstnomd5.a libdstLIBDHCP.a
- 
- libdst_a_SOURCES = dst_support.c dst_api.c hmac_link.c md5_dgst.c \
++noinst_LIBRARIES = libdstLIBDHCP.a
++
+ libdst_a_SOURCES = dst_support.c dst_api.c hmac_link.c \
  		   base64.c prandom.c
+ 
 @@ -10,4 +10,8 @@ libdst_a_SOURCES = dst_support.c dst_api
  libdstnomd5_a_SOURCES = dst_support.c dst_api.c hmac_link.c \
  		   base64.c prandom.c
