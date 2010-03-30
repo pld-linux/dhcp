@@ -13,7 +13,7 @@ Summary(pt_BR.UTF-8):	Servidor DHCP (Protocolo de configuração dinâmica de ho
 Name:		dhcp
 # 4.1.0a1 is on DEVEL
 Version:	4.0.1p1
-Release:	1
+Release:	2
 Epoch:		4
 License:	MIT
 Group:		Networking/Daemons
@@ -34,7 +34,7 @@ Source12:	draft-ietf-dhc-ldap-schema-01.txt
 Source13:	dhcpd-conf-to-ldap
 Source14:	dhcp-dhclient-script
 Patch0:		%{name}-release-by-ifup.patch
-# from fedora 9-dev
+# http://github.com/dcantrell/ldap-for-dhcp/raw/9cfd4c277d7615777f372ea08f44cc7de9ed7959/dhcp-4.0.1-ldap.patch
 Patch1:		%{name}-ldap.patch
 Patch2:		%{name}-3.0.3-x-option.patch
 Patch3:		%{name}-paths.patch
@@ -216,7 +216,7 @@ Statyczna biblioteka kliencka DHCP.
 %prep
 %setup -q
 %patch0 -p1
-%{?with_ldap:%patch1 -p1}
+%patch1 -p1
 # This patch is required for dhcdbd to function
 # CHECK ME: adds -x (formerly -y):
 #The -x argument enables extended option information to be created in the
@@ -289,11 +289,12 @@ CFLAGS="%{rpmcflags} -fPIC -D_GNU_SOURCE=1"
 %configure \
 	%{!?with_static_libs:--disable-static} \
 	--enable-dhcpv6 \
-    --with-srv-lease-file=/var/lib/dhcpd/dhcpd.leases \
-    --with-cli-lease-file=/var/lib/dhclient/dhclient.leases \
-    --with-srv-pid-file=/var/run/dhcpd.pid \
-    --with-cli-pid-file=/var/run/dhclient.pid \
-    --with-relay-pid-file=/var/run/dhcrelay.pid
+	--with-srv-lease-file=/var/lib/dhcpd/dhcpd.leases \
+	--with-cli-lease-file=/var/lib/dhclient/dhclient.leases \
+	--with-srv-pid-file=/var/run/dhcpd.pid \
+	--with-cli-pid-file=/var/run/dhclient.pid \
+	--with-relay-pid-file=/var/run/dhcrelay.pid \
+	--with%{!?with_ldap:out}-ldap
 %{__make}
 
 %install
@@ -411,7 +412,8 @@ fi
 
 %files
 %defattr(644,root,root,755)
-%doc doc/* README RELNOTES server/dhcpd.conf LICENSE contrib/ms2isc
+%doc doc/* README RELNOTES server/dhcpd.conf LICENSE 
+%doc contrib/ms2isc %{?with_ldap:contrib/dhcpd-conf-to-ldap README.ldap}
 %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/dhcpd
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/dhcpd.conf
 %attr(755,root,root) %{_bindir}/omshell
