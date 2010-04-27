@@ -38,9 +38,9 @@ diff -up dhcp-4.0.0/includes/dhctoken.h.anycast dhcp-4.0.0/includes/dhctoken.h
 --- dhcp-4.0.0/includes/dhctoken.h.anycast	2007-12-29 06:44:46.000000000 -1000
 +++ dhcp-4.0.0/includes/dhctoken.h	2007-12-29 10:44:00.000000000 -1000
 @@ -346,7 +346,8 @@ enum dhcp_token {
- 	WHITESPACE = 649,
  	TOKEN_ALSO = 650,
  	AFTER = 651,
+ 	CONFLICT_DONE = 660,
 -	BOOTP_BROADCAST_ALWAYS = 652
 +	BOOTP_BROADCAST_ALWAYS = 652,
 +	ANYCAST_MAC = 653

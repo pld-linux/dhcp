@@ -12,13 +12,13 @@ Summary(pl.UTF-8):	Serwer DHCP
 Summary(pt_BR.UTF-8):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
 # 4.1.0a1 is on DEVEL
-Version:	4.0.1p1
-Release:	3
+Version:	4.0.2
+Release:	1
 Epoch:		4
 License:	MIT
 Group:		Networking/Daemons
 Source0:	ftp://ftp.isc.org/isc/dhcp/%{name}-%{version}.tar.gz
-# Source0-md5:	42bac85e1513e177c6bb2bf64d448dbe
+# Source0-md5:	f8d35ade3727429b1ab74c26058bd6b1
 Source1:	%{name}.init
 Source2:	%{name}6.init
 Source3:	%{name}-relay.init
@@ -38,7 +38,6 @@ Patch0:		%{name}-release-by-ifup.patch
 Patch1:		%{name}-ldap.patch
 Patch2:		%{name}-3.0.3-x-option.patch
 Patch3:		%{name}-paths.patch
-Patch4:		%{name}-arg-concat.patch
 Patch5:		%{name}-timeouts.patch
 Patch6:		%{name}-options.patch
 Patch7:		%{name}-libdhcp4client.patch
@@ -55,7 +54,6 @@ Patch17:	%{name}-xen-checksum.patch
 Patch18:	%{name}-dhclient-anycast.patch
 Patch19:	%{name}-manpages.patch
 Patch20:	%{name}-NetworkManager-crash.patch
-Patch21:	%{name}-no-ipv6.patch
 URL:		http://www.isc.org/sw/dhcp/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -226,7 +224,6 @@ Statyczna biblioteka kliencka DHCP.
 # however, fedora doesn't have this patch anymore, so can drop?
 #%%patch2 -p1
 %patch3 -p1
-%patch4 -p1
 %patch5 -p1
 %patch6 -p1
 %patch7 -p1
@@ -243,7 +240,6 @@ Statyczna biblioteka kliencka DHCP.
 %patch18 -p1
 %patch19 -p1
 %patch20 -p1
-%patch21 -p1
 
 # Copy in documentation and example scripts for LDAP patch to dhcpd
 cp -a %{SOURCE11} README.ldap

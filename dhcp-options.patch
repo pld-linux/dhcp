@@ -27,11 +27,11 @@ diff -up dhcp-4.0.0/includes/dhctoken.h.options dhcp-4.0.0/includes/dhctoken.h
 --- dhcp-4.0.0/includes/dhctoken.h.options	2007-10-31 09:13:33.000000000 -1000
 +++ dhcp-4.0.0/includes/dhctoken.h	2007-12-29 11:13:51.000000000 -1000
 @@ -345,7 +345,8 @@ enum dhcp_token {
- 	RANGE6 = 648,
  	WHITESPACE = 649,
  	TOKEN_ALSO = 650,
--	AFTER = 651
-+	AFTER = 651,
+ 	AFTER = 651,
+-	CONFLICT_DONE = 660
++	CONFLICT_DONE = 660,
 +	BOOTP_BROADCAST_ALWAYS = 652
  };
  
