@@ -13,7 +13,7 @@ Summary(pt_BR.UTF-8):	Servidor DHCP (Protocolo de configuração dinâmica de ho
 Name:		dhcp
 # 4.1.0a1 is on DEVEL
 Version:	4.0.2
-Release:	1
+Release:	2
 Epoch:		4
 License:	MIT
 Group:		Networking/Daemons
@@ -121,6 +121,7 @@ Group:		Networking/Daemons
 Requires:	coreutils
 Requires:	iproute2
 Requires:	net-tools
+Suggests:	avahi-autoipd
 Obsoletes:	dhclient
 
 %description client
@@ -295,7 +296,7 @@ CFLAGS="%{rpmcflags} -fPIC -D_GNU_SOURCE=1"
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT{/etc/{rc.d/init.d,sysconfig},%{_pkgconfigdir},/var/lib/{dhcpd,dhclient}}
+install -d $RPM_BUILD_ROOT{/etc/{rc.d/init.d,sysconfig,dhclient-enter-hooks.d,dhclient-exit-hooks.d},%{_pkgconfigdir},/var/lib/{dhcpd,dhclient}}
 
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
@@ -403,6 +404,14 @@ if [ "$1" = "0" ];then
 	/sbin/chkconfig --del dhcp-relay
 fi
 
+%triggerun client -- %{name}-client < 4:4.0.2-2
+if [ -f /etc/dhclient-enter-hooks ] ; then
+	mv /etc/dhclient-enter-hooks /etc/dhclient-enter-hooks.d/
+fi
+if [ -f /etc/dhclient-exit-hooks ] ; then
+	mv /etc/dhclient-exit-hooks /etc/dhclient-exit-hooks.d/
+fi
+
 %post	-n libdhcp4client -p /sbin/ldconfig
 %postun	-n libdhcp4client -p /sbin/ldconfig
 
@@ -430,6 +439,8 @@ fi
 %defattr(644,root,root,755)
 %doc contrib/sethostname.sh client/dhclient.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/dhclient.conf
+%{_sysconfdir}/dhclient-enter-hooks.d
+%{_sysconfdir}/dhclient-exit-hooks.d
 %attr(755,root,root) /sbin/dhclient
 %attr(755,root,root) /sbin/dhclient-script
 %{_mandir}/man5/dhclient.conf.5*
