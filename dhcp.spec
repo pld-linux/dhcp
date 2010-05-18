@@ -13,7 +13,7 @@ Summary(pt_BR.UTF-8):	Servidor DHCP (Protocolo de configuração dinâmica de ho
 Name:		dhcp
 # 4.1.0a1 is on DEVEL
 Version:	4.0.2
-Release:	2
+Release:	3
 Epoch:		4
 License:	MIT
 Group:		Networking/Daemons
@@ -309,6 +309,7 @@ install %{SOURCE5} $RPM_BUILD_ROOT/etc/sysconfig/dhcp-relay
 install %{SOURCE14} $RPM_BUILD_ROOT/sbin/dhclient-script
 
 install server/dhcpd.conf $RPM_BUILD_ROOT%{_sysconfdir}
+:> $RPM_BUILD_ROOT%{_sysconfdir}/dhcpd6.conf
 
 %if %{with ldap}
 install -d $RPM_BUILD_ROOT%{schemadir}
@@ -421,6 +422,7 @@ fi
 %doc contrib/ms2isc %{?with_ldap:contrib/dhcpd-conf-to-ldap README.ldap}
 %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/dhcpd
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/dhcpd.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/dhcpd6.conf
 %attr(755,root,root) %{_bindir}/omshell
 %attr(755,root,root) %{_sbindir}/dhcpd
 %attr(754,root,root) /etc/rc.d/init.d/dhcpd
