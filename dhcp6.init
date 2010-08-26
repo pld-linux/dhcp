@@ -36,7 +36,7 @@ check_device_up()
 # configtest itself
 configtest() {
 	local rc=0
-	/sbin/dhcpd -6 -pf -cf /etc/dhcpd6.conf /var/run/dhpcd6.pid -q -t -T || rc=$?
+	/sbin/dhcpd -6 -t -T -cf /etc/dhcpd6.conf -pf /var/run/dhpcd6.pid || rc=$?
 
 	# check if interfaces specified exist and have addresses
 	for i in $DHCPD_INTERFACES; do
@@ -55,17 +55,17 @@ checkconfig() {
 	local details=${1:-0}
 
 	# run checkconfig only once
-	if [ "$checkconfig" != -1 ]; then
+	if [ $checkconfig -ne -1 ]; then
 		return $checkconfig
 	fi
 
-	if [ $details = 1 ]; then
+	if [ "$details" = "1" ]; then
 		# run config test and display report (status action)
 		show "Checking %s configuration" "DHCP IPv6 Server"; busy
 		local out
 		out=$(configtest 2>&1)
 		checkconfig=$?
-		if [ $checkconfig = 0 ]; then
+		if [ $checkconfig -eq 0 ]; then
 			ok
 		else
 			fail
@@ -77,7 +77,7 @@ checkconfig() {
 		# (for actions checking status before action).
 		configtest >/dev/null 2>&1
 		checkconfig=$?
-		if [ $checkconfig != 0 ]; then
+		if [ $checkconfig -ne 0 ]; then
 			show "Checking %s configuration" "DHCP IPv6 Server"; fail
 			nls 'Configuration test failed. See details with %s "checkconfig"' $0
 			exit $checkconfig
@@ -94,7 +94,7 @@ start() {
 
 	checkconfig
 	msg_starting "DHCP IPv6 Server"
-	daemon /sbin/dhcpd -6 -pf -cf /etc/dhcpd6.conf /var/run/dhpcd6.pid -q $DHCPD_INTERFACES
+	daemon /sbin/dhcpd -6 -q -cf /etc/dhcpd6.conf -pf /var/run/dhpcd6.pid $DHCPD_INTERFACES
 	RETVAL=$?
 	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/dhcpd6
 }

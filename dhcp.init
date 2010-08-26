@@ -36,7 +36,7 @@ check_device_up()
 # configtest itself
 configtest() {
 	local rc=0
-	/sbin/dhcpd -4 -q -t -T || rc=$?
+	/sbin/dhcpd -4 -t -T || rc=$?
 
 	# check if interfaces specified exist and have addresses
 	for i in $DHCPD_INTERFACES; do
@@ -55,17 +55,17 @@ checkconfig() {
 	local details=${1:-0}
 
 	# run checkconfig only once
-	if [ "$checkconfig" != -1 ]; then
+	if [ $checkconfig -ne -1 ]; then
 		return $checkconfig
 	fi
 
-	if [ $details = 1 ]; then
+	if [ "$details" = "1" ]; then
 		# run config test and display report (status action)
 		show "Checking %s configuration" "DHCP Server"; busy
 		local out
 		out=$(configtest 2>&1)
 		checkconfig=$?
-		if [ $checkconfig = 0 ]; then
+		if [ $checkconfig -eq 0 ]; then
 			ok
 		else
 			fail
@@ -77,7 +77,7 @@ checkconfig() {
 		# (for actions checking status before action).
 		configtest >/dev/null 2>&1
 		checkconfig=$?
-		if [ $checkconfig != 0 ]; then
+		if [ $checkconfig -ne 0 ]; then
 			show "Checking %s configuration" "DHCP Server"; fail
 			nls 'Configuration test failed. See details with %s "checkconfig"' $0
 			exit $checkconfig
