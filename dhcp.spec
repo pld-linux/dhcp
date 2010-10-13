@@ -13,7 +13,7 @@ Summary(pt_BR.UTF-8):	Servidor DHCP (Protocolo de configuração dinâmica de ho
 Name:		dhcp
 # 4.1.0a1 is on DEVEL
 Version:	4.0.2
-Release:	3
+Release:	4
 Epoch:		4
 License:	MIT
 Group:		Networking/Daemons
@@ -129,6 +129,17 @@ Dynamic Host Configuration Protocol Client.
 
 %description client -l pl.UTF-8
 Klient DHCP (Dynamic Host Configuration Protocol).
+
+%package client-dirs
+Summary:	DHCP Client common dirs
+Summary(pl.UTF-8):	Katalogi klienta DHCP
+Group:		Networking/Daemons
+
+%description client-dirs
+Directories for scripts for dhcp-client.
+
+%description client -l pl.UTF-8
+Katalog przeznaczony na skrypty dla klienta dhcp.
 
 %package relay
 Summary:	DHCP Relay Agent
@@ -441,8 +452,6 @@ fi
 %defattr(644,root,root,755)
 %doc contrib/sethostname.sh client/dhclient.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/dhclient.conf
-%{_sysconfdir}/dhclient-enter-hooks.d
-%{_sysconfdir}/dhclient-exit-hooks.d
 %attr(755,root,root) /sbin/dhclient
 %attr(755,root,root) /sbin/dhclient-script
 %{_mandir}/man5/dhclient.conf.5*
@@ -452,6 +461,11 @@ fi
 %dir %attr(750,root,root) /var/lib/dhclient
 %ghost /var/lib/dhclient/dhclient.leases
 %ghost /var/lib/dhclient/dhclient6.leases
+
+%files client-dirs
+%defattr(644,root,root,755)
+%dir %{_sysconfdir}/dhclient-enter-hooks.d
+%dir %{_sysconfdir}/dhclient-exit-hooks.d
 
 %files relay
 %defattr(644,root,root,755)
