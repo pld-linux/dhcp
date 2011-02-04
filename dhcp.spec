@@ -138,7 +138,7 @@ Group:		Networking/Daemons
 %description client-dirs
 Directories for scripts for dhcp-client.
 
-%description client -l pl.UTF-8
+%description client-dirs -l pl.UTF-8
 Katalog przeznaczony na skrypty dla klienta dhcp.
 
 %package relay
