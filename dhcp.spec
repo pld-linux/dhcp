@@ -5,7 +5,6 @@
 
 # vendor string
 %define vvendor PLD/Linux
-#
 Summary:	DHCP Server
 Summary(es.UTF-8):	Servidor DHCP
 Summary(pl.UTF-8):	Serwer DHCP
@@ -13,7 +12,7 @@ Summary(pt_BR.UTF-8):	Servidor DHCP (Protocolo de configuração dinâmica de ho
 Name:		dhcp
 # 4.1.0a1 is on DEVEL
 Version:	4.0.2
-Release:	4
+Release:	5
 Epoch:		4
 License:	MIT
 Group:		Networking/Daemons
@@ -31,8 +30,8 @@ Source9:	%{name}-libdhcp_control.h
 Source10:	%{name}.schema
 Source11:	%{name}-README.ldap
 Source12:	draft-ietf-dhc-ldap-schema-01.txt
-Source13:	dhcpd-conf-to-ldap
-Source14:	dhcp-dhclient-script
+Source13:	%{name}d-conf-to-ldap
+Source14:	%{name}-dhclient-script
 Patch0:		%{name}-release-by-ifup.patch
 # http://github.com/dcantrell/ldap-for-dhcp/raw/9cfd4c277d7615777f372ea08f44cc7de9ed7959/dhcp-4.0.1-ldap.patch
 Patch1:		%{name}-ldap.patch
@@ -122,6 +121,7 @@ Requires:	coreutils
 Requires:	iproute2
 Requires:	net-tools
 Suggests:	avahi-autoipd
+Provides:	dhclient = %{epoch}:%{version}-%{release}
 Obsoletes:	dhclient
 
 %description client
@@ -264,7 +264,7 @@ cp %{SOURCE7} libdhcp4client/dhcp4client.h
 cp %{SOURCE8} libdhcp4client/Makefile.dist
 
 # Copy in libdhcp_control.h to the isc-dhcp includes directory
-cp %{SOURCE9} includes/isc-dhcp/libdhcp_control.h
+cp -p %{SOURCE9} includes/isc-dhcp/libdhcp_control.h
 
 # Replace @PRODUCTNAME@
 %{__sed} -i -e 's|@PRODUCTNAME@|%{vvendor}|g' common/dhcp-options.5
@@ -429,7 +429,7 @@ fi
 
 %files
 %defattr(644,root,root,755)
-%doc doc/* README RELNOTES server/dhcpd.conf LICENSE 
+%doc doc/* README RELNOTES server/dhcpd.conf LICENSE
 %doc contrib/ms2isc %{?with_ldap:contrib/dhcpd-conf-to-ldap README.ldap}
 %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/dhcpd
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/dhcpd.conf
