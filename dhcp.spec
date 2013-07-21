@@ -3,6 +3,15 @@
 %bcond_without	ldap	# without support for ldap storage
 %bcond_without	static_libs	# don't build static library
 
+%define         ver     4.2.5
+%if 1
+%define         pverdot .P1
+%define         pverdir -P1
+%else
+%define         pverdot %{nil}
+%define         pverdir %{nil}
+%endif
+
 # vendor string
 %define vvendor PLD/Linux
 Summary:	DHCP Server
@@ -10,14 +19,13 @@ Summary(es.UTF-8):	Servidor DHCP
 Summary(pl.UTF-8):	Serwer DHCP
 Summary(pt_BR.UTF-8):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
-# 4.1.0a1 is on DEVEL
-Version:	4.0.2
-Release:	5
+Version:	%{ver}%{pverdot}
+Release:	0.1
 Epoch:		4
 License:	MIT
 Group:		Networking/Daemons
-Source0:	ftp://ftp.isc.org/isc/dhcp/%{name}-%{version}.tar.gz
-# Source0-md5:	f8d35ade3727429b1ab74c26058bd6b1
+Source0:	ftp://ftp.isc.org/isc/dhcp/%{ver}%{pverdir}/%{name}-%{ver}%{pverdir}.tar.gz
+# Source0-md5:	f68e3c1f00a9af5742bc5e71d567cf93
 Source1:	%{name}.init
 Source2:	%{name}6.init
 Source3:	%{name}-relay.init
@@ -33,8 +41,6 @@ Source12:	draft-ietf-dhc-ldap-schema-01.txt
 Source13:	%{name}d-conf-to-ldap
 Source14:	%{name}-dhclient-script
 Patch0:		%{name}-release-by-ifup.patch
-# http://github.com/dcantrell/ldap-for-dhcp/raw/9cfd4c277d7615777f372ea08f44cc7de9ed7959/dhcp-4.0.1-ldap.patch
-Patch1:		%{name}-ldap.patch
 Patch2:		%{name}-3.0.3-x-option.patch
 Patch3:		%{name}-paths.patch
 Patch5:		%{name}-timeouts.patch
@@ -65,6 +71,7 @@ Requires(post):	coreutils
 Requires(post,preun):	/sbin/chkconfig
 Requires:	rc-scripts >= 0.2.0
 Provides:	dhcpd
+Obsoletes:	dhcpv6-server
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define		_sbindir	/sbin
@@ -126,6 +133,7 @@ Requires:	net-tools
 Suggests:	avahi-autoipd
 Provides:	dhclient = %{epoch}:%{version}-%{release}
 Obsoletes:	dhclient
+Obsoletes:	dhcpv6-client
 
 %description client
 Dynamic Host Configuration Protocol Client.
@@ -151,6 +159,7 @@ Group:		Networking/Daemons
 Requires(post):	coreutils
 Requires(post,preun):	/sbin/chkconfig
 Requires:	rc-scripts >= 0.2.0
+Obsoletes:	dhcpv6-relay
 
 %description relay
 Dhcp relay is a relay agent for DHCP packets. It is used on a subnet
@@ -227,9 +236,8 @@ Static DHCP client library.
 Statyczna biblioteka kliencka DHCP.
 
 %prep
-%setup -q
+%setup -q -n %{name}-%{ver}%{pverdir}
 %patch0 -p1
-%patch1 -p1
 # This patch is required for dhcdbd to function
 # CHECK ME: adds -x (formerly -y):
 #The -x argument enables extended option information to be created in the
