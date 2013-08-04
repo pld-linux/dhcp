@@ -1,47 +1,150 @@
-diff -up dhcp-4.0.0/common/conflex.c.options dhcp-4.0.0/common/conflex.c
---- dhcp-4.0.0/common/conflex.c.options	2007-12-29 11:13:51.000000000 -1000
-+++ dhcp-4.0.0/common/conflex.c	2007-12-29 11:13:51.000000000 -1000
-@@ -769,6 +769,8 @@ intern(char *atom, enum dhcp_token dfv) 
- 			return BALANCE;
- 		if (!strcasecmp (atom + 1, "ound"))
- 			return BOUND;
-+		if (!strcasecmp (atom + 1, "ootp-broadcast-always"))
-+			return BOOTP_BROADCAST_ALWAYS;
- 		break;
- 	      case 'c':
- 		if (!strcasecmp (atom + 1, "ase"))
-diff -up dhcp-4.0.0/includes/dhcpd.h.options dhcp-4.0.0/includes/dhcpd.h
---- dhcp-4.0.0/includes/dhcpd.h.options	2007-12-29 11:13:51.000000000 -1000
-+++ dhcp-4.0.0/includes/dhcpd.h	2007-12-29 11:13:51.000000000 -1000
-@@ -1055,6 +1055,9 @@ struct client_config {
- 	int do_forward_update;		/* If nonzero, and if we have the
- 					   information we need, update the
- 					   A record for the address we get. */
+diff -up dhcp-4.2.1b1/client/dhclient.8.man dhcp-4.2.1b1/client/dhclient.8
+--- dhcp-4.2.1b1/client/dhclient.8.man	2010-07-14 22:09:34.000000000 +0200
++++ dhcp-4.2.1b1/client/dhclient.8	2011-01-27 18:19:07.000000000 +0100
+@@ -115,6 +115,33 @@ dhclient - Dynamic Host Configuration Pr
+ .B -w
+ ]
+ [
++.B -B
++]
++[
++.B -I
++.I dhcp-client-identifier
++]
++[
++.B -H
++.I host-name
++]
++[
++.B -F
++.I fqdn.fqdn
++]
++[
++.B -V
++.I vendor-class-identifier
++]
++[
++.B -R
++.I request-option-list
++]
++[
++.B -timeout
++.I timeout
++]
++[
+ .B -v
+ ]
+ [
+@@ -264,6 +291,69 @@ not to exit when it doesn't find any suc
+ program can then be used to notify the client when a network interface
+ has been added or removed, so that the client can attempt to configure an IP
+ address on that interface.
 +
-+	int bootp_broadcast_always;	/* If nonzero, always set the BOOTP_BROADCAST
-+					   flag in requests */
- };
++.TP
++.BI \-B
++Set the BOOTP broadcast flag in request packets so servers will always
++broadcast replies.
++
++.TP
++.BI \-I\ <dhcp-client-identifier>
++Specify the dhcp-client-identifier option to send to the DHCP server.
++
++.TP
++.BI \-H\ <host-name>
++Specify the host-name option to send to the DHCP server.  The host-name
++string only contains the client's hostname prefix, to which the server will
++append the ddns-domainname or domain-name options, if any, to derive the
++fully qualified domain name of the client.  The
++.B -H
++option cannot be used with the
++.B -F
++option.
++
++.TP
++.BI \-F\ <fqdn.fqdn>
++Specify the fqdn.fqdn option to send to the DHCP server.  This option cannot
++be used with the
++.B -H
++option.  The fqdn.fqdn option must specify the complete domain name of the
++client host, which the server may use for dynamic DNS updates.
++
++.TP
++.BI \-V\ <vendor-class-identifier>
++Specify the vendor-class-identifier option to send to the DHCP server.
++
++.TP
++.BI \-R\ <option>[,<option>...]
++Specify the list of options the client is to request from the server.  The
++option list must be a single string consisting of option names separated
++by at least one command and optional space characters.  The default option
++list is:
++
++.BR
++    subnet-mask, broadcast-address, time-offset, routers,
++.BR
++    domain-search, domain-name, domain-name-servers, host-name, 
++.BR
++    nis-domain, nis-servers, ntp-servers, interface-mtu
++
++.TP
++.B -R
++option does not append options to the default request, it overrides the
++default request list.  Keep this in mind if you want to request an
++additional option besides the default request list.  You will have to
++specify all option names for the
++.B -R
++parameter.
++
++.TP
++.BI \-timeout\ <timeout>
++Specify the time after which
++.B dhclient
++will decide that no DHCP servers can be contacted when no responses have been
++received.
++
+ .TP
+ .BI \-n
+ Do not configure any interfaces.  This is most likely to be useful in
+diff -up dhcp-4.2.4-P2/client/clparse.c.options dhcp-4.2.4-P2/client/clparse.c
+--- dhcp-4.2.4-P2/client/clparse.c.options	2012-08-24 21:11:21.000000000 +0200
++++ dhcp-4.2.4-P2/client/clparse.c	2012-09-26 10:34:27.140049896 +0200
+@@ -154,6 +154,7 @@ isc_result_t read_client_conf ()
+ 	/* Requested lease time, used by DHCPv6 (DHCPv4 uses the option cache)
+ 	 */
+ 	top_level_config.requested_lease = 7200;
++	top_level_config.bootp_broadcast_always = 0;
  
- /* Per-interface state used in the dhcp client... */
-diff -up dhcp-4.0.0/includes/dhctoken.h.options dhcp-4.0.0/includes/dhctoken.h
---- dhcp-4.0.0/includes/dhctoken.h.options	2007-10-31 09:13:33.000000000 -1000
-+++ dhcp-4.0.0/includes/dhctoken.h	2007-12-29 11:13:51.000000000 -1000
-@@ -345,7 +345,8 @@ enum dhcp_token {
- 	WHITESPACE = 649,
- 	TOKEN_ALSO = 650,
- 	AFTER = 651,
--	CONFLICT_DONE = 660
-+	CONFLICT_DONE = 660,
-+	BOOTP_BROADCAST_ALWAYS = 652
- };
+ 	group_allocate (&top_level_config.on_receipt, MDL);
+ 	if (!top_level_config.on_receipt)
+@@ -320,7 +321,8 @@ void read_client_leases ()
+ 	interface-declaration |
+ 	LEASE client-lease-statement |
+ 	ALIAS client-lease-statement |
+-	KEY key-definition */
++	KEY key-definition |
++	BOOTP_BROADCAST_ALWAYS */
  
- #define is_identifier(x)	((x) >= FIRST_TOKEN &&	\
-diff -up dhcp-4.0.0/client/dhclient.c.options dhcp-4.0.0/client/dhclient.c
---- dhcp-4.0.0/client/dhclient.c.options	2007-11-30 11:51:42.000000000 -1000
-+++ dhcp-4.0.0/client/dhclient.c	2007-12-29 11:14:15.000000000 -1000
-@@ -37,6 +37,12 @@
- #include <sys/wait.h>
+ void parse_client_statement (cfile, ip, config)
+ 	struct parse *cfile;
+@@ -739,6 +741,12 @@ void parse_client_statement (cfile, ip,
+ 		parse_reject_statement (cfile, config);
+ 		return;
+ 
++	      case BOOTP_BROADCAST_ALWAYS:
++		token = next_token(&val, (unsigned*)0, cfile);
++		config -> bootp_broadcast_always = 1;
++		parse_semi (cfile);
++		return;
++
+ 	      default:
+ 		lose = 0;
+ 		stmt = (struct executable_statement *)0;
+diff -up dhcp-4.2.4-P2/client/dhclient.c.options dhcp-4.2.4-P2/client/dhclient.c
+--- dhcp-4.2.4-P2/client/dhclient.c.options	2012-08-28 04:13:03.000000000 +0200
++++ dhcp-4.2.4-P2/client/dhclient.c	2012-09-26 10:36:10.396967531 +0200
+@@ -39,6 +39,12 @@
  #include <limits.h>
+ #include <dns/result.h>
  
 +/*
 + * Defined in stdio.h when _GNU_SOURCE is set, but we don't want to define
@@ -52,19 +155,19 @@ diff -up dhcp-4.0.0/client/dhclient.c.options dhcp-4.0.0/client/dhclient.c
  TIME default_lease_time = 43200; /* 12 hours... */
  TIME max_lease_time = 86400; /* 24 hours... */
  
-@@ -75,6 +81,9 @@ int onetry=0;
- int quiet=1;
- int nowait=0;
+@@ -87,6 +93,9 @@ int wanted_ia_na = -1;		/* the absolute
+ int wanted_ia_ta = 0;
+ int wanted_ia_pd = 0;
  char *mockup_relay = NULL;
 +int bootp_broadcast_always = 0;
 +
 +extern u_int32_t default_requested_options[];
  
- static void usage PROTO ((void));
+ void run_stateless(int exit_mode);
  
-@@ -100,6 +109,15 @@ main(int argc, char **argv) {
- 	int no_dhclient_script = 0;
+@@ -123,6 +132,15 @@ main(int argc, char **argv) {
  	int local_family_set = 0;
+ #endif /* DHCPv6 */
  	char *s;
 +	char *dhcp_client_identifier_arg = NULL;
 +	char *dhcp_host_name_arg = NULL;
@@ -78,32 +181,32 @@ diff -up dhcp-4.0.0/client/dhclient.c.options dhcp-4.0.0/client/dhclient.c
  
  	/* Initialize client globals. */
  	memset(&default_duid, 0, sizeof(default_duid));
-@@ -224,6 +242,88 @@ main(int argc, char **argv) {
- 		} else if (!strcmp (argv [i], "--version")) {
- 			log_info ("isc-dhclient-%s", PACKAGE_VERSION);
- 			exit (0);
-+		} else if (!strcmp (argv [i], "-I")) {
+@@ -310,6 +328,88 @@ main(int argc, char **argv) {
+ 		} else if (!strcmp(argv[i], "--version")) {
+ 			log_info("isc-dhclient-%s", PACKAGE_VERSION);
+ 			exit(0);
++		} else if (!strcmp(argv[i], "-I")) {
 +			if ((++i == argc) || (argv[i] == NULL) || (*(argv[i])=='\0')) {
-+				usage ();
-+				return EXIT_FAILURE;
++				usage();
++				exit(1);
 +			}
 +
 +			if (strlen(argv[i]) >= DHCP_MAX_OPTION_LEN) {
-+				log_error("-I option dhcp-client-identifier string \"%s\" is too long - maximum length is: %d",  argv[i], DHCP_MAX_OPTION_LEN-1);
++				log_error("-I option dhcp-client-identifier string \"%s\" is too long - maximum length is: %d", argv[i], DHCP_MAX_OPTION_LEN-1);
 +				exit(1);
 +			}
 +
 +			dhcp_client_identifier_arg = argv[i];
-+		} else if (!strcmp (argv [i], "-B")) {
++		} else if (!strcmp(argv[i], "-B")) {
 +			bootp_broadcast_always = 1;
-+		} else if (!strcmp (argv [i], "-H")) {
++		} else if (!strcmp(argv[i], "-H")) {
 +			if ((++i == argc) || (argv[i] == NULL) || (*(argv[i])=='\0')) {
-+				usage ();
-+				return EXIT_FAILURE;
++				usage();
++				exit(1);
 +			}
 +
 +			if (strlen(argv[i]) >= DHCP_MAX_OPTION_LEN) {
-+				log_error("-H option host-name string \"%s\" is too long - maximum length is: %d",  argv[i], DHCP_MAX_OPTION_LEN-1);
++				log_error("-H option host-name string \"%s\" is too long - maximum length is: %d", argv[i], DHCP_MAX_OPTION_LEN-1);
 +				exit(1);
 +			}
 +
@@ -113,14 +216,14 @@ diff -up dhcp-4.0.0/client/dhclient.c.options dhcp-4.0.0/client/dhclient.c
 +			}
 +
 +			dhcp_host_name_arg = argv[i];
-+		} else if (!strcmp (argv [i], "-F")) {
++		} else if (!strcmp(argv[i], "-F")) {
 +			if ((++i == argc) || (argv[i] == NULL) || (*(argv[i])=='\0')) {
-+				usage ();
-+				return EXIT_FAILURE;
++				usage();
++				exit(1);
 +			}
 +
 +			if (strlen(argv[i]) >= DHCP_MAX_OPTION_LEN) {
-+				log_error("-F option fqdn.fqdn string \"%s\" is too long - maximum length is: %d",  argv[i], DHCP_MAX_OPTION_LEN-1);
++				log_error("-F option fqdn.fqdn string \"%s\" is too long - maximum length is: %d", argv[i], DHCP_MAX_OPTION_LEN-1);
 +				exit(1);
 +			}
 +
@@ -135,41 +238,41 @@ diff -up dhcp-4.0.0/client/dhclient.c.options dhcp-4.0.0/client/dhclient.c
 +			}
 +
 +			dhcp_fqdn_arg = argv[i];
-+		} else if (!strcmp (argv [i], "-T")) {
++		} else if (!strcmp(argv[i], "-timeout")) {
 +			if ((++i == argc) || (argv[i] == NULL) || (*(argv[i])=='\0')) {
-+				usage ();
-+				return EXIT_FAILURE;
++				usage();
++				exit(1);
 +			}
 +
 +			if ((timeout_arg = atoi(argv[i])) <= 0) {
-+				log_error("-T timeout option must be > 0 - bad value: %s",argv[i]);
++				log_error("timeout option must be > 0 - bad value: %s",argv[i]);
 +				exit(1);
 +			}
-+		} else if (!strcmp (argv [i], "-V")) {
++		} else if (!strcmp(argv[i], "-V")) {
 +			if ((++i == argc) || (argv[i] == NULL) || (*(argv[i])=='\0')) {
-+				usage ();
-+				return EXIT_FAILURE;
++				usage();
++				exit(1);
 +			}
 +
 +			if (strlen(argv[i]) >= DHCP_MAX_OPTION_LEN) {
-+				log_error("-V option vendor-class-identifier string \"%s\" is too long - maximum length is: %d",  argv[i], DHCP_MAX_OPTION_LEN-1);
++				log_error("-V option vendor-class-identifier string \"%s\" is too long - maximum length is: %d", argv[i], DHCP_MAX_OPTION_LEN-1);
 +				exit(1);
 +			}
 +
 +			dhcp_vendor_class_identifier_arg = argv[i];
-+		} else if (!strcmp (argv [i], "-R")) {
++		} else if (!strcmp(argv[i], "-R")) {
 +			if ((++i == argc) || (argv[i] == NULL) || (*(argv[i])=='\0')) {
-+				usage ();
-+				return EXIT_FAILURE;
++				usage();
++				exit(1);
 +			}
 +
-+			dhclient_request_options=argv[i];
-  		} else if (argv [i][0] == '-') {
-  		    usage ();
- 		} else {
-@@ -370,6 +470,166 @@ main(int argc, char **argv) {
++			dhclient_request_options = argv[i];
+ 		} else if (argv[i][0] == '-') {
+ 		    usage();
+ 		} else if (interfaces_requested < 0) {
+@@ -484,6 +584,156 @@ main(int argc, char **argv) {
  	/* Parse the dhclient.conf file. */
- 	read_client_conf ();
+ 	read_client_conf();
  
 +	/* Parse any extra command line configuration arguments: */
 +	if ((dhcp_client_identifier_arg != NULL) && (*dhcp_client_identifier_arg != '\0')) {
@@ -188,7 +291,7 @@ diff -up dhcp-4.0.0/client/dhclient.c.options dhcp-4.0.0/client/dhclient.c
 +		} else {
 +			char *last_arg_conf = arg_conf;
 +			arg_conf = NULL;
-+			arg_conf_len = asprintf( &arg_conf, "%s\nsend host-name \"%s\";", last_arg_conf, dhcp_host_name_arg);
++			arg_conf_len = asprintf(&arg_conf, "%s\nsend host-name \"%s\";", last_arg_conf, dhcp_host_name_arg);
 +
 +			if ((arg_conf == 0) || (arg_conf_len <= 0))
 +				log_fatal("Unable to send -H option host-name");
@@ -206,7 +309,7 @@ diff -up dhcp-4.0.0/client/dhclient.c.options dhcp-4.0.0/client/dhclient.c
 +		} else {
 +			char *last_arg_conf = arg_conf;
 +			arg_conf = NULL;
-+			arg_conf_len = asprintf( &arg_conf, "%s\nsend fqdn.fqdn \"%s\";", last_arg_conf, dhcp_fqdn_arg);
++			arg_conf_len = asprintf(&arg_conf, "%s\nsend fqdn.fqdn \"%s\";", last_arg_conf, dhcp_fqdn_arg);
 +
 +			if ((arg_conf == 0)  || (arg_conf_len <= 0))
 +				log_fatal("Unable to send -F option fqdn.fqdn");
@@ -220,14 +323,14 @@ diff -up dhcp-4.0.0/client/dhclient.c.options dhcp-4.0.0/client/dhclient.c
 +			arg_conf_len = asprintf(&arg_conf,  "timeout %d;", timeout_arg);
 +
 +			if ((arg_conf == 0) || (arg_conf_len <= 0))
-+				log_fatal("Unable to process -T timeout argument");
++				log_fatal("Unable to process -timeout timeout argument");
 +		} else {
 +			char *last_arg_conf = arg_conf;
 +			arg_conf = NULL;
-+			arg_conf_len = asprintf( &arg_conf, "%s\ntimeout %d;", last_arg_conf, timeout_arg);
++			arg_conf_len = asprintf(&arg_conf, "%s\ntimeout %d;", last_arg_conf, timeout_arg);
 +
 +			if ((arg_conf == 0) || (arg_conf_len == 0))
-+				log_fatal("Unable to process -T timeout argument");
++				log_fatal("Unable to process -timeout timeout argument");
 +
 +			free(last_arg_conf);
 +		}
@@ -273,7 +376,7 @@ diff -up dhcp-4.0.0/client/dhclient.c.options dhcp-4.0.0/client/dhclient.c
 +		if (arg_conf_len == 0)
 +			if ((arg_conf_len = strlen(arg_conf)) == 0)
 +				/* huh ? cannot happen ! */
-+				log_fatal("Unable to process -I/-H/-F/-T/-V/-R configuration arguments");
++				log_fatal("Unable to process -I/-H/-F/-timeout/-V/-R configuration arguments");
 +
 +		/* parse the extra dhclient.conf configuration arguments
 +		 * into top level config: */
@@ -281,46 +384,36 @@ diff -up dhcp-4.0.0/client/dhclient.c.options dhcp-4.0.0/client/dhclient.c
 +		const char *val = NULL;
 +		int token;
 +
-+		status = new_parse (&cfile, -1, arg_conf, arg_conf_len, "extra dhclient -I/-H/-F/-T/-V/-R configuration arguments", 0);
++		status = new_parse(&cfile, -1, arg_conf, arg_conf_len, "extra dhclient -I/-H/-F/-timeout/-V/-R configuration arguments", 0);
 +
 +		if ((status != ISC_R_SUCCESS) || (cfile -> warnings_occurred))
-+			log_fatal("Cannot parse -I/-H/-F/-T/-V/-R configuration arguments !");
++			log_fatal("Cannot parse -I/-H/-F/-timeout/-V/-R configuration arguments !");
 +		/* more detailed parse failures will be logged */
 +
 +		do {
-+			token = peek_token (&val, (unsigned *)0, cfile);
++			token = peek_token(&val, (unsigned *)0, cfile);
 +			if (token == END_OF_FILE)
 +				break;
 +
-+			parse_client_statement (cfile, (struct interface_info *)0, &top_level_config);
++			parse_client_statement(cfile, (struct interface_info *)0, &top_level_config);
 +		} while (1);
 +
 +		if (cfile -> warnings_occurred)
-+			log_fatal ("Cannot parse -I/-H/-F/-T/-V/-R configuration arguments !");
-+		end_parse (&cfile);
++			log_fatal("Cannot parse -I/-H/-F/-timeout/-V/-R configuration arguments !");
++		end_parse(&cfile);
 +
 +		if (timeout_arg) {
 +			/* we just set the toplevel timeout, but per-client
-+			 * timeouts may still be at defaults. Also, it makes no
-+			 * sense having the reboot_timeout or backoff_cutoff
-+			 * greater than the timeout:
++			 * timeouts may still be at defaults.
 +			 */
-+			if ((top_level_config.backoff_cutoff == 15) && (top_level_config.backoff_cutoff > (timeout_arg / 2)))
-+				top_level_config.backoff_cutoff = (((unsigned long)(timeout_arg / 2)) == 0) ? timeout_arg : (unsigned long)(timeout_arg / 2);
-+
-+			for (ip = interfaces; ip; ip = ip -> next) {
++			for (ip=interfaces; ip; ip = ip->next) {
 +				if (ip->client->config->timeout == 60)
 +					ip->client->config->timeout = timeout_arg;
-+
-+				if ((ip->client->config->reboot_timeout == 10) && (ip->client->config->reboot_timeout > ip->client->config->timeout))
-+					ip->client->config->reboot_timeout = ip->client->config->timeout;
-+				if ((ip->client->config->backoff_cutoff == 15) && (ip->client->config->backoff_cutoff > top_level_config.backoff_cutoff))
-+					ip->client->config->backoff_cutoff = top_level_config.backoff_cutoff;
 +			}
 +		}
 +
 +		if ((dhclient_request_options != 0) && (top_level_config.requested_options != default_requested_options)) {
-+			for (ip = interfaces; ip; ip = ip -> next) {
++			for (ip=interfaces; ip; ip = ip->next) {
 +				if (ip->client->config->requested_options == default_requested_options)
 +					ip->client->config->requested_options = top_level_config.requested_options;
 +			}
@@ -332,9 +425,20 @@ diff -up dhcp-4.0.0/client/dhclient.c.options dhcp-4.0.0/client/dhclient.c
 +	}
 +
  	/* Parse the lease database. */
- 	read_client_leases ();
+ 	read_client_leases();
  
-@@ -2105,7 +2365,8 @@ void make_discover (client, lease)
+@@ -715,6 +965,10 @@ static void usage()
+ 		  "                [-s server-addr] [-cf config-file] "
+ 		  "[-lf lease-file]\n"
+ 		  "                [-pf pid-file] [--no-pid] [-e VAR=val]\n"
++		  "                [-I <dhcp-client-identifier>] [-B]\n"
++		  "                [-H <host-name> | -F <fqdn.fqdn>] [-timeout <timeout>]\n"
++		  "                [-V <vendor-class-identifier>]\n"
++		  "                [-R <request option list>]\n"
+ 		  "                [-sf script-file] [interface]");
+ }
+ 
+@@ -2421,7 +2675,8 @@ void make_discover (client, lease)
  	client -> packet.xid = random ();
  	client -> packet.secs = 0; /* filled in by send_discover. */
  
@@ -344,7 +448,7 @@ diff -up dhcp-4.0.0/client/dhclient.c.options dhcp-4.0.0/client/dhclient.c
  		client -> packet.flags = 0;
  	else
  		client -> packet.flags = htons (BOOTP_BROADCAST);
-@@ -2189,7 +2450,9 @@ void make_request (client, lease)
+@@ -2505,7 +2760,9 @@ void make_request (client, lease)
  	} else {
  		memset (&client -> packet.ciaddr, 0,
  			sizeof client -> packet.ciaddr);
@@ -355,7 +459,7 @@ diff -up dhcp-4.0.0/client/dhclient.c.options dhcp-4.0.0/client/dhclient.c
  			client -> packet.flags = 0;
  		else
  			client -> packet.flags = htons (BOOTP_BROADCAST);
-@@ -2248,7 +2511,8 @@ void make_decline (client, lease)
+@@ -2567,7 +2824,8 @@ void make_decline (client, lease)
  	client -> packet.hops = 0;
  	client -> packet.xid = client -> xid;
  	client -> packet.secs = 0; /* Filled in by send_request. */
@@ -365,37 +469,41 @@ diff -up dhcp-4.0.0/client/dhclient.c.options dhcp-4.0.0/client/dhclient.c
  		client -> packet.flags = 0;
  	else
  		client -> packet.flags = htons (BOOTP_BROADCAST);
-diff -up dhcp-4.0.0/client/clparse.c.options dhcp-4.0.0/client/clparse.c
---- dhcp-4.0.0/client/clparse.c.options	2007-12-08 09:36:00.000000000 -1000
-+++ dhcp-4.0.0/client/clparse.c	2007-12-29 11:13:51.000000000 -1000
-@@ -132,6 +132,7 @@ isc_result_t read_client_conf ()
- 	/* Requested lease time, used by DHCPv6 (DHCPv4 uses the option cache)
- 	 */
- 	top_level_config.requested_lease = 7200;
-+	top_level_config.bootp_broadcast_always = 0;
- 
- 	group_allocate (&top_level_config.on_receipt, MDL);
- 	if (!top_level_config.on_receipt)
-@@ -295,7 +296,8 @@ void read_client_leases ()
- 	interface-declaration |
- 	LEASE client-lease-statement |
- 	ALIAS client-lease-statement |
--	KEY key-definition */
-+	KEY key-definition |
-+	BOOTP_BROADCAST_ALWAYS */
- 
- void parse_client_statement (cfile, ip, config)
- 	struct parse *cfile;
-@@ -685,6 +687,12 @@ void parse_client_statement (cfile, ip, 
- 		parse_reject_statement (cfile, config);
- 		return;
- 
-+	      case BOOTP_BROADCAST_ALWAYS:
-+		token = next_token(&val, (unsigned*)0, cfile);
-+		config -> bootp_broadcast_always = 1;
-+		parse_semi (cfile);
-+		return;
+diff -up dhcp-4.2.4-P2/common/conflex.c.options dhcp-4.2.4-P2/common/conflex.c
+--- dhcp-4.2.4-P2/common/conflex.c.options	2012-08-28 04:13:03.000000000 +0200
++++ dhcp-4.2.4-P2/common/conflex.c	2012-09-26 10:34:27.142049876 +0200
+@@ -808,6 +808,8 @@ intern(char *atom, enum dhcp_token dfv)
+ 			return BALANCE;
+ 		if (!strcasecmp (atom + 1, "ound"))
+ 			return BOUND;
++		if (!strcasecmp (atom + 1, "ootp-broadcast-always"))
++			return BOOTP_BROADCAST_ALWAYS;
+ 		break;
+ 	      case 'c':
+ 		if (!strcasecmp(atom + 1, "ase"))
+diff -up dhcp-4.2.4-P2/includes/dhcpd.h.options dhcp-4.2.4-P2/includes/dhcpd.h
+--- dhcp-4.2.4-P2/includes/dhcpd.h.options	2012-08-28 04:13:22.000000000 +0200
++++ dhcp-4.2.4-P2/includes/dhcpd.h	2012-09-26 10:34:27.143049865 +0200
+@@ -1153,6 +1153,9 @@ struct client_config {
+ 	int do_forward_update;		/* If nonzero, and if we have the
+ 					   information we need, update the
+ 					   A record for the address we get. */
 +
- 	      default:
- 		lose = 0;
- 		stmt = (struct executable_statement *)0;
++	int bootp_broadcast_always;	/* If nonzero, always set the BOOTP_BROADCAST
++					   flag in requests */
+ };
+ 
+ /* Per-interface state used in the dhcp client... */
+diff -up dhcp-4.2.4-P2/includes/dhctoken.h.options dhcp-4.2.4-P2/includes/dhctoken.h
+--- dhcp-4.2.4-P2/includes/dhctoken.h.options	2012-08-28 04:13:03.000000000 +0200
++++ dhcp-4.2.4-P2/includes/dhctoken.h	2012-09-26 10:34:27.144049854 +0200
+@@ -364,7 +364,8 @@ enum dhcp_token {
+ 	GETHOSTBYNAME = 665,
+ 	PRIMARY6 = 666,
+ 	SECONDARY6 = 667,
+-	TOKEN_INFINIBAND = 668
++	TOKEN_INFINIBAND = 668,
++	BOOTP_BROADCAST_ALWAYS = 669
+ };
+ 
+ #define is_identifier(x)	((x) >= FIRST_TOKEN &&	\

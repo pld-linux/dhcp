@@ -31,10 +31,6 @@ Source2:	%{name}6.init
 Source3:	%{name}-relay.init
 Source4:	%{name}.sysconfig
 Source5:	%{name}-relay.sysconfig
-Source6:	%{name}-libdhcp4client.pc
-Source7:	%{name}-dhcp4client.h
-Source8:	%{name}-libdhcp4client.make
-Source9:	%{name}-libdhcp_control.h
 Source10:	%{name}.schema
 Source11:	%{name}-README.ldap
 Source12:	draft-ietf-dhc-ldap-schema-01.txt
@@ -45,18 +41,12 @@ Patch2:		%{name}-3.0.3-x-option.patch
 Patch3:		%{name}-paths.patch
 Patch5:		%{name}-timeouts.patch
 Patch6:		%{name}-options.patch
-Patch7:		%{name}-libdhcp4client.patch
-Patch8:		%{name}-prototypes.patch
 Patch9:		%{name}-errwarn-message.patch
 Patch10:	%{name}-memory.patch
 Patch11:	%{name}-dhclient-decline-backoff.patch
 Patch12:	%{name}-unicast-bootp.patch
-Patch13:	%{name}-fast-timeout.patch
-Patch14:	%{name}-failover-ports.patch
-Patch15:	%{name}-dhclient-usage.patch
 Patch16:	%{name}-default-requested-options.patch
 Patch17:	%{name}-xen-checksum.patch
-Patch18:	%{name}-dhclient-anycast.patch
 Patch19:	%{name}-manpages.patch
 Patch20:	%{name}-NetworkManager-crash.patch
 URL:		http://www.isc.org/sw/dhcp/
@@ -134,6 +124,9 @@ Suggests:	avahi-autoipd
 Provides:	dhclient = %{epoch}:%{version}-%{release}
 Obsoletes:	dhclient
 Obsoletes:	dhcpv6-client
+Obsoletes:	libdhcp4client
+Obsoletes:	libdhcp4client-devel
+Obsoletes:	libdhcp4client-static
 
 %description client
 Dynamic Host Configuration Protocol Client.
@@ -198,43 +191,6 @@ odpytywania o ich stan. Aktualnie jest używana przez serwer ISC DHCP.
 dhcpctl to zbiór funkcji tworzących API, które może być używane do
 komunikacji z działającym serwerem ISC DHCP i jego kontroli.
 
-%package -n libdhcp4client
-Summary:	The DHCP client in a library for invocation by other programs
-Summary(pl.UTF-8):	Klient DHCP w postaci biblioteki do wykorzystania w innych programach
-Group:		Development/Libraries
-
-%description -n libdhcp4client
-Provides the client for the DHCP protocol.
-
-%description -n libdhcp4client -l pl.UTF-8
-Ten pakiet zawiera klienta protokołu DHCP.
-
-%package -n libdhcp4client-devel
-Summary:	Header files for development with the DHCP client library
-Summary(pl.UTF-8):	Pliki nagłówkowe do programowania z użyciem biblioteki klienckiej DHCP
-License:	GPL v2+
-Group:		Development/Libraries
-Requires:	libdhcp4client = %{epoch}:%{version}-%{release}
-
-%description -n libdhcp4client-devel
-Header files for development with the DHCP client library.
-
-%description -n libdhcp4client-devel -l pl.UTF-8
-Pliki nagłówkowe do programowania z użyciem biblioteki klienckiej
-DHCP.
-
-%package -n libdhcp4client-static
-Summary:	Static DHCP client library
-Summary(pl.UTF-8):	Statyczna biblioteka kliencka DHCP
-Group:		Development/Libraries
-Requires:	libdhcp4client-devel = %{epoch}:%{version}-%{release}
-
-%description -n libdhcp4client-static
-Static DHCP client library.
-
-%description -n libdhcp4client-static -l pl.UTF-8
-Statyczna biblioteka kliencka DHCP.
-
 %prep
 %setup -q -n %{name}-%{ver}%{pverdir}
 %patch0 -p1
@@ -249,18 +205,12 @@ Statyczna biblioteka kliencka DHCP.
 %patch3 -p1
 %patch5 -p1
 %patch6 -p1
-%patch7 -p1
-%patch8 -p1
 %patch9 -p1
 %patch10 -p1
 %patch11 -p1
 %patch12 -p1
-%patch13 -p1
-%patch14 -p1
-%patch15 -p1
 %patch16 -p1
 %patch17 -p1
-%patch18 -p1
 %patch19 -p1
 %patch20 -p1
 
@@ -268,14 +218,6 @@ Statyczna biblioteka kliencka DHCP.
 cp -a %{SOURCE11} README.ldap
 cp -a %{SOURCE12} doc
 cp -a %{SOURCE13} contrib
-
-# Copy in the libdhcp4client headers and Makefile.dist
-install -d libdhcp4client
-cp %{SOURCE7} libdhcp4client/dhcp4client.h
-cp %{SOURCE8} libdhcp4client/Makefile.dist
-
-# Copy in libdhcp_control.h to the isc-dhcp includes directory
-cp -p %{SOURCE9} includes/isc-dhcp/libdhcp_control.h
 
 # Replace @PRODUCTNAME@
 %{__sed} -i -e 's|@PRODUCTNAME@|%{vvendor}|g' common/dhcp-options.5
@@ -295,8 +237,6 @@ for page in server/dhcpd.conf.5 server/dhcpd.leases.5 server/dhcpd.8; do
 				-e 's|DBDIR|%{_localstatedir}/db/dhcpd|g' \
 				-e 's|ETCDIR|%{_sysconfdir}|g' $page
 done
-
-sed 's/@DHCP_VERSION@/'%{version}'/' < %{SOURCE6} > libdhcp4client.pc
 
 %build
 %{__libtoolize}
@@ -330,23 +270,13 @@ install %{SOURCE4} $RPM_BUILD_ROOT/etc/sysconfig/dhcpd
 install %{SOURCE5} $RPM_BUILD_ROOT/etc/sysconfig/dhcp-relay
 install %{SOURCE14} $RPM_BUILD_ROOT/sbin/dhclient-script
 
-install server/dhcpd.conf $RPM_BUILD_ROOT%{_sysconfdir}
-:> $RPM_BUILD_ROOT%{_sysconfdir}/dhcpd6.conf
+install server/dhcpd.conf.example $RPM_BUILD_ROOT%{_sysconfdir}/dhcpd.conf
+install doc/examples/dhcpd-dhcpv6.conf $RPM_BUILD_ROOT%{_sysconfdir}/dhcpd6.conf
 
 %if %{with ldap}
 install -d $RPM_BUILD_ROOT%{schemadir}
 install %{SOURCE10} $RPM_BUILD_ROOT%{schemadir}
 %endif
-
-# Install headers for libdhcp4client-devel
-install -d $RPM_BUILD_ROOT%{_includedir}/dhcp4client
-install libdhcp4client/dhcp4client.h $RPM_BUILD_ROOT%{_includedir}/dhcp4client/dhcp4client.h
-install -d $RPM_BUILD_ROOT%{_includedir}/dhcp4client/minires
-for hdr in cdefs.h ctrace.h dhcp.h dhcp6.h dhcpd.h dhctoken.h failover.h \
-           heap.h inet.h minires/minires.h minires/res_update.h \
-           minires/resolv.h osdep.h site.h statement.h tree.h; do
-	install -p -m 0644 includes/${hdr} $RPM_BUILD_ROOT%{_includedir}/dhcp4client/${hdr}
-done
 
 :> $RPM_BUILD_ROOT%{_sysconfdir}/dhclient.conf
 
@@ -355,10 +285,6 @@ touch $RPM_BUILD_ROOT/var/lib/dhclient/dhclient.leases
 
 touch $RPM_BUILD_ROOT/var/lib/dhcpd/dhcpd6.leases
 touch $RPM_BUILD_ROOT/var/lib/dhclient/dhclient6.leases
-
-# Install pkg-config file
-install libdhcp4client.pc $RPM_BUILD_ROOT%{_libdir}/pkgconfig/libdhcp4client.pc
-cp -a includes/isc-dhcp/libdhcp_control.h $RPM_BUILD_ROOT%{_includedir}/isc-dhcp
 
 %if %{with static_libs}
 # HACK: strip doesn't like .a inside .a
@@ -435,12 +361,9 @@ if [ -f /etc/dhclient-exit-hooks ] ; then
 	mv /etc/dhclient-exit-hooks /etc/dhclient-exit-hooks.d/
 fi
 
-%post	-n libdhcp4client -p /sbin/ldconfig
-%postun	-n libdhcp4client -p /sbin/ldconfig
-
 %files
 %defattr(644,root,root,755)
-%doc doc/* README RELNOTES server/dhcpd.conf LICENSE
+%doc doc/* README RELNOTES server/dhcpd.conf.example LICENSE
 %doc contrib/ms2isc %{?with_ldap:contrib/dhcpd-conf-to-ldap README.ldap}
 %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/dhcpd
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/dhcpd.conf
@@ -461,7 +384,7 @@ fi
 
 %files client
 %defattr(644,root,root,755)
-%doc contrib/sethostname.sh client/dhclient.conf
+%doc contrib/sethostname.sh client/dhclient.conf.example
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/dhclient.conf
 %attr(755,root,root) /sbin/dhclient
 %attr(755,root,root) /sbin/dhclient-script
@@ -495,23 +418,6 @@ fi
 %{_includedir}/omapip
 %{_mandir}/man3/dhcpctl.3*
 %{_mandir}/man3/omapi.3*
-
-%files -n libdhcp4client
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/libdhcp4client-*.so.*
-
-%files -n libdhcp4client-devel
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/libdhcp4client.so
-%{_includedir}/dhcp4client
-%{_pkgconfigdir}/libdhcp4client.pc
-%{_libdir}/libdhcp4client.la
-
-%if %{with static_libs}
-%files -n libdhcp4client-static
-%defattr(644,root,root,755)
-%{_libdir}/libdhcp4client.a
-%endif
 
 %if %{with ldap}
 %files -n openldap-schema-dhcp
