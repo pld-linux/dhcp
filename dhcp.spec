@@ -20,7 +20,7 @@ Summary(pl.UTF-8):	Serwer DHCP
 Summary(pt_BR.UTF-8):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
 Version:	%{ver}%{pverdot}
-Release:	1
+Release:	2
 Epoch:		4
 License:	MIT
 Group:		Networking/Daemons
@@ -49,6 +49,8 @@ Patch16:	%{name}-default-requested-options.patch
 Patch17:	%{name}-xen-checksum.patch
 Patch19:	%{name}-manpages.patch
 Patch20:	%{name}-NetworkManager-crash.patch
+# http://www.csupomona.edu/~bldewolf/dhcp-uid/
+Patch21:	%{name}-ignore-client-uids.patch
 URL:		http://www.isc.org/sw/dhcp/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -213,6 +215,7 @@ komunikacji z działającym serwerem ISC DHCP i jego kontroli.
 %patch17 -p1
 %patch19 -p1
 %patch20 -p1
+%patch21 -p1
 
 # Copy in documentation and example scripts for LDAP patch to dhcpd
 cp -a %{SOURCE11} README.ldap
