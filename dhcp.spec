@@ -211,6 +211,8 @@ cp %{SOURCE7} libdhcp4client/Makefile.dist
 cp %{SOURCE8} includes/isc-dhcp/libdhcp_control.h
 
 %build
+export sysname=linux-2.2
+
 # NOTE: this is not autoconf configure - do not change it to %%configure
 ./configure
 
@@ -231,6 +233,7 @@ rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT{/etc/{rc.d/init.d,sysconfig},%{schemadir},%{_pkgconfigdir}}
 
 %{__make} install \
+	sysname=linux-2.2 \
 	DESTDIR=$RPM_BUILD_ROOT \
 	CLIENTBINDIR=/sbin \
 	BINDIR=%{_sbindir} \
