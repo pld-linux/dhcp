@@ -1,6 +1,7 @@
---- dhcp-3.0.5/server/bootp.c.unicast	2005-05-18 15:54:17.000000000 -0400
-+++ dhcp-3.0.5/server/bootp.c	2007-03-30 16:16:00.000000000 -0400
-@@ -62,6 +62,7 @@
+diff -up dhcp-4.3.4/server/bootp.c.unicast dhcp-4.3.4/server/bootp.c
+--- dhcp-4.3.4/server/bootp.c.unicast	2016-03-22 14:16:51.000000000 +0100
++++ dhcp-4.3.4/server/bootp.c	2016-05-02 15:09:40.023243008 +0200
+@@ -52,6 +52,7 @@ void bootp (packet)
  	char msgbuf [1024];
  	int ignorep;
  	int peer_has_leases = 0;
@@ -8,7 +9,7 @@
  
  	if (packet -> raw -> op != BOOTREQUEST)
  		return;
-@@ -77,7 +78,7 @@
+@@ -67,7 +68,7 @@ void bootp (packet)
  		 ? inet_ntoa (packet -> raw -> giaddr)
  		 : packet -> interface -> name);
  
@@ -17,31 +18,34 @@
  		log_info ("%s: network unknown", msgbuf);
  		return;
  	}
-@@ -357,6 +358,13 @@
- 					      from, &to, &hto);
+@@ -428,6 +429,15 @@ void bootp (packet)
+ 
  			goto out;
  		}
 +	} else if (norelay == 2) {
 +		to.sin_addr = raw.ciaddr;
 +		to.sin_port = remote_port;
 +		if (fallback_interface) {
-+			result = send_packet (fallback_interface, (struct packet *)0, &raw, outgoing.packet_length, from, &to, &hto);
++			result = send_packet (fallback_interface, NULL, &raw,
++					      outgoing.packet_length, from,
++					      &to, &hto);
 +			goto out;
 +		}
  
  	/* If it comes from a client that already knows its address
  	   and is not requesting a broadcast response, and we can
---- dhcp-3.0.5/server/dhcp.c.unicast	2007-03-30 16:13:36.000000000 -0400
-+++ dhcp-3.0.5/server/dhcp.c	2007-03-30 16:19:35.000000000 -0400
-@@ -3817,6 +3817,7 @@
+diff -up dhcp-4.3.4/server/dhcp.c.unicast dhcp-4.3.4/server/dhcp.c
+--- dhcp-4.3.4/server/dhcp.c.unicast	2016-03-22 14:16:51.000000000 +0100
++++ dhcp-4.3.4/server/dhcp.c	2016-05-02 15:10:13.255267511 +0200
+@@ -5132,6 +5132,7 @@ int locate_network (packet)
  	struct data_string data;
  	struct subnet *subnet = (struct subnet *)0;
  	struct option_cache *oc;
 +	int norelay = 0;
  
- 	/* See if there's a subnet selection option. */
- 	oc = lookup_option (&dhcp_universe, packet -> options,
-@@ -3826,12 +3827,24 @@
+ #if defined(DHCPv6) && defined(DHCP4o6)
+ 	if (dhcpv4_over_dhcpv6 && (packet->dhcp4o6_response != NULL)) {
+@@ -5153,12 +5154,24 @@ int locate_network (packet)
  	   from the interface, if there is one.   If not, fail. */
  	if (!oc && !packet -> raw -> giaddr.s_addr) {
  		if (packet -> interface -> shared_network) {
@@ -70,8 +74,8 @@
 -		return 0;
  	}
  
- 	/* If there's an SSO, and it's valid, use it to figure out the
-@@ -3853,7 +3866,10 @@
+ 	/* If there's an option indicating link connection, and it's valid,
+@@ -5185,7 +5198,10 @@ int locate_network (packet)
  		data_string_forget (&data, MDL);
  	} else {
  		ia.len = 4;
@@ -83,7 +87,7 @@
  	}
  
  	/* If we know the subnet on which the IP address lives, use it. */
-@@ -3861,7 +3877,10 @@
+@@ -5193,7 +5209,10 @@ int locate_network (packet)
  		shared_network_reference (&packet -> shared_network,
  					  subnet -> shared_network, MDL);
  		subnet_dereference (&subnet, MDL);

@@ -1,14 +1,16 @@
---- dhcp-3.0.5/client/dhclient.c.decline	2007-03-30 15:29:58.000000000 -0400
-+++ dhcp-3.0.5/client/dhclient.c	2007-03-30 15:50:25.000000000 -0400
-@@ -934,6 +934,7 @@
+diff -up dhcp-4.3.4/client/dhclient.c.backoff dhcp-4.3.4/client/dhclient.c
+--- dhcp-4.3.4/client/dhclient.c.backoff	2016-04-29 12:16:26.976245611 +0200
++++ dhcp-4.3.4/client/dhclient.c	2016-04-29 12:16:26.979245609 +0200
+@@ -1423,6 +1423,8 @@ void state_init (cpp)
  	void *cpp;
  {
  	struct client_state *client = cpp;
 +	enum dhcp_state init_state = client->state;
++	struct timeval tv;
  
  	ASSERT_STATE(state, S_INIT);
  
-@@ -946,9 +947,16 @@
+@@ -1435,9 +1437,18 @@ void state_init (cpp)
  	client -> first_sending = cur_time;
  	client -> interval = client -> config -> initial_interval;
  
@@ -23,20 +25,22 @@
 +		/* We've received an OFFER and it has been DECLINEd by dhclient-script.
 +		 * wait for a random time between 1 and backoff_cutoff seconds before
 +		 * trying again. */
-+		add_timeout(cur_time + ((1 + (random() >> 2)) %  client->config->backoff_cutoff), send_discover, client, 0, 0);
++		tv . tv_sec = cur_time + ((1 + (random() >> 2)) %  client->config->backoff_cutoff);
++		tv . tv_usec = 0;
++		add_timeout(&tv, send_discover, client, 0, 0);
 +	}
  }
  
- /* state_selecting is called when one or more DHCPOFFER packets have been
-@@ -1215,6 +1223,7 @@
- 		send_decline (client);
- 		destroy_client_lease (client -> new);
- 		client -> new = (struct client_lease *)0;
-+		client -> state = S_DECLINED;
- 		state_init (client);
- 		return;
- 	}
-@@ -3183,6 +3192,7 @@
+ /*
+@@ -1734,6 +1745,7 @@ void bind_lease (client)
+ 					 "try (declined).  Exiting.");
+ 			exit(2);
+ 		} else {
++			client -> state = S_DECLINED;
+ 			state_init(client);
+ 			return;
+ 		}
+@@ -4626,6 +4638,7 @@ void client_location_changed ()
  			      case S_INIT:
  			      case S_REBINDING:
  			      case S_STOPPED:
@@ -44,9 +48,10 @@
  				break;
  			}
  			client -> state = S_INIT;
---- dhcp-3.0.5/includes/dhcpd.h.decline	2007-03-30 15:30:14.000000000 -0400
-+++ dhcp-3.0.5/includes/dhcpd.h	2007-03-30 15:50:53.000000000 -0400
-@@ -704,7 +704,8 @@
+diff -up dhcp-4.3.4/includes/dhcpd.h.backoff dhcp-4.3.4/includes/dhcpd.h
+--- dhcp-4.3.4/includes/dhcpd.h.backoff	2016-04-29 12:16:26.980245609 +0200
++++ dhcp-4.3.4/includes/dhcpd.h	2016-04-29 12:17:30.893203533 +0200
+@@ -1171,7 +1171,8 @@ enum dhcp_state {
  	S_BOUND = 5,
  	S_RENEWING = 6,
  	S_REBINDING = 7,
@@ -55,4 +60,4 @@
 +	S_DECLINED = 9
  };
  
- /* Authentication and BOOTP policy possibilities (not all values work
+ /* Possible pending client operations. */

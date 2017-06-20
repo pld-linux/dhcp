@@ -3,8 +3,8 @@
 %bcond_without	ldap	# without support for ldap storage
 %bcond_without	static_libs	# don't build static library
 
-%define         ver     4.2.5
-%if 1
+%define         ver     4.3.5
+%if 0
 %define         pverdot .P1
 %define         pverdir -P1
 %else
@@ -20,12 +20,12 @@ Summary(pl.UTF-8):	Serwer DHCP
 Summary(pt_BR.UTF-8):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
 Version:	%{ver}%{pverdot}
-Release:	3
+Release:	1
 Epoch:		4
 License:	MIT
 Group:		Networking/Daemons
 Source0:	ftp://ftp.isc.org/isc/dhcp/%{ver}%{pverdir}/%{name}-%{ver}%{pverdir}.tar.gz
-# Source0-md5:	f68e3c1f00a9af5742bc5e71d567cf93
+# Source0-md5:	2b5e5b2fa31c2e27e487039d86f83d3f
 Source1:	%{name}.init
 Source2:	%{name}6.init
 Source3:	%{name}-relay.init
@@ -46,11 +46,8 @@ Patch10:	%{name}-memory.patch
 Patch11:	%{name}-dhclient-decline-backoff.patch
 Patch12:	%{name}-unicast-bootp.patch
 Patch16:	%{name}-default-requested-options.patch
-Patch17:	%{name}-xen-checksum.patch
+
 Patch19:	%{name}-manpages.patch
-Patch20:	%{name}-NetworkManager-crash.patch
-# http://www.csupomona.edu/~bldewolf/dhcp-uid/
-Patch21:	%{name}-ignore-client-uids.patch
 URL:		http://www.isc.org/sw/dhcp/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -212,10 +209,8 @@ komunikacji z działającym serwerem ISC DHCP i jego kontroli.
 %patch11 -p1
 %patch12 -p1
 %patch16 -p1
-%patch17 -p1
+
 %patch19 -p1
-%patch20 -p1
-%patch21 -p1
 
 # Copy in documentation and example scripts for LDAP patch to dhcpd
 cp -a %{SOURCE11} README.ldap
@@ -257,7 +252,7 @@ CFLAGS="%{rpmcflags} -fPIC -D_GNU_SOURCE=1"
 	--with-cli-pid-file=/var/run/dhclient.pid \
 	--with-relay-pid-file=/var/run/dhcrelay.pid \
 	--with%{!?with_ldap:out}-ldap
-%{__make}
+%{__make} -j1
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -414,7 +409,6 @@ fi
 %files devel
 %defattr(644,root,root,755)
 %{_libdir}/libdhcpctl.a
-%{_libdir}/libdst.a
 %{_libdir}/libomapi.a
 %{_includedir}/dhcpctl
 %{_includedir}/isc-dhcp
