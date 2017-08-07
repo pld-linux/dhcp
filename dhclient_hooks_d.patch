@@ -1,0 +1,56 @@
+diff -dur dhcp-4.3.5.orig/client/scripts/linux dhcp-4.3.5/client/scripts/linux
+--- dhcp-4.3.5.orig/client/scripts/linux	2016-09-27 21:16:50.000000000 +0200
++++ dhcp-4.3.5/client/scripts/linux	2017-08-07 13:26:44.000000000 +0200
+@@ -69,24 +69,44 @@
+ 
+ # Must be used on exit.   Invokes the local dhcp client exit hooks, if any.
+ exit_with_hooks() {
++  
+   exit_status=$1
+-  if [ -f /etc/dhclient-exit-hooks ]; then
+-    . /etc/dhclient-exit-hooks
+-  fi
+-# probably should do something with exit status of the local script
++
++  for i in /etc/dhclient-exit-hooks.d/*[!~,] ; do
++    [ -f "$i" ] || continue
++    # Don't run *.{rpmsave,rpmorig,rpmnew,swp} scripts
++    [ "${i%.rpmsave}" != "${i}" ] && continue
++    [ "${i%.rpmorig}" != "${i}" ] && continue
++    [ "${i%.rpmnew}" != "${i}" ] && continue
++    [ "${i%.swp}" != "${i}" ] && continue
++    [ "${i%,v}" != "${i}" ] && continue
++
++    . ${i}
++  done
++
++  # probably should do something with exit status of the local script
+   exit $exit_status
+ }
+ 
+ # Invoke the local dhcp client enter hooks, if they exist.
+-if [ -f /etc/dhclient-enter-hooks ]; then
+-  exit_status=0
+-  . /etc/dhclient-enter-hooks
++exit_status=0
++for i in /etc/dhclient-enter-hooks.d/*[!~,] ; do
++  [ -f "$i" ] || continue
++  # Don't run *.{rpmsave,rpmorig,rpmnew,swp} scripts
++  [ "${i%.rpmsave}" != "${i}" ] && continue
++  [ "${i%.rpmorig}" != "${i}" ] && continue
++  [ "${i%.rpmnew}" != "${i}" ] && continue
++  [ "${i%.swp}" != "${i}" ] && continue
++  [ "${i%,v}" != "${i}" ] && continue
++
++  . ${i}
++  
+   # allow the local script to abort processing of this state
+   # local script must set exit_status variable to nonzero.
+   if [ $exit_status -ne 0 ]; then
+     exit $exit_status
+   fi
+-fi
++done
+ 
+ ###
+ ### DHCPv4 Handlers

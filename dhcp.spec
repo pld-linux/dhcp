@@ -20,7 +20,7 @@ Summary(pl.UTF-8):	Serwer DHCP
 Summary(pt_BR.UTF-8):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
 Version:	%{ver}%{pverdot}
-Release:	1
+Release:	2
 Epoch:		4
 License:	MIT
 Group:		Networking/Daemons
@@ -35,19 +35,18 @@ Source10:	%{name}.schema
 Source11:	%{name}-README.ldap
 Source12:	draft-ietf-dhc-ldap-schema-01.txt
 Source13:	%{name}d-conf-to-ldap
-Source14:	%{name}-dhclient-script
 Patch0:		%{name}-release-by-ifup.patch
-Patch2:		%{name}-3.0.3-x-option.patch
-Patch3:		%{name}-paths.patch
-Patch5:		%{name}-timeouts.patch
-Patch6:		%{name}-options.patch
-Patch9:		%{name}-errwarn-message.patch
-Patch10:	%{name}-memory.patch
-Patch11:	%{name}-dhclient-decline-backoff.patch
-Patch12:	%{name}-unicast-bootp.patch
-Patch16:	%{name}-default-requested-options.patch
-
-Patch19:	%{name}-manpages.patch
+Patch1:		%{name}-3.0.3-x-option.patch
+Patch2:		%{name}-paths.patch
+Patch3:		%{name}-timeouts.patch
+Patch4:		%{name}-options.patch
+Patch5:		%{name}-errwarn-message.patch
+Patch6:		%{name}-memory.patch
+Patch7:		%{name}-dhclient-decline-backoff.patch
+Patch8:		%{name}-unicast-bootp.patch
+Patch9:		%{name}-default-requested-options.patch
+Patch10:	%{name}-manpages.patch
+Patch11:	dhclient_hooks_d.patch
 URL:		http://www.isc.org/sw/dhcp/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -200,17 +199,17 @@ komunikacji z działającym serwerem ISC DHCP i jego kontroli.
 #in that environment to handle options they do not know about in advance -
 #this is a Red Hat extension to support dhcdbd and NetworkManager.
 # however, fedora doesn't have this patch anymore, so can drop?
-#%%patch2 -p1
+#%%patch1 -p1
+%patch2 -p1
 %patch3 -p1
+%patch4 -p1
 %patch5 -p1
 %patch6 -p1
+%patch7 -p1
+%patch8 -p1
 %patch9 -p1
 %patch10 -p1
 %patch11 -p1
-%patch12 -p1
-%patch16 -p1
-
-%patch19 -p1
 
 # Copy in documentation and example scripts for LDAP patch to dhcpd
 cp -a %{SOURCE11} README.ldap
@@ -266,7 +265,8 @@ install %{SOURCE2} $RPM_BUILD_ROOT/etc/rc.d/init.d/dhcpd6
 install %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/dhcp-relay
 install %{SOURCE4} $RPM_BUILD_ROOT/etc/sysconfig/dhcpd
 install %{SOURCE5} $RPM_BUILD_ROOT/etc/sysconfig/dhcp-relay
-install %{SOURCE14} $RPM_BUILD_ROOT/sbin/dhclient-script
+
+install client/scripts/linux $RPM_BUILD_ROOT/sbin/dhclient-script
 
 install server/dhcpd.conf.example $RPM_BUILD_ROOT%{_sysconfdir}/dhcpd.conf
 install doc/examples/dhcpd-dhcpv6.conf $RPM_BUILD_ROOT%{_sysconfdir}/dhcpd6.conf
