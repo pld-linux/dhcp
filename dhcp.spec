@@ -101,9 +101,7 @@ Summary(pl.UTF-8):	Schemat LDAP dla serwera DHCP
 Group:		Networking/Daemons
 Requires(post,postun):	sed >= 4.0
 Requires:	openldap-servers
-%if "%{_rpmversion}" >= "5"
 BuildArch:	noarch
-%endif
 
 %description -n openldap-schema-dhcp
 This package contains LDAPv3 schema for use with the DHCP Server.
