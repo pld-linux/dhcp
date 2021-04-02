@@ -43,7 +43,7 @@ diff -up dhcp-4.3.5/omapip/errwarn.c.errwarn dhcp-4.3.5/omapip/errwarn.c
  /* Log an error message, then exit... */
  
  void log_fatal (const char * fmt, ... )
-@@ -75,11 +110,13 @@ void log_fatal (const char * fmt, ... )
+@@ -74,11 +109,13 @@ void log_fatal (const char * fmt, ... )
    }
  
    log_error ("%s", "");
@@ -51,7 +51,7 @@ diff -up dhcp-4.3.5/omapip/errwarn.c.errwarn dhcp-4.3.5/omapip/errwarn.c
 -  log_error ("than a configuration issue please read the section on submitting");
 -  log_error ("bugs on either our web page at www.isc.org or in the README file");
 -  log_error ("before submitting a bug.  These pages explain the proper");
--  log_error ("process and the information we find helpful for debugging..");
+-  log_error ("process and the information we find helpful for debugging.");
 +  log_error ("This version of ISC DHCP is based on the release available");
 +  log_error ("on ftp.isc.org. Features have been added and other changes");
 +  log_error ("have been made to the base software release in order to make");

@@ -3,7 +3,7 @@
 %bcond_without	ldap	# without support for ldap storage
 %bcond_without	static_libs	# don't build static library
 
-%define         ver     4.3.5
+%define         ver     4.4.2
 %if 0
 %define         pverdot .P1
 %define         pverdir -P1
@@ -20,12 +20,12 @@ Summary(pl.UTF-8):	Serwer DHCP
 Summary(pt_BR.UTF-8):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
 Version:	%{ver}%{pverdot}
-Release:	3
+Release:	1
 Epoch:		4
 License:	MIT
 Group:		Networking/Daemons
 Source0:	ftp://ftp.isc.org/isc/dhcp/%{ver}%{pverdir}/%{name}-%{ver}%{pverdir}.tar.gz
-# Source0-md5:	2b5e5b2fa31c2e27e487039d86f83d3f
+# Source0-md5:	2afdaf8498dc1edaf3012efdd589b3e1
 Source1:	%{name}.init
 Source2:	%{name}6.init
 Source3:	%{name}-relay.init
@@ -42,11 +42,10 @@ Patch3:		%{name}-timeouts.patch
 Patch4:		%{name}-options.patch
 Patch5:		%{name}-errwarn-message.patch
 Patch6:		%{name}-memory.patch
-Patch7:		%{name}-dhclient-decline-backoff.patch
-Patch8:		%{name}-unicast-bootp.patch
-Patch9:		%{name}-default-requested-options.patch
-Patch10:	%{name}-manpages.patch
-Patch11:	dhclient_hooks_d.patch
+Patch7:		%{name}-unicast-bootp.patch
+Patch8:		%{name}-default-requested-options.patch
+Patch9:		%{name}-manpages.patch
+Patch10:	%{name}-extravars.patch
 URL:		http://www.isc.org/sw/dhcp/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -207,7 +206,6 @@ komunikacji z działającym serwerem ISC DHCP i jego kontroli.
 %patch8 -p1
 %patch9 -p1
 %patch10 -p1
-%patch11 -p1
 
 # Copy in documentation and example scripts for LDAP patch to dhcpd
 cp -a %{SOURCE11} README.ldap
@@ -406,10 +404,10 @@ fi
 
 %files devel
 %defattr(644,root,root,755)
+%{_libdir}/libdhcp.a
 %{_libdir}/libdhcpctl.a
 %{_libdir}/libomapi.a
 %{_includedir}/dhcpctl
-%{_includedir}/isc-dhcp
 %{_includedir}/omapip
 %{_mandir}/man3/dhcpctl.3*
 %{_mandir}/man3/omapi.3*
