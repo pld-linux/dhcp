@@ -1,7 +1,7 @@
-diff -up dhcp-4.3.4/client/clparse.c.options dhcp-4.3.4/client/clparse.c
---- dhcp-4.3.4/client/clparse.c.options	2016-03-22 14:16:51.000000000 +0100
-+++ dhcp-4.3.4/client/clparse.c	2016-04-29 12:06:13.485470579 +0200
-@@ -189,6 +189,7 @@ isc_result_t read_client_conf ()
+diff -urNp -x '*.orig' dhcp-4.4.2.org/client/clparse.c dhcp-4.4.2/client/clparse.c
+--- dhcp-4.4.2.org/client/clparse.c	2020-01-21 20:21:48.000000000 +0100
++++ dhcp-4.4.2/client/clparse.c	2021-05-15 22:10:03.054906758 +0200
+@@ -192,6 +192,7 @@ isc_result_t read_client_conf ()
  	/* Requested lease time, used by DHCPv6 (DHCPv4 uses the option cache)
  	 */
  	top_level_config.requested_lease = 7200;
@@ -9,7 +9,7 @@ diff -up dhcp-4.3.4/client/clparse.c.options dhcp-4.3.4/client/clparse.c
  
  	group_allocate (&top_level_config.on_receipt, MDL);
  	if (!top_level_config.on_receipt)
-@@ -394,7 +395,8 @@ void read_client_leases ()
+@@ -397,7 +398,8 @@ void read_client_leases ()
  	interface-declaration |
  	LEASE client-lease-statement |
  	ALIAS client-lease-statement |
@@ -19,7 +19,7 @@ diff -up dhcp-4.3.4/client/clparse.c.options dhcp-4.3.4/client/clparse.c
  
  void parse_client_statement (cfile, ip, config)
  	struct parse *cfile;
-@@ -817,6 +819,12 @@ void parse_client_statement (cfile, ip,
+@@ -820,6 +822,12 @@ void parse_client_statement (cfile, ip,
  		parse_lease_id_format(cfile);
  		break;
  
@@ -32,11 +32,11 @@ diff -up dhcp-4.3.4/client/clparse.c.options dhcp-4.3.4/client/clparse.c
  
  	      default:
  		lose = 0;
-diff -up dhcp-4.3.4/client/dhclient.8.options dhcp-4.3.4/client/dhclient.8
---- dhcp-4.3.4/client/dhclient.8.options	2016-03-22 14:16:51.000000000 +0100
-+++ dhcp-4.3.4/client/dhclient.8	2016-04-29 11:59:50.446590077 +0200
-@@ -134,6 +134,33 @@ dhclient - Dynamic Host Configuration Pr
- .B -w
+diff -urNp -x '*.orig' dhcp-4.4.2.org/client/dhclient.8 dhcp-4.4.2/client/dhclient.8
+--- dhcp-4.4.2.org/client/dhclient.8	2020-01-21 20:21:48.000000000 +0100
++++ dhcp-4.4.2/client/dhclient.8	2021-05-15 22:10:03.054906758 +0200
+@@ -147,6 +147,33 @@ dhclient - Dynamic Host Configuration Pr
+ .I seconds
  ]
  [
 +.B -B
@@ -69,7 +69,7 @@ diff -up dhcp-4.3.4/client/dhclient.8.options dhcp-4.3.4/client/dhclient.8
  .B -v
  ]
  [
-@@ -289,6 +316,69 @@ not to exit when it doesn't find any suc
+@@ -302,6 +329,69 @@ not to exit when it doesn't find any suc
  program can then be used to notify the client when a network interface
  has been added or removed, so that the client can attempt to configure an IP
  address on that interface.
@@ -139,8 +139,9 @@ diff -up dhcp-4.3.4/client/dhclient.8.options dhcp-4.3.4/client/dhclient.8
  .TP
  .BI \-n
  Do not configure any interfaces.  This is most likely to be useful in
---- dhcp-4.4.2b1/client/dhclient.c.orig	2021-04-02 12:10:49.327389327 +0000
-+++ dhcp-4.4.2b1/client/dhclient.c	2021-04-02 12:18:50.599787128 +0000
+diff -urNp -x '*.orig' dhcp-4.4.2.org/client/dhclient.c dhcp-4.4.2/client/dhclient.c
+--- dhcp-4.4.2.org/client/dhclient.c	2021-05-15 22:10:02.951572212 +0200
++++ dhcp-4.4.2/client/dhclient.c	2021-05-15 22:10:03.054906758 +0200
 @@ -41,6 +41,12 @@
  #include <sys/wait.h>
  #include <limits.h>
@@ -513,9 +514,9 @@ diff -up dhcp-4.3.4/client/dhclient.8.options dhcp-4.3.4/client/dhclient.8
  		client -> packet.flags = 0;
  	else
  		client -> packet.flags = htons (BOOTP_BROADCAST);
-diff -up dhcp-4.3.4/common/conflex.c.options dhcp-4.3.4/common/conflex.c
---- dhcp-4.3.4/common/conflex.c.options	2016-04-29 11:59:50.448590077 +0200
-+++ dhcp-4.3.4/common/conflex.c	2016-04-29 12:13:23.637342420 +0200
+diff -urNp -x '*.orig' dhcp-4.4.2.org/common/conflex.c dhcp-4.4.2/common/conflex.c
+--- dhcp-4.4.2.org/common/conflex.c	2020-01-21 20:21:48.000000000 +0100
++++ dhcp-4.4.2/common/conflex.c	2021-05-15 22:10:03.054906758 +0200
 @@ -832,6 +832,8 @@ intern(char *atom, enum dhcp_token dfv)
  		if (!strcasecmp(atom+1, "ig-endian")) {
  			return TOKEN_BIG_ENDIAN;
@@ -525,10 +526,10 @@ diff -up dhcp-4.3.4/common/conflex.c.options dhcp-4.3.4/common/conflex.c
  		break;
  	      case 'c':
  		if (!strcasecmp(atom + 1, "ase"))
-diff -up dhcp-4.3.4/includes/dhcpd.h.options dhcp-4.3.4/includes/dhcpd.h
---- dhcp-4.3.4/includes/dhcpd.h.options	2016-04-29 11:59:50.448590077 +0200
-+++ dhcp-4.3.4/includes/dhcpd.h	2016-04-29 12:14:05.361329401 +0200
-@@ -1246,6 +1246,9 @@ struct client_config {
+diff -urNp -x '*.orig' dhcp-4.4.2.org/includes/dhcpd.h dhcp-4.4.2/includes/dhcpd.h
+--- dhcp-4.4.2.org/includes/dhcpd.h	2021-05-15 22:10:02.951572212 +0200
++++ dhcp-4.4.2/includes/dhcpd.h	2021-05-15 22:10:03.054906758 +0200
+@@ -1279,6 +1279,9 @@ struct client_config {
  
  	int lease_id_format;		/* format for IDs in lease file,
  					   TOKEN_OCTAL or TOKEN_HEX */
@@ -538,8 +539,9 @@ diff -up dhcp-4.3.4/includes/dhcpd.h.options dhcp-4.3.4/includes/dhcpd.h
  };
  
  /* Per-interface state used in the dhcp client... */
---- dhcp-4.4.2b1/includes/dhctoken.h.orig       2021-04-02 12:10:49.334056028 +0000
-+++ dhcp-4.4.2b1/includes/dhctoken.h    2021-04-02 12:20:14.623533025 +0000
+diff -urNp -x '*.orig' dhcp-4.4.2.org/includes/dhctoken.h dhcp-4.4.2/includes/dhctoken.h
+--- dhcp-4.4.2.org/includes/dhctoken.h	2020-01-21 20:21:48.000000000 +0100
++++ dhcp-4.4.2/includes/dhctoken.h	2021-05-15 22:10:03.054906758 +0200
 @@ -376,7 +376,8 @@ enum dhcp_token {
  	LEASE_ID_FORMAT = 676,
  	TOKEN_HEX = 677,
@@ -549,5 +551,4 @@ diff -up dhcp-4.3.4/includes/dhcpd.h.options dhcp-4.3.4/includes/dhcpd.h
 +	BOOTP_BROADCAST_ALWAYS = 680
  };
  
- #define is_identifier(x)       ((x) >= FIRST_TOKEN &&  \
-
+ #define is_identifier(x)	((x) >= FIRST_TOKEN &&	\
