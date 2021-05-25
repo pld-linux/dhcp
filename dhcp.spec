@@ -50,6 +50,9 @@ URL:		http://www.isc.org/sw/dhcp/
 BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	groff
+%ifarch %{arm}
+BuildRequires:	libatomic-devel
+%endif
 BuildRequires:	libtool
 %{?with_ldap:BuildRequires:	openldap-devel}
 %{?with_ldap:BuildRequires:	openssl-devel}
@@ -239,6 +242,9 @@ done
 %{__automake}
 CFLAGS="%{rpmcflags} -fPIC -D_GNU_SOURCE=1"
 %configure \
+%ifarch %{arm}
+	LIBS="-latomic" \
+%endif
 	%{!?with_static_libs:--disable-static} \
 	--enable-dhcpv6 \
 	--with-srv-lease-file=/var/lib/dhcpd/dhcpd.leases \
