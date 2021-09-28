@@ -46,7 +46,7 @@ Patch7:		%{name}-unicast-bootp.patch
 Patch8:		%{name}-default-requested-options.patch
 Patch9:		%{name}-manpages.patch
 Patch10:	%{name}-extravars.patch
-URL:		http://www.isc.org/sw/dhcp/
+URL:		https://www.isc.org/dhcp/
 BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	groff
