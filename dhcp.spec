@@ -2,6 +2,7 @@
 # Conditional build:
 %bcond_without	ldap	# without support for ldap storage
 %bcond_without	static_libs	# don't build static library
+%bcond_without	systemd		# without systemd units
 
 %define         ver     4.4.2
 %if 0
@@ -20,7 +21,7 @@ Summary(pl.UTF-8):	Serwer DHCP
 Summary(pt_BR.UTF-8):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
 Version:	%{ver}%{pverdot}
-Release:	1
+Release:	2
 Epoch:		4
 License:	MIT
 Group:		Networking/Daemons
@@ -31,6 +32,9 @@ Source2:	%{name}6.init
 Source3:	%{name}-relay.init
 Source4:	%{name}.sysconfig
 Source5:	%{name}-relay.sysconfig
+Source6:	dhcpd.service
+Source7:	dhcpd6.service
+Source8:	dhcp-relay.service
 Source10:	%{name}.schema
 Source11:	%{name}-README.ldap
 Source12:	draft-ietf-dhc-ldap-schema-01.txt
@@ -46,6 +50,7 @@ Patch7:		%{name}-unicast-bootp.patch
 Patch8:		%{name}-default-requested-options.patch
 Patch9:		%{name}-manpages.patch
 Patch10:	%{name}-extravars.patch
+Patch11:	systemd-notify.patch
 URL:		https://www.isc.org/dhcp/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -56,10 +61,12 @@ BuildRequires:	libatomic-devel
 BuildRequires:	libtool
 %{?with_ldap:BuildRequires:	openldap-devel}
 %{?with_ldap:BuildRequires:	openssl-devel}
-BuildRequires:	rpmbuild(macros) >= 1.304
+BuildRequires:	rpmbuild(macros) >= 1.644
+%{?with_systemd:BuildRequires:	systemd-devel}
 Requires(post):	coreutils
 Requires(post,preun):	/sbin/chkconfig
 Requires:	rc-scripts >= 0.2.0
+%{?with_systemd:Requires:	systemd-units >= 38}
 Provides:	dhcpd
 Obsoletes:	dhcpv6-server
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
@@ -209,6 +216,7 @@ komunikacji z działającym serwerem ISC DHCP i jego kontroli.
 %patch8 -p1
 %patch9 -p1
 %patch10 -p1
+%patch11 -p1
 
 # Copy in documentation and example scripts for LDAP patch to dhcpd
 cp -a %{SOURCE11} README.ldap
@@ -252,7 +260,8 @@ CFLAGS="%{rpmcflags} -fPIC -D_GNU_SOURCE=1"
 	--with-srv-pid-file=/var/run/dhcpd.pid \
 	--with-cli-pid-file=/var/run/dhclient.pid \
 	--with-relay-pid-file=/var/run/dhcrelay.pid \
-	--with%{!?with_ldap:out}-ldap
+	--with%{!?with_ldap:out}-ldap \
+	--with%{!?with_systemd:out}-systemd
 %{__make} -j1
 
 %install
@@ -267,6 +276,11 @@ install %{SOURCE2} $RPM_BUILD_ROOT/etc/rc.d/init.d/dhcpd6
 install %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/dhcp-relay
 install %{SOURCE4} $RPM_BUILD_ROOT/etc/sysconfig/dhcpd
 install %{SOURCE5} $RPM_BUILD_ROOT/etc/sysconfig/dhcp-relay
+
+%if %{with systemd}
+install -d $RPM_BUILD_ROOT%{systemdunitdir}
+cp -p %{SOURCE6} %{SOURCE7} %{SOURCE8} $RPM_BUILD_ROOT%{systemdunitdir}
+%endif
 
 install client/scripts/linux $RPM_BUILD_ROOT/sbin/dhclient-script
 
@@ -316,6 +330,7 @@ touch /var/lib/dhcpd/dhcpd6.leases
 %service dhcpd restart "dhcpd daemon"
 /sbin/chkconfig --add dhcpd6
 %service dhcpd6 restart "dhcpd IPv6 daemon"
+%{?with_systemd:%systemd_post dhcpd.service dhcpd6.service}
 
 %preun
 if [ "$1" = "0" ];then
@@ -324,11 +339,16 @@ if [ "$1" = "0" ];then
 	%service dhcpd6 stop
 	/sbin/chkconfig --del dhcpd6
 fi
+%{?with_systemd:%systemd_preun dhcpd.service dhcpd6.service}
 
-%triggerpostun -- dhcp < 3.0
+%postun
+%{?with_systemd:%systemd_reload}
+
+%triggerpostun -- dhcp < 4.4.2-2
 if ! grep -q ddns-update-style /etc/dhcpd.conf; then
 	%{__sed} -i -e '1iddns-update-style none;' /etc/dhcpd.conf
 fi
+%systemd_trigger dhcpd.service dhcpd6.service
 
 %post -n openldap-schema-dhcp
 %openldap_schema_register %{schemadir}/dhcp.schema -d core
@@ -346,12 +366,20 @@ if [ -f /var/lock/subsys/dhcrelay ]; then
 	mv -f /var/lock/subsys/{dhcrelay,dhcp-relay}
 fi
 %service dhcp-relay restart "dhcrelay daemon"
+%{?with_systemd:%systemd_post dhcp-relay.service}
 
 %preun relay
 if [ "$1" = "0" ];then
 	%service dhcp-relay stop
 	/sbin/chkconfig --del dhcp-relay
 fi
+%{?with_systemd:%systemd_preun dhcp-relay.service}
+
+%postun relay
+%{?with_systemd:%systemd_reload}
+
+%triggerpostun -- dhcp-relay < 4.4.2-2
+%systemd_trigger dhcp-relay.service
 
 %triggerun client -- %{name}-client < 4:4.0.2-2
 if [ -f /etc/dhclient-enter-hooks ] ; then
@@ -372,6 +400,10 @@ fi
 %attr(755,root,root) %{_sbindir}/dhcpd
 %attr(754,root,root) /etc/rc.d/init.d/dhcpd
 %attr(754,root,root) /etc/rc.d/init.d/dhcpd6
+%if %{with systemd}
+%{systemdunitdir}/dhcpd.service
+%{systemdunitdir}/dhcpd6.service
+%endif
 %attr(750,root,root) %dir /var/lib/dhcpd
 %ghost /var/lib/dhcpd/dhcpd.leases
 %ghost /var/lib/dhcpd/dhcpd6.leases
@@ -406,6 +438,7 @@ fi
 %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/dhcp-relay
 %attr(755,root,root) %{_sbindir}/dhcrelay
 %attr(754,root,root) /etc/rc.d/init.d/dhcp-relay
+%{?with_systemd:%{systemdunitdir}/dhcp-relay.service}
 %{_mandir}/man8/dhcrelay.8*
 
 %files devel
