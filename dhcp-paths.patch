@@ -1,7 +1,28 @@
-diff -up dhcp-4.0.0/includes/dhcpd.h.paths dhcp-4.0.0/includes/dhcpd.h
---- dhcp-4.0.0/includes/dhcpd.h.paths	2008-01-01 15:09:21.000000000 -1000
-+++ dhcp-4.0.0/includes/dhcpd.h	2008-01-01 15:10:55.000000000 -1000
-@@ -1306,11 +1306,11 @@ typedef unsigned char option_mask [16];
+diff -urNpa dhcp-4.4.1.orig/doc/examples/dhclient-dhcpv6.conf dhcp-4.4.1/doc/examples/dhclient-dhcpv6.conf
+--- dhcp-4.4.1.orig/doc/examples/dhclient-dhcpv6.conf	2019-04-17 12:37:47.821000000 +0200
++++ dhcp-4.4.1/doc/examples/dhclient-dhcpv6.conf	2019-04-17 12:39:20.104000000 +0200
+@@ -8,4 +8,4 @@
+ also request dhcp6.sip-servers-addresses;
+ 
+ # Likely to be useful: the script path
+-script "/usr/local/etc/dhclient-script";
++script "/sbin/dhclient-script";
+diff -urNpa dhcp-4.4.1.orig/doc/examples/dhcpd-dhcpv6.conf dhcp-4.4.1/doc/examples/dhcpd-dhcpv6.conf
+--- dhcp-4.4.1.orig/doc/examples/dhcpd-dhcpv6.conf	2019-04-17 12:37:47.821000000 +0200
++++ dhcp-4.4.1/doc/examples/dhcpd-dhcpv6.conf	2019-04-17 12:39:20.104000000 +0200
+@@ -43,7 +43,7 @@ option dhcp6.domain-search "test.example
+ option dhcp6.info-refresh-time 21600;
+ 
+ # The path of the lease file
+-dhcpv6-lease-file-name "/usr/local/var/db/dhcpd6.leases";
++dhcpv6-lease-file-name "/var/lib/dhcpd/dhcpd6.leases";
+ 
+ # Static definition (must be global)
+ host myclient {
+diff -urNpa dhcp-4.4.1.orig/includes/dhcpd.h dhcp-4.4.1/includes/dhcpd.h
+--- dhcp-4.4.1.orig/includes/dhcpd.h	2019-04-17 12:37:47.829000000 +0200
++++ dhcp-4.4.1/includes/dhcpd.h	2019-04-17 12:39:20.105000000 +0200
+@@ -1549,11 +1549,11 @@ typedef unsigned char option_mask [16];
  #endif /* DEBUG */
  
  #ifndef _PATH_DHCPD_DB
@@ -15,17 +36,17 @@ diff -up dhcp-4.0.0/includes/dhcpd.h.paths dhcp-4.0.0/includes/dhcpd.h
  #endif
  
  #ifndef _PATH_DHCPD_PID
-@@ -1340,11 +1340,11 @@ typedef unsigned char option_mask [16];
+@@ -1583,11 +1583,11 @@ typedef unsigned char option_mask [16];
  #endif
  
  #ifndef _PATH_DHCLIENT_DB
 -#define _PATH_DHCLIENT_DB	LOCALSTATEDIR"/db/dhclient.leases"
-+#define _PATH_DHCLIENT_DB	LOCALSTATEDIR"/lib/dhclient/dhclient.leases"
++#define _PATH_DHCLIENT_DB	LOCALSTATEDIR"/lib/dhcpd/dhclient.leases"
  #endif
  
  #ifndef _PATH_DHCLIENT6_DB
 -#define _PATH_DHCLIENT6_DB	LOCALSTATEDIR"/db/dhclient6.leases"
-+#define _PATH_DHCLIENT6_DB	LOCALSTATEDIR"/lib/dhclient/dhclient6.leases"
++#define _PATH_DHCLIENT6_DB	LOCALSTATEDIR"/lib/dhcpd/dhclient6.leases"
  #endif
  
  #ifndef _PATH_RESOLV_CONF

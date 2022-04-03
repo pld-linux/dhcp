@@ -4,7 +4,7 @@
 %bcond_without	static_libs	# don't build static library
 %bcond_without	systemd		# without systemd units
 
-%define         ver     4.4.2
+%define         ver     4.4.3
 %if 0
 %define         pverdot .P1
 %define         pverdir -P1
@@ -26,7 +26,7 @@ Epoch:		4
 License:	MIT
 Group:		Networking/Daemons
 Source0:	ftp://ftp.isc.org/isc/dhcp/%{ver}%{pverdir}/%{name}-%{ver}%{pverdir}.tar.gz
-# Source0-md5:	2afdaf8498dc1edaf3012efdd589b3e1
+# Source0-md5:	9076af4cc1293dde5a7c6cae7de6ab45
 Source1:	%{name}.init
 Source2:	%{name}6.init
 Source3:	%{name}-relay.init
@@ -51,6 +51,25 @@ Patch8:		%{name}-default-requested-options.patch
 Patch9:		%{name}-manpages.patch
 Patch10:	%{name}-extravars.patch
 Patch11:	systemd-notify.patch
+Patch12:	%{name}-CLOEXEC.patch
+Patch13:	%{name}-garbage-in-format-string-error.patch
+Patch14:	%{name}-handle-null-timouet.patch
+Patch15:	%{name}-capabilities.patch
+Patch16:	%{name}-rfc3442-classless-static-routes.patch
+Patch17:	%{name}-ppp.patch
+Patch18:	%{name}-lpf-ib.patch
+Patch19:	%{name}-add-guid-duid-to-logs.patch
+Patch20:	%{name}-duid_uuid.patch
+Patch21:	%{name}-client-request-release-bind-iface.patch
+Patch22:	%{name}-no-subnet-error2info.patch
+Patch23:	%{name}-stateless-duid-llt.patch
+Patch24:	%{name}-hwaddress.patch
+Patch25:	%{name}-confparse.patch
+Patch26:	%{name}-link-local-address.patch
+Patch27:	%{name}-option97-pxe-client-id.patch
+Patch28:	%{name}-detect-time-changes.patch
+Patch29:	bind-detect-time-changes.patch
+Patch30:	bind-system-getaddrinfo.patch
 URL:		https://www.isc.org/dhcp/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -217,6 +236,31 @@ komunikacji z działającym serwerem ISC DHCP i jego kontroli.
 %patch9 -p1
 %patch10 -p1
 %patch11 -p1
+%patch12 -p1
+%patch13 -p1
+%patch14 -p1
+%patch15 -p1
+%patch16 -p1
+%patch17 -p1
+%patch18 -p1
+%patch19 -p1
+%patch20 -p1
+%patch21 -p1
+%patch22 -p1
+%patch23 -p1
+%patch24 -p1
+%patch25 -p1
+%patch26 -p1
+%patch27 -p1
+%patch28 -p1
+
+cd bind
+tar -xvf bind.tar.gz
+ln -s bind-9* bind
+cd ..
+
+%patch29 -p1
+%patch30 -p1
 
 # Copy in documentation and example scripts for LDAP patch to dhcpd
 cp -a %{SOURCE11} README.ldap

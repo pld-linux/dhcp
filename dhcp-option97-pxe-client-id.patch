@@ -1,0 +1,246 @@
+From f01a29a90269c98a86accb0923d65aecf5f59b44 Mon Sep 17 00:00:00 2001
+From: Pavel Zhukov <pzhukov@redhat.com>
+Date: Thu, 28 Feb 2019 16:40:38 +0100
+Subject: [PATCH 23/28] option 97 - pxe-client-id
+
+Bug-url: https://bugzilla.redhat.com/1058674
+ISC-Bugs #38110
+---
+ common/options.c        | 27 ++++++++++++++++++++-------
+ common/tables.c         |  3 ++-
+ includes/dhcp.h         |  1 +
+ server/dhcp.c           | 19 +++++++++++++++++++
+ server/dhcpd.conf.5     |  9 ++++++---
+ server/dhcpleasequery.c | 18 +++++++++++++++---
+ server/failover.c       |  3 +++
+ server/mdb.c            |  5 +++--
+ 8 files changed, 69 insertions(+), 16 deletions(-)
+
+diff --git a/common/options.c b/common/options.c
+index 66433c4..4e26094 100644
+--- a/common/options.c
++++ b/common/options.c
+@@ -4551,13 +4551,26 @@ int validate_packet(struct packet *packet)
+ 				"a future version of ISC DHCP will reject this");
+ 		}
+ 	} else {
+-		/*
+-		 * If hlen is 0 we don't have any identifier, we warn the user
+-		 * but continue processing the packet as we can.
+-		 */
+-		if (packet->raw->hlen == 0) {
+-			log_debug("Received DHCPv4 packet without client-id"
+-				  " option and empty hlen field.");
++		oc = lookup_option (&dhcp_universe, packet->options,
++				    DHO_PXE_CLIENT_ID);
++		if (oc) {
++			/* Let's check if pxe-client-id is sane */
++			if ((oc->data.len < 2) ||
++			    (oc->data.data[0] == '\0' &&
++			     oc->data.len != 17)) {
++				log_debug("Dropped DHCPv4 packet with wrong "
++				    "(len == %d) pxe-client-id", oc->data.len);
++				return (0);
++			}
++		} else {
++			/*
++			 * If hlen is 0 we don't have any identifier, we warn the user
++			 * but continue processing the packet as we can.
++			 */
++			if (packet->raw->hlen == 0) {
++				log_debug("Received DHCPv4 packet without client-id"
++						" option and empty hlen field.");
++			}
+ 		}
+ 	}
+ 
+diff --git a/common/tables.c b/common/tables.c
+index 96521a6..8034d94 100644
+--- a/common/tables.c
++++ b/common/tables.c
+@@ -200,8 +200,9 @@ static struct option dhcp_options[] = {
+ 	/* Defined by RFC 4578 */
+ 	{ "pxe-system-type", "Sa",		&dhcp_universe,  93, 1 },
+ 	{ "pxe-interface-id", "BBB",		&dhcp_universe,  94, 1 },
+-	{ "pxe-client-id", "BX",		&dhcp_universe,  97, 1 },
+ #endif
++	{ "pxe-client-id", "BX",		&dhcp_universe,  97, 1 },
++
+ 	{ "uap-servers", "t",			&dhcp_universe,  98, 1 },
+ #if defined(RFC4776_OPTIONS)
+         { "geoconf-civic", "X",                 &dhcp_universe, 99, 1 },
+diff --git a/includes/dhcp.h b/includes/dhcp.h
+index 7202f1d..4ad3874 100644
+--- a/includes/dhcp.h
++++ b/includes/dhcp.h
+@@ -158,6 +158,7 @@ struct dhcp_packet {
+ #define DHO_AUTHENTICATE			90  /* RFC3118, was 210 */
+ #define DHO_CLIENT_LAST_TRANSACTION_TIME	91
+ #define DHO_ASSOCIATED_IP			92
++#define DHO_PXE_CLIENT_ID			97  /* RFC4578 */
+ #define DHO_V6_ONLY_PREFERRED			108 /* RFC8925 */
+ #define DHO_SUBNET_SELECTION			118 /* RFC3011! */
+ #define DHO_DOMAIN_SEARCH			119 /* RFC3397 */
+diff --git a/server/dhcp.c b/server/dhcp.c
+index 8363840..29d9c69 100644
+--- a/server/dhcp.c
++++ b/server/dhcp.c
+@@ -228,6 +228,10 @@ dhcp (struct packet *packet) {
+ 		if (lease -> uid_len) {
+ 			oc = lookup_option (&dhcp_universe, packet -> options,
+ 					    DHO_DHCP_CLIENT_IDENTIFIER);
++			if (!oc)
++				oc = lookup_option (&dhcp_universe,
++						    packet -> options,
++						    DHO_PXE_CLIENT_ID);
+ 			if (!oc)
+ 				goto nolease;
+ 
+@@ -826,6 +830,9 @@ void dhcprelease (packet, ms_nulltp)
+ 
+ 	oc = lookup_option (&dhcp_universe, packet -> options,
+ 			    DHO_DHCP_CLIENT_IDENTIFIER);
++	if (!oc)
++		oc = lookup_option (&dhcp_universe, packet -> options,
++				    DHO_PXE_CLIENT_ID);
+ 	memset (&data, 0, sizeof data);
+ 	if (oc &&
+ 	    evaluate_option_cache (&data, packet, (struct lease *)0,
+@@ -1338,6 +1345,9 @@ void dhcpinform (packet, ms_nulltp)
+          */
+ 	oc = lookup_option(&dhcp_universe, packet->options,
+ 			   DHO_DHCP_CLIENT_IDENTIFIER);
++	if (!oc)
++		oc = lookup_option (&dhcp_universe, packet -> options,
++				    DHO_PXE_CLIENT_ID);
+ 	memset(&d1, 0, sizeof(d1));
+ 	if (oc &&
+ 	    evaluate_option_cache(&d1, packet, NULL, NULL,
+@@ -2448,6 +2458,9 @@ void ack_lease (packet, lease, offer, when, msg, ms_nulltp, hp)
+ 		   can be used. */
+ 		oc = lookup_option (&dhcp_universe, packet -> options,
+ 				    DHO_DHCP_CLIENT_IDENTIFIER);
++		if (!oc)
++			oc = lookup_option (&dhcp_universe, packet -> options,
++					    DHO_PXE_CLIENT_ID);
+ 		if (oc &&
+ 		    evaluate_option_cache (&d1, packet, lease,
+ 					   (struct client_state *)0,
+@@ -3040,6 +3053,9 @@ void ack_lease (packet, lease, offer, when, msg, ms_nulltp, hp)
+ 		/* Record the uid, if given... */
+ 		oc = lookup_option (&dhcp_universe, packet -> options,
+ 				    DHO_DHCP_CLIENT_IDENTIFIER);
++		if (!oc)
++			oc = lookup_option (&dhcp_universe, packet -> options,
++					    DHO_PXE_CLIENT_ID);
+ 		if (oc &&
+ 		    evaluate_option_cache(&d1, packet, lease, NULL,
+ 					  packet->options, state->options,
+@@ -4258,6 +4274,9 @@ int find_lease (struct lease **lp,
+ 	   specified unique client identifier. */
+ 	oc = lookup_option (&dhcp_universe, packet -> options,
+ 			    DHO_DHCP_CLIENT_IDENTIFIER);
++	if (!oc)
++		oc = lookup_option (&dhcp_universe, packet -> options,
++				    DHO_PXE_CLIENT_ID);
+ 	memset (&client_identifier, 0, sizeof client_identifier);
+ 	if (oc &&
+ 	    evaluate_option_cache (&client_identifier,
+diff --git a/server/dhcpd.conf.5 b/server/dhcpd.conf.5
+index b7e79ea..2354b1d 100644
+--- a/server/dhcpd.conf.5
++++ b/server/dhcpd.conf.5
+@@ -1664,10 +1664,12 @@ should be a name identifying the host.  If a \fIhostname\fR option is
+ not specified for the host, \fIhostname\fR is used.
+ .PP
+ \fIHost\fR declarations are matched to actual DHCP or BOOTP clients
+-by matching the \fRdhcp-client-identifier\fR option specified in the
++by matching the \fIdhcp-client-identifier\fR or \fIpxe-client-id\fR
++options specified in the
+ \fIhost\fR declaration to the one supplied by the client, or, if the
+ \fIhost\fR declaration or the client does not provide a
+-\fRdhcp-client-identifier\fR option, by matching the \fIhardware\fR
++\fIdhcp-client-identifier\fR or \fIpxe-client-id\fR options,
++by matching the \fIhardware\fR
+ parameter in the \fIhost\fR declaration to the network hardware
+ address supplied by the client.  BOOTP clients do not normally
+ provide a \fIdhcp-client-identifier\fR, so the hardware address must
+@@ -1679,7 +1681,8 @@ to identify hosts.
+ .PP
+ Please be aware that
+ .B only
+-the \fIdhcp-client-identifier\fR option and the hardware address can be
++the \fIdhcp-client-identifier\fR and \fIpxe-client-id\fR
++options and the hardware address can be
+ used to match a host declaration, or the \fIhost-identifier option\fR
+ parameter for DHCPv6 servers.  For example, it is not possible to
+ match a host declaration to a \fIhost-name\fR option.  This is
+diff --git a/server/dhcpleasequery.c b/server/dhcpleasequery.c
+index 0f1d4f7..dae4ae7 100644
+--- a/server/dhcpleasequery.c
++++ b/server/dhcpleasequery.c
+@@ -276,7 +276,7 @@ dhcpleasequery(struct packet *packet, int ms_nulltp) {
+ 		 */
+ 
+ 		memset(&uid, 0, sizeof(uid));
+-		if (get_option(&uid, 
++		i = get_option(&uid,
+ 			       &dhcp_universe,
+ 			       packet,
+ 			       NULL,
+@@ -286,8 +286,20 @@ dhcpleasequery(struct packet *packet, int ms_nulltp) {
+ 			       packet->options, 
+ 			       &global_scope,
+ 			       DHO_DHCP_CLIENT_IDENTIFIER,
+-			       MDL)) {
+-
++			       MDL);
++		if (!i)
++			i = get_option(&uid,
++				       &dhcp_universe,
++				       packet,
++				       NULL,
++				       NULL,
++				       packet->options,
++				       NULL,
++				       packet->options,
++				       &global_scope,
++				       DHO_PXE_CLIENT_ID,
++				       MDL);
++		if (i) {
+ 			snprintf(dbg_info, 
+ 				 sizeof(dbg_info), 
+ 				 "client-id %s",
+diff --git a/server/failover.c b/server/failover.c
+index 5b36d3a..a641e86 100644
+--- a/server/failover.c
++++ b/server/failover.c
+@@ -5988,6 +5988,9 @@ int load_balance_mine (struct packet *packet, dhcp_failover_state_t *state)
+ 
+ 	oc = lookup_option(&dhcp_universe, packet->options,
+ 			   DHO_DHCP_CLIENT_IDENTIFIER);
++	if (!oc)
++		oc = lookup_option(&dhcp_universe, packet -> options,
++				    DHO_PXE_CLIENT_ID);
+ 	memset(&ds, 0, sizeof ds);
+ 	if (oc &&
+ 	    evaluate_option_cache(&ds, packet, NULL, NULL,
+diff --git a/server/mdb.c b/server/mdb.c
+index 60a40e1..2cd5605 100644
+--- a/server/mdb.c
++++ b/server/mdb.c
+@@ -129,8 +129,9 @@ static int find_uid_statement (struct executable_statement *esp,
+ 	    esp -> data.option &&
+ 	    (esp -> data.option -> option -> universe ==
+ 	     &dhcp_universe) &&
+-	    (esp -> data.option -> option -> code ==
+-	     DHO_DHCP_CLIENT_IDENTIFIER)) {
++	    ((esp -> data.option -> option -> code ==
++						DHO_DHCP_CLIENT_IDENTIFIER) ||
++	     (esp -> data.option -> option -> code == DHO_PXE_CLIENT_ID))) {
+ 		if (condp) {
+ 			log_error ("dhcp client identifier may not be %s",
+ 				   "specified conditionally.");
+-- 
+2.35.1
+

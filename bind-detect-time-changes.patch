@@ -1,0 +1,196 @@
+From 8e49f4b460ad20890c63a385c17d3e5decd45a82 Mon Sep 17 00:00:00 2001
+From: Pavel Zhukov <pzhukov@redhat.com>
+Date: Tue, 22 Oct 2019 16:23:24 +0200
+Subject: [PATCH 25/28] bind: Detect system time changes
+
+---
+ .../bind-9.11.36/lib/isc/include/isc/result.h |  4 +-
+ bind/bind-9.11.36/lib/isc/include/isc/util.h  |  4 ++
+ bind/bind-9.11.36/lib/isc/result.c            |  2 +
+ bind/bind-9.11.36/lib/isc/unix/app.c          | 41 +++++++++++++++++--
+ .../lib/isc/unix/include/isc/time.h           | 20 +++++++++
+ bind/bind-9.11.36/lib/isc/unix/time.c         | 22 ++++++++++
+ 6 files changed, 89 insertions(+), 4 deletions(-)
+
+diff --git a/bind/bind-9.11.36/lib/isc/include/isc/result.h b/bind/bind-9.11.36/lib/isc/include/isc/result.h
+index 916641f..51c2468 100644
+--- a/bind/bind-9.11.36/lib/isc/include/isc/result.h
++++ b/bind/bind-9.11.36/lib/isc/include/isc/result.h
+@@ -89,7 +89,9 @@
+ #define ISC_R_DISCFULL			67	/*%< disc full */
+ #define ISC_R_DEFAULT			68	/*%< default */
+ #define ISC_R_IPV4PREFIX		69	/*%< IPv4 prefix */
+-#define ISC_R_NRESULTS 			70
++#define ISC_R_TIMESHIFTED               70      /*%< system time changed */
++/*% Not a result code: the number of results. */
++#define ISC_R_NRESULTS 			71
+ 
+ ISC_LANG_BEGINDECLS
+ 
+diff --git a/bind/bind-9.11.36/lib/isc/include/isc/util.h b/bind/bind-9.11.36/lib/isc/include/isc/util.h
+index 9111c2a..20a05b4 100644
+--- a/bind/bind-9.11.36/lib/isc/include/isc/util.h
++++ b/bind/bind-9.11.36/lib/isc/include/isc/util.h
+@@ -325,6 +325,10 @@ extern void mock_assert(const int result, const char* const expression,
+  * Time
+  */
+ #define TIME_NOW(tp) 	RUNTIME_CHECK(isc_time_now((tp)) == ISC_R_SUCCESS)
++#ifdef CLOCK_BOOTTIME
++#define TIME_MONOTONIC(tp) 	RUNTIME_CHECK(isc_time_boottime((tp)) == ISC_R_SUCCESS)
++#endif
++
+ 
+ /*%
+  * Alignment
+diff --git a/bind/bind-9.11.36/lib/isc/result.c b/bind/bind-9.11.36/lib/isc/result.c
+index 887b08c..2106a3a 100644
+--- a/bind/bind-9.11.36/lib/isc/result.c
++++ b/bind/bind-9.11.36/lib/isc/result.c
+@@ -105,6 +105,7 @@ static const char *description[ISC_R_NRESULTS] = {
+ 	"disc full",				/*%< 67 */
+ 	"default",				/*%< 68 */
+ 	"IPv4 prefix",				/*%< 69 */
++        "time changed",                         /*%< 70 */
+ };
+ 
+ static const char *identifier[ISC_R_NRESULTS] = {
+@@ -178,6 +179,7 @@ static const char *identifier[ISC_R_NRESULTS] = {
+ 	"ISC_R_DISCFULL",
+ 	"ISC_R_DEFAULT",
+ 	"ISC_R_IPV4PREFIX",
++        "ISC_R_TIMESHIFTED",
+ };
+ 
+ #define ISC_RESULT_RESULTSET			2
+diff --git a/bind/bind-9.11.36/lib/isc/unix/app.c b/bind/bind-9.11.36/lib/isc/unix/app.c
+index 8189c63..4aabaa4 100644
+--- a/bind/bind-9.11.36/lib/isc/unix/app.c
++++ b/bind/bind-9.11.36/lib/isc/unix/app.c
+@@ -442,15 +442,51 @@ isc__app_ctxonrun(isc_appctx_t *ctx0, isc_mem_t *mctx, isc_task_t *task,
+ static isc_result_t
+ evloop(isc__appctx_t *ctx) {
+ 	isc_result_t result;
++        isc_time_t now;
++#ifdef CLOCK_BOOTTIME
++        isc_time_t monotonic;
++        uint64_t diff  = 0;
++#else
++        isc_time_t prev;
++        TIME_NOW(&prev);
++#endif
++
++
++
+ 
+ 	while (!ctx->want_shutdown) {
+ 		int n;
+-		isc_time_t when, now;
++		isc_time_t when;
++                
+ 		struct timeval tv, *tvp;
+ 		isc_socketwait_t *swait;
+ 		bool readytasks;
+ 		bool call_timer_dispatch = false;
+ 
++                uint64_t us; 
++
++#ifdef CLOCK_BOOTTIME
++                // TBD macros for following three lines
++                TIME_NOW(&now);
++                TIME_MONOTONIC(&monotonic);
++                INSIST(now.seconds > monotonic.seconds)
++                us = isc_time_microdiff (&now, &monotonic);
++                if (us < diff){ 
++                  us = diff - us;
++                  if (us > 1000000){ // ignoring shifts less than one second
++                    return ISC_R_TIMESHIFTED;
++                  };
++                  diff = isc_time_microdiff (&now, &monotonic);
++                } else {
++                  diff = isc_time_microdiff (&now, &monotonic);
++                  // not implemented
++                }
++#else
++                TIME_NOW(&now);
++                if (isc_time_compare (&now, &prev) < 0)
++                  return ISC_R_TIMESHIFTED;
++                TIME_NOW(&prev);
++#endif                
+ 		/*
+ 		 * Check the reload (or suspend) case first for exiting the
+ 		 * loop as fast as possible in case:
+@@ -475,9 +511,8 @@ evloop(isc__appctx_t *ctx) {
+ 			if (result != ISC_R_SUCCESS)
+ 				tvp = NULL;
+ 			else {
+-				uint64_t us;
+-
+ 				TIME_NOW(&now);
++
+ 				us = isc_time_microdiff(&when, &now);
+ 				if (us == 0)
+ 					call_timer_dispatch = true;
+diff --git a/bind/bind-9.11.36/lib/isc/unix/include/isc/time.h b/bind/bind-9.11.36/lib/isc/unix/include/isc/time.h
+index 03512c1..99e0dfa 100644
+--- a/bind/bind-9.11.36/lib/isc/unix/include/isc/time.h
++++ b/bind/bind-9.11.36/lib/isc/unix/include/isc/time.h
+@@ -132,6 +132,26 @@ isc_time_isepoch(const isc_time_t *t);
+  *\li	't' is a valid pointer.
+  */
+ 
++#ifdef CLOCK_BOOTTIME
++isc_result_t
++isc_time_boottime(isc_time_t *t);
++/*%<
++ * Set 't' to monotonic time from previous boot
++ * it's not affected by system time change. It also
++ * includes the time system was suspended
++ *
++ * Requires:
++ *\li	't' is a valid pointer.
++ *
++ * Returns:
++ *
++ *\li	Success
++ *\li	Unexpected error
++ *		Getting the time from the system failed.
++ */
++#endif /* CLOCK_BOOTTIME */
++ 
++
+ isc_result_t
+ isc_time_now(isc_time_t *t);
+ /*%<
+diff --git a/bind/bind-9.11.36/lib/isc/unix/time.c b/bind/bind-9.11.36/lib/isc/unix/time.c
+index bcca41b..af6ea7f 100644
+--- a/bind/bind-9.11.36/lib/isc/unix/time.c
++++ b/bind/bind-9.11.36/lib/isc/unix/time.c
+@@ -498,3 +498,25 @@ isc_time_formatISO8601ms(const isc_time_t *t, char *buf, unsigned int len) {
+ 			 t->nanoseconds / NS_PER_MS);
+ 	}
+ }
++
++
++#ifdef CLOCK_BOOTTIME
++isc_result_t
++isc_time_boottime(isc_time_t *t) {
++  struct timespec ts;
++  
++  char strbuf[ISC_STRERRORSIZE];
++
++  if (clock_gettime (CLOCK_BOOTTIME, &ts) != 0){
++    isc__strerror(errno, strbuf, sizeof(strbuf));
++    UNEXPECTED_ERROR(__FILE__, __LINE__, "%s", strbuf);
++    return (ISC_R_UNEXPECTED);    
++  }
++
++  t->seconds = ts.tv_sec;
++  t->nanoseconds = ts.tv_nsec;
++
++  return (ISC_R_SUCCESS);
++  
++};
++#endif
+-- 
+2.35.1
+

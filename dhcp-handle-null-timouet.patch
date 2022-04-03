@@ -1,0 +1,31 @@
+From 7653f3ea80230d4b38bff1c65164aa18c6e51519 Mon Sep 17 00:00:00 2001
+From: Pavel Zhukov <pzhukov@redhat.com>
+Date: Thu, 21 Feb 2019 10:29:08 +0100
+Subject: [PATCH 10/28] Handle null timeout
+
+Handle cases in add_timeout() where the function is called with a NULL
+value for the 'when' parameter
+
+ISC-Bugs: #19867 (rejected)
+---
+ common/dispatch.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/common/dispatch.c b/common/dispatch.c
+index 7def34c..9741ff5 100644
+--- a/common/dispatch.c
++++ b/common/dispatch.c
+@@ -209,6 +209,10 @@ void add_timeout (when, where, what, ref, unref)
+ 	isc_interval_t interval;
+ 	isc_time_t expires;
+ 
++	if (when == NULL) {
++		return;
++	}
++
+ 	/* See if this timeout supersedes an existing timeout. */
+ 	t = (struct timeout *)0;
+ 	for (q = timeouts; q; q = q->next) {
+-- 
+2.35.1
+

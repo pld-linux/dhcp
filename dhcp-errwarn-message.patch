@@ -1,7 +1,17 @@
-diff -up dhcp-4.3.5/omapip/errwarn.c.errwarn dhcp-4.3.5/omapip/errwarn.c
---- dhcp-4.3.5/omapip/errwarn.c.errwarn	2016-09-27 21:16:50.000000000 +0200
-+++ dhcp-4.3.5/omapip/errwarn.c	2016-11-29 19:44:03.515031147 +0100
-@@ -49,6 +49,41 @@ void (*log_cleanup) (void);
+From 5e9162c5ad7aa98f7f673ac7a7f46905ba2deea4 Mon Sep 17 00:00:00 2001
+From: Pavel Zhukov <pzhukov@redhat.com>
+Date: Thu, 21 Feb 2019 10:09:57 +0100
+Subject: [PATCH 01/28] change bug url
+
+---
+ omapip/errwarn.c | 47 ++++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 42 insertions(+), 5 deletions(-)
+
+diff --git a/omapip/errwarn.c b/omapip/errwarn.c
+index 38dd9c5..d88e392 100644
+--- a/omapip/errwarn.c
++++ b/omapip/errwarn.c
+@@ -48,6 +48,41 @@ void (*log_cleanup) (void);
  static char mbuf [CVT_BUF_MAX + 1];
  static char fbuf [CVT_BUF_MAX + 1];
  
@@ -62,3 +72,6 @@ diff -up dhcp-4.3.5/omapip/errwarn.c.errwarn dhcp-4.3.5/omapip/errwarn.c
    log_error ("%s", "");
    log_error ("exiting.");
  
+-- 
+2.35.1
+

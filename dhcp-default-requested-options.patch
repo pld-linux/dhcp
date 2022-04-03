@@ -1,6 +1,18 @@
-diff -up dhcp-4.3.4/client/clparse.c.requested dhcp-4.3.4/client/clparse.c
---- dhcp-4.3.4/client/clparse.c.requested	2016-04-29 12:18:50.157151352 +0200
-+++ dhcp-4.3.4/client/clparse.c	2016-04-29 12:19:22.235137243 +0200
+From f994c4d208a8fe88cbf78d4374c8d44793f0598e Mon Sep 17 00:00:00 2001
+From: Pavel Zhukov <pzhukov@redhat.com>
+Date: Thu, 21 Feb 2019 10:24:24 +0100
+Subject: [PATCH 05/28] Change default requested options
+
+Add NIS domain, NIS servers, NTP servers, interface-mtu and domain-search
+to the list of default requested DHCP options
+---
+ client/clparse.c | 27 ++++++++++++++++++++++++++-
+ 1 file changed, 26 insertions(+), 1 deletion(-)
+
+diff --git a/client/clparse.c b/client/clparse.c
+index bb63825..e63ea08 100644
+--- a/client/clparse.c
++++ b/client/clparse.c
 @@ -31,7 +31,7 @@
  
  struct client_config top_level_config;
@@ -10,7 +22,7 @@ diff -up dhcp-4.3.4/client/clparse.c.requested dhcp-4.3.4/client/clparse.c
  /* There can be 2 extra requested options for DHCPv4-over-DHCPv6. */
  struct option *default_requested_options[NUM_DEFAULT_REQUESTED_OPTS + 2 + 1];
  
-@@ -116,6 +116,31 @@ isc_result_t read_client_conf ()
+@@ -119,6 +119,31 @@ isc_result_t read_client_conf ()
  	option_code_hash_lookup(&default_requested_options[8],
  				dhcpv6_universe.code_hash, &code, 0, MDL);
  
@@ -42,3 +54,6 @@ diff -up dhcp-4.3.4/client/clparse.c.requested dhcp-4.3.4/client/clparse.c
  	for (code = 0 ; code < NUM_DEFAULT_REQUESTED_OPTS ; code++) {
  		if (default_requested_options[code] == NULL)
  			log_fatal("Unable to find option definition for "
+-- 
+2.35.1
+

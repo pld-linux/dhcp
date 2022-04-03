@@ -1,6 +1,21 @@
-diff -urNp -x '*.orig' dhcp-4.4.2.org/client/clparse.c dhcp-4.4.2/client/clparse.c
---- dhcp-4.4.2.org/client/clparse.c	2020-01-21 20:21:48.000000000 +0100
-+++ dhcp-4.4.2/client/clparse.c	2021-05-15 22:10:03.054906758 +0200
+From af18c830fe55f6be0b89997a36b611d981e3c25d Mon Sep 17 00:00:00 2001
+From: Pavel Zhukov <pzhukov@redhat.com>
+Date: Thu, 21 Feb 2019 10:19:47 +0100
+Subject: [PATCH 02/28] additional dhclient options
+
+---
+ client/clparse.c    |  10 +-
+ client/dhclient.8   |  27 +++++
+ client/dhclient.c   | 271 +++++++++++++++++++++++++++++++++++++++++++-
+ common/conflex.c    |   2 +
+ includes/dhcpd.h    |   3 +
+ includes/dhctoken.h |   3 +-
+ 6 files changed, 309 insertions(+), 7 deletions(-)
+
+diff --git a/client/clparse.c b/client/clparse.c
+index 74ca499..bb63825 100644
+--- a/client/clparse.c
++++ b/client/clparse.c
 @@ -192,6 +192,7 @@ isc_result_t read_client_conf ()
  	/* Requested lease time, used by DHCPv6 (DHCPv4 uses the option cache)
  	 */
@@ -19,7 +34,7 @@ diff -urNp -x '*.orig' dhcp-4.4.2.org/client/clparse.c dhcp-4.4.2/client/clparse
  
  void parse_client_statement (cfile, ip, config)
  	struct parse *cfile;
-@@ -820,6 +822,12 @@ void parse_client_statement (cfile, ip,
+@@ -820,6 +822,12 @@ void parse_client_statement (cfile, ip, config)
  		parse_lease_id_format(cfile);
  		break;
  
@@ -32,11 +47,12 @@ diff -urNp -x '*.orig' dhcp-4.4.2.org/client/clparse.c dhcp-4.4.2/client/clparse
  
  	      default:
  		lose = 0;
-diff -urNp -x '*.orig' dhcp-4.4.2.org/client/dhclient.8 dhcp-4.4.2/client/dhclient.8
---- dhcp-4.4.2.org/client/dhclient.8	2020-01-21 20:21:48.000000000 +0100
-+++ dhcp-4.4.2/client/dhclient.8	2021-05-15 22:10:03.054906758 +0200
-@@ -147,6 +147,33 @@ dhclient - Dynamic Host Configuration Pr
- .I seconds
+diff --git a/client/dhclient.8 b/client/dhclient.8
+index 861ff56..5029dac 100644
+--- a/client/dhclient.8
++++ b/client/dhclient.8
+@@ -135,6 +135,33 @@ dhclient - Dynamic Host Configuration Protocol Client
+ .B -w
  ]
  [
 +.B -B
@@ -66,82 +82,13 @@ diff -urNp -x '*.orig' dhcp-4.4.2.org/client/dhclient.8 dhcp-4.4.2/client/dhclie
 +.I timeout
 +]
 +[
- .B -v
+ .B --dad-wait-time
+ .I seconds
  ]
- [
-@@ -302,6 +329,69 @@ not to exit when it doesn't find any suc
- program can then be used to notify the client when a network interface
- has been added or removed, so that the client can attempt to configure an IP
- address on that interface.
-+
-+.TP
-+.BI \-B
-+Set the BOOTP broadcast flag in request packets so servers will always
-+broadcast replies.
-+
-+.TP
-+.BI \-C\ <dhcp-client-identifier>
-+Specify the dhcp-client-identifier option to send to the DHCP server.
-+
-+.TP
-+.BI \-H\ <host-name>
-+Specify the host-name option to send to the DHCP server.  The host-name
-+string only contains the client's hostname prefix, to which the server will
-+append the ddns-domainname or domain-name options, if any, to derive the
-+fully qualified domain name of the client.  The
-+.B -H
-+option cannot be used with the
-+.B -F
-+option.
-+
-+.TP
-+.BI \-F\ <fqdn.fqdn>
-+Specify the fqdn.fqdn option to send to the DHCP server.  This option cannot
-+be used with the
-+.B -H
-+option.  The fqdn.fqdn option must specify the complete domain name of the
-+client host, which the server may use for dynamic DNS updates.
-+
-+.TP
-+.BI \-V\ <vendor-class-identifier>
-+Specify the vendor-class-identifier option to send to the DHCP server.
-+
-+.TP
-+.BI \--request-options\ <option>[,<option>...]
-+Specify the list of options the client is to request from the server.  The
-+option list must be a single string consisting of option names separated
-+by at least one command and optional space characters.  The default option
-+list is:
-+
-+.BR
-+    subnet-mask, broadcast-address, time-offset, routers,
-+.BR
-+    domain-search, domain-name, domain-name-servers, host-name, 
-+.BR
-+    nis-domain, nis-servers, ntp-servers, interface-mtu
-+
-+.TP
-+.B --request-options
-+option does not append options to the default request, it overrides the
-+default request list.  Keep this in mind if you want to request an
-+additional option besides the default request list.  You will have to
-+specify all option names for the
-+.B --request-options
-+parameter.
-+
-+.TP
-+.BI \--timeout\ <timeout>
-+Specify the time after which
-+.B dhclient
-+will decide that no DHCP servers can be contacted when no responses have been
-+received.
-+
- .TP
- .BI \-n
- Do not configure any interfaces.  This is most likely to be useful in
-diff -urNp -x '*.orig' dhcp-4.4.2.org/client/dhclient.c dhcp-4.4.2/client/dhclient.c
---- dhcp-4.4.2.org/client/dhclient.c	2021-05-15 22:10:02.951572212 +0200
-+++ dhcp-4.4.2/client/dhclient.c	2021-05-15 22:10:03.054906758 +0200
+diff --git a/client/dhclient.c b/client/dhclient.c
+index 46dc3a7..6c1c09a 100644
+--- a/client/dhclient.c
++++ b/client/dhclient.c
 @@ -41,6 +41,12 @@
  #include <sys/wait.h>
  #include <limits.h>
@@ -155,7 +102,7 @@ diff -urNp -x '*.orig' dhcp-4.4.2.org/client/dhclient.c dhcp-4.4.2/client/dhclie
  TIME default_lease_time = 43200; /* 12 hours... */
  TIME max_lease_time = 86400; /* 24 hours... */
  
-@@ -112,6 +118,10 @@ char *mockup_relay = NULL;
+@@ -113,6 +119,10 @@ char *mockup_relay = NULL;
  
  char *progname = NULL;
  
@@ -166,25 +113,27 @@ diff -urNp -x '*.orig' dhcp-4.4.2.org/client/dhclient.c dhcp-4.4.2/client/dhclie
  void run_stateless(int exit_mode, u_int16_t port);
  
  static isc_result_t write_duid(struct data_string *duid);
-@@ -188,7 +198,11 @@ static const char use_v6command[] = "Com
+@@ -189,8 +199,12 @@ static const char use_v6command[] = "Command not used for DHCPv4: %s";
  "                [-s server-addr] [-cf config-file]\n" \
  "                [-df duid-file] [-lf lease-file]\n" \
  "                [-pf pid-file] [--no-pid] [-e VAR=val]\n" \
 -"                [-sf script-file] [interface]*"
+-
 +"                [-sf script-file] [interface]*\n" \
 +"                [-C <dhcp-client-identifier>] [-B]\n" \
 +"                [-H <host-name> | -F <fqdn.fqdn>] [--timeout <timeout>]\n" \
 +"                [-V <vendor-class-identifier>]\n" \
 +"                [--request-options <request option list>]"
- 
++  
  #define DHCLIENT_USAGEH "{--version|--help|-h}"
  
-@@ -251,6 +265,17 @@ main(int argc, char **argv) {
- 	/* Initialize client globals. */
- 	memset(&default_duid, 0, sizeof(default_duid));
- 
-+	char *dhcp_client_identifier_arg = NULL;
-+	char *dhcp_host_name_arg = NULL;
+ static void
+@@ -249,6 +263,16 @@ main(int argc, char **argv) {
+ #else
+ 	progname = argv[0];
+ #endif
++        char *dhcp_client_identifier_arg = NULL;
++        char *dhcp_host_name_arg = NULL;
 +	char *dhcp_fqdn_arg = NULL;
 +	char *dhcp_vendor_class_identifier_arg = NULL;
 +	char *dhclient_request_options = NULL;
@@ -193,14 +142,13 @@ diff -urNp -x '*.orig' dhcp-4.4.2.org/client/dhclient.c dhcp-4.4.2/client/dhclie
 +	char *arg_conf = NULL;
 +	int arg_conf_len = 0;
 +
-+
- 	/* Make sure that file descriptors 0 (stdin), 1, (stdout), and
- 	   2 (stderr) are open. To do this, we assume that when we
- 	   open a file the lowest available file descriptor is used. */
-@@ -305,6 +330,89 @@ main(int argc, char **argv) {
- 					 strlen(DHCLIENT_USAGEH)));
- 			IGNORE_RET(write(STDERR_FILENO, "\n", 1));
- 			exit(0);
+ 	/* Initialize client globals. */
+ 	memset(&default_duid, 0, sizeof(default_duid));
+ 
+@@ -564,6 +588,89 @@ main(int argc, char **argv) {
+ 			std_dhcid = 1;
+ 		} else if (!strcmp(argv[i], "-v")) {
+ 			quiet = 0;
 +		} else if (!strcmp(argv[i], "-C")) {
 +			if ((++i == argc) || (argv[i] == NULL) || (*(argv[i])=='\0')) {
 +				usage(use_noarg, argv[i-1]);
@@ -284,10 +232,10 @@ diff -urNp -x '*.orig' dhcp-4.4.2.org/client/dhclient.c dhcp-4.4.2/client/dhclie
 +
 +			dhclient_request_options = argv[i];
 +
- 		}
- 	}
- 	/* When not forbidden prepare to become a daemon */
-@@ -831,6 +939,156 @@ main(int argc, char **argv) {
+ 		} else if (argv[i][0] == '-') {
+ 			usage("Unknown command: %s", argv[i]);
+ 		} else if (interfaces_requested < 0) {
+@@ -760,6 +867,156 @@ main(int argc, char **argv) {
  	/* Parse the dhclient.conf file. */
  	read_client_conf();
  
@@ -444,46 +392,7 @@ diff -urNp -x '*.orig' dhcp-4.4.2.org/client/dhclient.c dhcp-4.4.2/client/dhclie
  	/* Parse the lease database. */
  	read_client_leases();
  
-@@ -991,7 +1249,7 @@ main(int argc, char **argv) {
- 						 *whole seconds
- 						 */
- 						add_timeout(&tv, state_reboot,
--						            client, 0, 0);
-+							    client, 0, 0);
- 					} else {
- 						state_reboot(client);
- 					}
-@@ -1771,11 +2029,11 @@ void bootp (packet)
- 	     ap; ap = ap -> next) {
- 		if (addr_match(&packet->client_addr, &ap->match)) {
- 
--		        /* piaddr() returns its result in a static
-+			/* piaddr() returns its result in a static
- 			   buffer sized 4*16 (see common/inet.c). */
- 
--		        strcpy(addrbuf, piaddr(ap->match.addr));
--		        strcpy(maskbuf, piaddr(ap->match.mask));
-+			strcpy(addrbuf, piaddr(ap->match.addr));
-+			strcpy(maskbuf, piaddr(ap->match.mask));
- 
- 			log_info("BOOTREPLY from %s rejected by rule %s "
- 				 "mask %s.", piaddr(packet->client_addr),
-@@ -1823,11 +2081,11 @@ void dhcp (packet)
- 	     ap; ap = ap -> next) {
- 		if (addr_match(&packet->client_addr, &ap->match)) {
- 
--		        /* piaddr() returns its result in a static
-+			/* piaddr() returns its result in a static
- 			   buffer sized 4*16 (see common/inet.c). */
- 
--		        strcpy(addrbuf, piaddr(ap->match.addr));
--		        strcpy(maskbuf, piaddr(ap->match.mask));
-+			strcpy(addrbuf, piaddr(ap->match.addr));
-+			strcpy(maskbuf, piaddr(ap->match.mask));
- 
- 			log_info("%s from %s rejected by rule %s mask %s.",
- 				 type, piaddr(packet->client_addr),
-@@ -3403,7 +3661,8 @@ void make_discover (client, lease)
+@@ -3472,7 +3729,8 @@ void make_discover (client, lease)
  	client -> packet.xid = random ();
  	client -> packet.secs = 0; /* filled in by send_discover. */
  
@@ -493,7 +402,7 @@ diff -urNp -x '*.orig' dhcp-4.4.2.org/client/dhclient.c dhcp-4.4.2/client/dhclie
  		client -> packet.flags = 0;
  	else
  		client -> packet.flags = htons (BOOTP_BROADCAST);
-@@ -3488,7 +3747,9 @@ void make_request (client, lease)
+@@ -3557,7 +3815,9 @@ void make_request (client, lease)
  	} else {
  		memset (&client -> packet.ciaddr, 0,
  			sizeof client -> packet.ciaddr);
@@ -504,7 +413,7 @@ diff -urNp -x '*.orig' dhcp-4.4.2.org/client/dhclient.c dhcp-4.4.2/client/dhclie
  			client -> packet.flags = 0;
  		else
  			client -> packet.flags = htons (BOOTP_BROADCAST);
-@@ -3551,7 +3812,8 @@ void make_decline (client, lease)
+@@ -3620,7 +3880,8 @@ void make_decline (client, lease)
  	client -> packet.hops = 0;
  	client -> packet.xid = client -> xid;
  	client -> packet.secs = 0; /* Filled in by send_request. */
@@ -514,10 +423,11 @@ diff -urNp -x '*.orig' dhcp-4.4.2.org/client/dhclient.c dhcp-4.4.2/client/dhclie
  		client -> packet.flags = 0;
  	else
  		client -> packet.flags = htons (BOOTP_BROADCAST);
-diff -urNp -x '*.orig' dhcp-4.4.2.org/common/conflex.c dhcp-4.4.2/common/conflex.c
---- dhcp-4.4.2.org/common/conflex.c	2020-01-21 20:21:48.000000000 +0100
-+++ dhcp-4.4.2/common/conflex.c	2021-05-15 22:10:03.054906758 +0200
-@@ -832,6 +832,8 @@ intern(char *atom, enum dhcp_token dfv)
+diff --git a/common/conflex.c b/common/conflex.c
+index 8b01dfb..1fa2be3 100644
+--- a/common/conflex.c
++++ b/common/conflex.c
+@@ -832,6 +832,8 @@ intern(char *atom, enum dhcp_token dfv) {
  		if (!strcasecmp(atom+1, "ig-endian")) {
  			return TOKEN_BIG_ENDIAN;
  		}
@@ -526,10 +436,11 @@ diff -urNp -x '*.orig' dhcp-4.4.2.org/common/conflex.c dhcp-4.4.2/common/conflex
  		break;
  	      case 'c':
  		if (!strcasecmp(atom + 1, "ase"))
-diff -urNp -x '*.orig' dhcp-4.4.2.org/includes/dhcpd.h dhcp-4.4.2/includes/dhcpd.h
---- dhcp-4.4.2.org/includes/dhcpd.h	2021-05-15 22:10:02.951572212 +0200
-+++ dhcp-4.4.2/includes/dhcpd.h	2021-05-15 22:10:03.054906758 +0200
-@@ -1279,6 +1279,9 @@ struct client_config {
+diff --git a/includes/dhcpd.h b/includes/dhcpd.h
+index f68b228..3b2e2ca 100644
+--- a/includes/dhcpd.h
++++ b/includes/dhcpd.h
+@@ -1284,6 +1284,9 @@ struct client_config {
  
  	int lease_id_format;		/* format for IDs in lease file,
  					   TOKEN_OCTAL or TOKEN_HEX */
@@ -539,16 +450,20 @@ diff -urNp -x '*.orig' dhcp-4.4.2.org/includes/dhcpd.h dhcp-4.4.2/includes/dhcpd
  };
  
  /* Per-interface state used in the dhcp client... */
-diff -urNp -x '*.orig' dhcp-4.4.2.org/includes/dhctoken.h dhcp-4.4.2/includes/dhctoken.h
---- dhcp-4.4.2.org/includes/dhctoken.h	2020-01-21 20:21:48.000000000 +0100
-+++ dhcp-4.4.2/includes/dhctoken.h	2021-05-15 22:10:03.054906758 +0200
-@@ -376,7 +376,8 @@ enum dhcp_token {
- 	LEASE_ID_FORMAT = 676,
+diff --git a/includes/dhctoken.h b/includes/dhctoken.h
+index e6d125f..6daa422 100644
+--- a/includes/dhctoken.h
++++ b/includes/dhctoken.h
+@@ -377,7 +377,8 @@ enum dhcp_token {
  	TOKEN_HEX = 677,
  	TOKEN_OCTAL = 678,
--	KEY_ALGORITHM = 679
-+	KEY_ALGORITHM = 679,
-+	BOOTP_BROADCAST_ALWAYS = 680
+ 	KEY_ALGORITHM = 679,
+-	DISCONNECT = 680
++	BOOTP_BROADCAST_ALWAYS = 680,
++	DISCONNECT = 681
  };
  
  #define is_identifier(x)	((x) >= FIRST_TOKEN &&	\
+-- 
+2.35.1
+

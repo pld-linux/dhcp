@@ -1,38 +1,20 @@
-diff -up dhcp-4.3.5b1/client/dhclient.conf.5.man dhcp-4.3.5b1/client/dhclient.conf.5
---- dhcp-4.3.5b1/client/dhclient.conf.5.man	2016-08-26 20:19:53.000000000 +0200
-+++ dhcp-4.3.5b1/client/dhclient.conf.5	2016-09-12 17:09:23.243313514 +0200
-@@ -228,7 +228,8 @@ responding to the client send the client
- options.  Only the option names should be specified in the request
- statement - not option parameters.  By default, the DHCPv4 client
- requests the subnet-mask, broadcast-address, time-offset, routers,
--domain-name, domain-name-servers and host-name options while the DHCPv6
-+domain-search, domain-name, domain-name-servers, host-name, nis-domain,
-+nis-servers, ntp-servers and interface-mtu options while the DHCPv6
- client requests the dhcp6 name-servers and domain-search options.  Note
- that if you enter a \'request\' statement, you over-ride these defaults
- and these options will not be requested.
-@@ -736,6 +737,17 @@ know the DHCP service(s) anycast MAC add
- client.  The \fIlink-type\fR and \fImac-address\fR parameters are configured
- in a similar manner to the \fBhardware\fR statement.
- .PP
-+ \fBbootp-broadcast-always;\fR
-+.PP
-+The
-+.B bootp-broadcast-always
-+statement instructs dhclient to always set the bootp broadcast flag in
-+request packets, so that servers will always broadcast replies.
-+This is equivalent to supplying the dhclient -B argument, and has
-+the same effect as specifying 'always-broadcast' in the server's dhcpd.conf.
-+This option is provided as an extension to enable dhclient to work
-+on IBM s390 Linux guests.
-+.PP
- .SH SAMPLE
- The following configuration file was used on a laptop running NetBSD
- 1.3, though the domains have been modified.
-diff -up dhcp-4.3.5b1/client/dhclient-script.8.man dhcp-4.3.5b1/client/dhclient-script.8
---- dhcp-4.3.5b1/client/dhclient-script.8.man	2016-08-26 20:19:53.000000000 +0200
-+++ dhcp-4.3.5b1/client/dhclient-script.8	2016-09-12 17:08:09.516254385 +0200
-@@ -45,7 +45,7 @@ customizations are needed, they should b
+From d359a7dc30e0423f9b90129291538cad1ee6a6d9 Mon Sep 17 00:00:00 2001
+From: Pavel Zhukov <pzhukov@redhat.com>
+Date: Thu, 21 Feb 2019 10:25:53 +0100
+Subject: [PATCH 06/28] Various man-page-only fixes
+
+---
+ client/dhclient-script.8 | 22 +++++++++++++++++++++-
+ client/dhclient.conf.5   | 14 +++++++++++++-
+ common/dhcp-options.5    | 15 +++++++++++++++
+ server/dhcpd.conf.5      | 14 +++++++++-----
+ 4 files changed, 58 insertions(+), 7 deletions(-)
+
+diff --git a/client/dhclient-script.8 b/client/dhclient-script.8
+index 5e5bd3d..37ecdc5 100644
+--- a/client/dhclient-script.8
++++ b/client/dhclient-script.8
+@@ -43,7 +43,7 @@ customizations are needed, they should be possible using the enter and
  exit hooks provided (see HOOKS for details).   These hooks will allow the
  user to override the default behaviour of the client in creating a
  .B /etc/resolv.conf
@@ -41,7 +23,7 @@ diff -up dhcp-4.3.5b1/client/dhclient-script.8.man dhcp-4.3.5b1/client/dhclient-
  .PP
  No standard client script exists for some operating systems, even though
  the actual client may work, so a pioneering user may well need to create
-@@ -89,6 +89,26 @@ present.   The
+@@ -87,6 +87,26 @@ present.   The
  .B ETCDIR/dhclient-exit-hooks
  script can modify the valid of exit_status to change the exit status
  of dhclient-script.
@@ -68,10 +50,43 @@ diff -up dhcp-4.3.5b1/client/dhclient-script.8.man dhcp-4.3.5b1/client/dhclient-
  .SH OPERATION
  When dhclient needs to invoke the client configuration script, it
  defines a set of variables in the environment, and then invokes
-diff -up dhcp-4.3.5b1/common/dhcp-options.5.man dhcp-4.3.5b1/common/dhcp-options.5
---- dhcp-4.3.5b1/common/dhcp-options.5.man	2016-08-26 20:19:53.000000000 +0200
-+++ dhcp-4.3.5b1/common/dhcp-options.5	2016-09-12 17:08:09.517254386 +0200
-@@ -1013,6 +1013,21 @@ classless IP routing - it does not inclu
+diff --git a/client/dhclient.conf.5 b/client/dhclient.conf.5
+index dbe6f7e..8bac980 100644
+--- a/client/dhclient.conf.5
++++ b/client/dhclient.conf.5
+@@ -228,7 +228,8 @@ responding to the client send the client its values for the specified
+ options.  Only the option names should be specified in the request
+ statement - not option parameters.  By default, the DHCPv4 client
+ requests the subnet-mask, broadcast-address, time-offset, routers,
+-domain-name, domain-name-servers and host-name options while the DHCPv6
++domain-search, domain-name, domain-name-servers, host-name, nis-domain,
++nis-servers, ntp-servers and interface-mtu options while the DHCPv6
+ client requests the dhcp6 name-servers and domain-search options.  Note
+ that if you enter a \'request\' statement, you over-ride these defaults
+ and these options will not be requested.
+@@ -735,6 +736,17 @@ broadcast packets transmitted by DHCP clients, but is only useful if you
+ know the DHCP service(s) anycast MAC address prior to configuring your
+ client.  The \fIlink-type\fR and \fImac-address\fR parameters are configured
+ in a similar manner to the \fBhardware\fR statement.
++.PP
++ \fBbootp-broadcast-always;\fR
++.PP
++The
++.B bootp-broadcast-always
++statement instructs dhclient to always set the bootp broadcast flag in
++request packets, so that servers will always broadcast replies.
++This is equivalent to supplying the dhclient -B argument, and has
++the same effect as specifying 'always-broadcast' in the server's dhcpd.conf.
++This option is provided as an extension to enable dhclient to work
++on IBM s390 Linux guests.
+ .PP
+ .SH SAMPLE
+ The following configuration file was used on a laptop running NetBSD
+diff --git a/common/dhcp-options.5 b/common/dhcp-options.5
+index 51f80f7..a784b32 100644
+--- a/common/dhcp-options.5
++++ b/common/dhcp-options.5
+@@ -1075,6 +1075,21 @@ classless IP routing - it does not include a subnet mask.  Since
  classless IP routing is now the most widely deployed routing standard,
  this option is virtually useless, and is not implemented by any of the
  popular DHCP clients, for example the Microsoft DHCP client.
@@ -93,10 +108,11 @@ diff -up dhcp-4.3.5b1/common/dhcp-options.5.man dhcp-4.3.5b1/common/dhcp-options
  .RE
  .PP
  .nf
-diff -up dhcp-4.3.5b1/server/dhcpd.conf.5.man dhcp-4.3.5b1/server/dhcpd.conf.5
---- dhcp-4.3.5b1/server/dhcpd.conf.5.man	2016-08-26 20:19:53.000000000 +0200
-+++ dhcp-4.3.5b1/server/dhcpd.conf.5	2016-09-12 17:10:11.205351980 +0200
-@@ -528,6 +528,9 @@ pool {
+diff --git a/server/dhcpd.conf.5 b/server/dhcpd.conf.5
+index 691e5dd..b7e79ea 100644
+--- a/server/dhcpd.conf.5
++++ b/server/dhcpd.conf.5
+@@ -527,6 +527,9 @@ pool {
  };
  .fi
  .PP
@@ -106,7 +122,7 @@ diff -up dhcp-4.3.5b1/server/dhcpd.conf.5.man dhcp-4.3.5b1/server/dhcpd.conf.5
  The  server currently  does very  little  sanity checking,  so if  you
  configure it wrong, it will just  fail in odd ways.  I would recommend
  therefore that you either do  failover or don't do failover, but don't
-@@ -542,9 +545,9 @@ primary server might look like this:
+@@ -541,9 +544,9 @@ primary server might look like this:
  failover peer "foo" {
    primary;
    address anthrax.rc.example.com;
@@ -118,7 +134,7 @@ diff -up dhcp-4.3.5b1/server/dhcpd.conf.5.man dhcp-4.3.5b1/server/dhcpd.conf.5
    max-response-delay 60;
    max-unacked-updates 10;
    mclt 3600;
-@@ -1246,7 +1249,7 @@ the zone containing PTR records - for IS
+@@ -1323,7 +1326,7 @@ the zone containing PTR records - for ISC BIND, something like this:
  .PP
  .nf
  key DHCP_UPDATER {
@@ -127,7 +143,7 @@ diff -up dhcp-4.3.5b1/server/dhcpd.conf.5.man dhcp-4.3.5b1/server/dhcpd.conf.5
    secret pRP5FapFoJ95JEL06sv4PQ==;
  };
  
-@@ -1269,7 +1272,7 @@ dhcpd.conf file:
+@@ -1346,7 +1349,7 @@ dhcpd.conf file:
  .PP
  .nf
  key DHCP_UPDATER {
@@ -136,7 +152,7 @@ diff -up dhcp-4.3.5b1/server/dhcpd.conf.5.man dhcp-4.3.5b1/server/dhcpd.conf.5
    secret pRP5FapFoJ95JEL06sv4PQ==;
  };
  
-@@ -2742,7 +2745,8 @@ statement
+@@ -2918,7 +2921,8 @@ statement
  The \fInext-server\fR statement is used to specify the host address of
  the server from which the initial boot file (specified in the
  \fIfilename\fR statement) is to be loaded.  \fIServer-name\fR should
@@ -146,3 +162,35 @@ diff -up dhcp-4.3.5b1/server/dhcpd.conf.5.man dhcp-4.3.5b1/server/dhcpd.conf.5
  .RE
  .PP
  The
+-- 
+2.35.1
+
+From aa328eef58ff93110f2a52cb3a80002ab8cee36e Mon Sep 17 00:00:00 2001
+From: Pavel Zhukov <pzhukov@redhat.com>
+Date: Tue, 22 Oct 2019 16:28:04 +0200
+Subject: [PATCH 26/28] Add dhclient(5) -B option description
+
+Bug-Url: https://bugzilla.redhat.com/1764088
+---
+ client/dhclient.8 | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/client/dhclient.8 b/client/dhclient.8
+index bacf3bc..76f0cc0 100644
+--- a/client/dhclient.8
++++ b/client/dhclient.8
+@@ -553,6 +553,11 @@ Path to the network configuration script invoked by
+ when it gets a lease.  If unspecified, the default
+ .B CLIENTBINDIR/dhclient-script
+ is used.  See \fBdhclient-script(8)\fR for a description of this file.
++.TP
++.BI \-B
++Always set the bootp broadcast flag in request packets, so that
++servers will always broadcast replies. This option is provided as
++an extension to enable dhclient to work on IBM s390 Linux guests.
+ .PP
+ .SH PORTS
+ During operations the client may use multiple UDP ports
+-- 
+2.35.1
+
