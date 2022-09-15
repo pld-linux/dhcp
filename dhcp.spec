@@ -141,9 +141,13 @@ Ten pakiet zawiera schemat LDAPv3 do używania z serwerem DHCP.
 Summary:	DHCP Client
 Summary(pl.UTF-8):	Klient DHCP
 Group:		Networking/Daemons
+Requires:	bash
 Requires:	coreutils
+Requires:	grep
+Requires:	hostname
 Requires:	iproute2
-Requires:	net-tools
+Requires:	sed
+Requires:	util-linux
 Suggests:	avahi-autoipd
 Provides:	dhclient = %{epoch}:%{version}-%{release}
 Obsoletes:	dhclient
