@@ -1,3 +1,5 @@
+# note: isc dhcp is now eol
+# https://www.isc.org/blogs/isc-dhcp-eol/
 #
 # Conditional build:
 %bcond_without	ldap	# without support for ldap storage
@@ -5,7 +7,7 @@
 %bcond_without	systemd		# without systemd units
 
 %define         ver     4.4.3
-%if 0
+%if 1
 %define         pverdot .P1
 %define         pverdir -P1
 %else
@@ -21,12 +23,12 @@ Summary(pl.UTF-8):	Serwer DHCP
 Summary(pt_BR.UTF-8):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
 Version:	%{ver}%{pverdot}
-Release:	2
+Release:	1
 Epoch:		4
 License:	MIT
 Group:		Networking/Daemons
 Source0:	ftp://ftp.isc.org/isc/dhcp/%{ver}%{pverdir}/%{name}-%{ver}%{pverdir}.tar.gz
-# Source0-md5:	9076af4cc1293dde5a7c6cae7de6ab45
+# Source0-md5:	36c6ca77212373b0cff478ae9e5d32af
 Source1:	%{name}.init
 Source2:	%{name}6.init
 Source3:	%{name}-relay.init
