@@ -72,6 +72,7 @@ Patch27:	%{name}-option97-pxe-client-id.patch
 Patch28:	%{name}-detect-time-changes.patch
 Patch29:	bind-detect-time-changes.patch
 Patch30:	bind-system-getaddrinfo.patch
+Patch31:	declarations-fix.patch
 URL:		https://www.isc.org/dhcp/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -259,6 +260,7 @@ komunikacji z działającym serwerem ISC DHCP i jego kontroli.
 %patch -P26 -p1
 %patch -P27 -p1
 %patch -P28 -p1
+%patch -P31 -p1
 
 cd bind
 tar -xvf bind.tar.gz

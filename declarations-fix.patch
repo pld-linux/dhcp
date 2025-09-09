@@ -1,0 +1,39 @@
+From f7eb324f5b0deef285b0eaa0d504af77f06c779f Mon Sep 17 00:00:00 2001
+From: Stepan Broz <sbroz@redhat.com>
+Date: Fri, 24 Jan 2025 15:41:41 +0100
+Subject: [PATCH] Correct declarations of ia_na_[no]match and ia_pd_[no]match
+ in server/dhcpv6.c.
+
+---
+ server/dhcpv6.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/server/dhcpv6.c b/server/dhcpv6.c
+index 7d61dc5..c1f227c 100644
+--- a/server/dhcpv6.c
++++ b/server/dhcpv6.c
+@@ -5852,8 +5852,8 @@ iterate_over_ia_na(struct data_string *reply_ret,
+ 		   const struct data_string *client_id,
+ 		   const struct data_string *server_id,
+ 		   const char *packet_type,
+-		   void (*ia_na_match)(),
+-		   void (*ia_na_nomatch)())
++		   void (*ia_na_match)(const struct data_string *, const struct data_string *, struct iasubopt *),
++		   void (*ia_na_nomatch)(const struct data_string *, const struct data_string *, u_int32_t *, struct packet *, char *, int *, int))
+ {
+ 	struct option_state *opt_state;
+ 	struct host_decl *packet_host;
+@@ -6354,8 +6354,8 @@ iterate_over_ia_pd(struct data_string *reply_ret,
+ 		   const struct data_string *client_id,
+ 		   const struct data_string *server_id,
+ 		   const char *packet_type,
+-		   void (*ia_pd_match)(),
+-		   void (*ia_pd_nomatch)())
++		   void (*ia_pd_match)(const struct data_string *, const struct data_string *, struct iasubopt *),
++		   void (*ia_pd_nomatch)(const struct data_string *, const struct data_string *, u_int32_t *, struct packet *, char *, int *, int))
+ {
+ 	struct data_string reply_new;
+ 	int reply_len;
+-- 
+2.48.1
+
