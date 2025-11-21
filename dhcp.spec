@@ -23,7 +23,7 @@ Summary(pl.UTF-8):	Serwer DHCP
 Summary(pt_BR.UTF-8):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
 Version:	%{ver}%{pverdot}
-Release:	1
+Release:	2
 Epoch:		4
 License:	MIT
 Group:		Networking/Daemons
