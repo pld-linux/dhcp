@@ -23,11 +23,11 @@ Summary(pl.UTF-8):	Serwer DHCP
 Summary(pt_BR.UTF-8):	Servidor DHCP (Protocolo de configuração dinâmica de hosts)
 Name:		dhcp
 Version:	%{ver}%{pverdot}
-Release:	2
+Release:	3
 Epoch:		4
 License:	MIT
 Group:		Networking/Daemons
-Source0:	ftp://ftp.isc.org/isc/dhcp/%{ver}%{pverdir}/%{name}-%{ver}%{pverdir}.tar.gz
+Source0:	https://downloads.isc.org/isc/dhcp/%{ver}%{pverdir}/%{name}-%{ver}%{pverdir}.tar.gz
 # Source0-md5:	36c6ca77212373b0cff478ae9e5d32af
 Source1:	%{name}.init
 Source2:	%{name}6.init
@@ -73,6 +73,7 @@ Patch28:	%{name}-detect-time-changes.patch
 Patch29:	bind-detect-time-changes.patch
 Patch30:	bind-system-getaddrinfo.patch
 Patch31:	declarations-fix.patch
+Patch32:	CVE-2026-18103.patch
 URL:		https://www.isc.org/dhcp/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -261,6 +262,7 @@ komunikacji z działającym serwerem ISC DHCP i jego kontroli.
 %patch -P27 -p1
 %patch -P28 -p1
 %patch -P31 -p1
+%patch -P32 -p1
 
 cd bind
 tar -xvf bind.tar.gz
@@ -338,6 +340,8 @@ install client/scripts/linux $RPM_BUILD_ROOT/sbin/dhclient-script
 
 install server/dhcpd.conf.example $RPM_BUILD_ROOT%{_sysconfdir}/dhcpd.conf
 install doc/examples/dhcpd-dhcpv6.conf $RPM_BUILD_ROOT%{_sysconfdir}/dhcpd6.conf
+# make install puts the examples into /etc; they are packaged as %doc
+rm $RPM_BUILD_ROOT%{_sysconfdir}/{dhclient,dhcpd}.conf.example
 
 %if %{with ldap}
 install -d $RPM_BUILD_ROOT%{schemadir}
